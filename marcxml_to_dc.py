@@ -130,10 +130,6 @@ class MarcToDc(MarcXmlConverter):
             dc_element.replace('dc:', '{http://purl.org/dc/elements/1.1/}')
           ).text = field_text
 
-    # thomas 1:12 post. 
-    # 655 handling:
-    # discard if subfield 2 == 'lcgft'
-
     return metadata
 
 
