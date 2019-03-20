@@ -6,8 +6,27 @@ class MarcXmlConverter:
     """
        Parameters:
        record_str -- a marcxml record, as a string.
+
+       A note from Thomas Dousa about 655 handling:
+       The siglum "655 $2 lcgft" is meant to indicate "A 655 Field that has a
+       $2 lcgft subfield", not the subfield itself. The reason for this is that
+       other vocabularies can be used in that field and 655 $2 lcgft constrains
+       the mapping only to those instantiations of the field that have this
+       particular subfield. The subfield itself should not figure in the
+       mapping but whatever term occurs immediately before it: thus, for a MARC
+       field of the form "655 _7 $a Maps $2 lcgft, only the "Maps" in subfield
+       $a (of the 655 field modified by subfield $2 lcgft) should be carried
+       over. Hope this clears things up!
     """
     self.record = ElementTree.fromstring(record_str)
+
+    for element in self.record:
+      if element.tag == '{http://www.loc.gov/MARC21/slim}datafield':
+        if element.attrib['tag'] == '655':
+          for subfield in element:
+            if subfield.attrib['code'] == '2' and not subfield.text == 'lcgft':
+              self.record.remove(element)
+              continue
 
 
   def get_marc_field(self, field_tag, subfield_code, ind1, ind2): 
