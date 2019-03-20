@@ -14,8 +14,9 @@ class MarcToDc(MarcXmlConverter):
             [1] a regular expression (as a string), allowable subfields. 
             [2] a regular expression (as a string), indicator 1.
             [3] a regular expression (as a string), indicator 2. 
-	  [2] a boolean, subfields repeat. 
-              assert [2]==False if [0]==False.
+	  [2] a boolean, subfields each get their own DC element. If False,
+              subfields are joined together into a single DC element.
+              assert this field==False if [0]==False.
 	  [3] a regular expression (as a string) to strip out of the field, or
               None if there is nothing to exclude.
               if the resulting value is '' it won't be added.
@@ -54,7 +55,7 @@ class MarcToDc(MarcXmlConverter):
     ('dc:language',        [True,  [('041', '[a-z]',  '.', '.')], True,    None]),
     ('dc:location',        [True,  [('264', 'a',      '1', '.'),
                                     ('533', 'b',      '.', '.')], False,   None]),
-    ('dc:medium',          [True,  [('338', '[a-z]',  '.', '.')], False,   None]),
+    ('dc:medium',          [True,  [('338', 'a',      '.', '.')], False,   None]),
     ('dc:periodOfTime',    [True,  [('650', 'y',      '.', '.')], False,   None]),
     ('dc:publisher',       [True,  [('264', 'b',      '1', '.')], False,   None]),
     ('dc:relation',        [True,  [('730', 'a',      '.', '.')], False,   None]),
@@ -64,10 +65,10 @@ class MarcToDc(MarcXmlConverter):
                                     ('240', '[a-z]',  '.', '.'),
                                     ('245', '[ab]',   '.', '.'),
                                     ('246', '[a-z]',  '.', '.')], False,   None]),
-    ('dc:type',            [True,  [('336', '[a-z]',  '.', '.'),
+    ('dc:type',            [True,  [('336', 'a',      '.', '.'),
                                     ('650', 'v',      '.', '.'),
                                     ('651', 'v',      '.', '.'),
-                                    ('655', 'a',      '.', '.')], True,    '^Maps[. ]*$'])
+                                    ('655', 'a',      '.', '.')], True,    '^Maps[. ]*$|[. ]*$'])
   ]
 
 
