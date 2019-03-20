@@ -5,69 +5,81 @@ import xml.etree.ElementTree as ElementTree
 from marcxml_converter import MarcXmlConverter
 
 class MarcToDc(MarcXmlConverter):
-  mappings = {  
-    'dc:accessRights'    : [('506', None, None, None)],
-    'dc:contributor'     : [('700', 'a',  None, None), 
-                            ('710', 'a',  None, None)],
-    'dc:coverage'        : [('034', None, None, None),
-                            ('043', None, None, None),
-                            ('052', None, None, None),
-                            ('650', 'z',  None, None),
-                            ('651', 'a',  None, None), 
-                            ('651', 'z',  None, None)],
-    'dc:creator'         : [('100', None, None, None),
-                            ('110', None, None, None),
-                            ('111', None, None, None),
-                            ('245', 'c',  None, None),
-                            ('533', 'c',  None, None)], 
-    'dc:date'            : [('533', 'd',  None, None)],
-    'dc:dateCopyrighted' : [('264', 'c',  None, '4' )],
-    'dc:description'     : [('500', None, None, None),
-                            ('538', None, None, None)],
-    'dc:extent'          : [('300', 'a',  None, None),
-                            ('300', 'c',  None, None)],
-    'dc:format'          : [('337', None, None, None)],
-    'dc:hasFormat'       : [('533', 'a',  None, None), 
-                            ('776', 'a',  None, None)],
-    'dc:identifier'      : [('020', None, None, None),
-                            ('021', None, None, None),
-                            ('022', None, None, None), 
-                            ('023', None, None, None), 
-                            ('024', None, None, None),
-                            ('025', None, None, None),
-                            ('026', None, None, None),
-                            ('027', None, None, None), 
-                            ('028', None, None, None),
-                            ('029', None, None, None),
-                            ('856', 'u',  None, None)],
-    'dc:isPartOf'        : [('490', None, None, None),
-                            ('533', 'f',  None, None),
-                            ('700', 't',  None, None),
-                            ('830', None, None, None)],
-    'dc:issued'          : [('264', 'c',  '1',  None)],
-    'dc:language'        : [('041', None, None, None)], 
-    'dc:location'        : [('264', 'a',  '1',  None),
-                            ('533', 'b',  None, None)],
-    'dc:medium'          : [('338', None, None, None)],
-    'dc:periodOfTime'    : [('650', 'y',  None, None)],
-    'dc:publisher'       : [('264', 'b',  '1',  None)],
-    'dc:relation'        : [('730', 'a',  None, None)],
-    'dc:subject'         : [('050', None, None, None),
-                            ('650', 'x',  None, None)],
-    'dc:title'           : [('130', None, None, None), 
-                            ('240', None, None, None),
-                            ('245', 'a',  None, None),
-                            ('245'  'b',  None, None),
-                            ('246', None, None, None)],
-    'dc:type'            : [('336', None, None, None),
-                            ('650', 'v',  None, None),
-                            ('651', 'v',  None, None),
-                            ('655', 'v',  None, None),
-                            ('655', '2',  None, None),
-                            ('655', 'c',  None, None)]
-  }
+  ''' mappings -- a list of tuples-
+        [0] -- Dublin Core metadata element.
+        [1] -- a list-
+          [0] a boolean, DC element is repeatable. 
+          [1] a list, a MARC field specification-
+            [0] a string, the MARC field itself.
+            [1] a regular expression (as a string), allowable subfields. 
+            [2] a regular expression (as a string), indicator 1.
+            [3] a regular expression (as a string), indicator 2. 
+	  [2] a boolean, subfields repeat. 
+              assert [2]==False if [0]==False.
+  '''
 
-  def __str__(self):
+  mappings = [
+    ('dc:accessRights',    [False, [('506', '[a-z]',  '.', '.')], False]),
+    ('dc:contributor',     [True,  [('700', 'a',      '.', '.'),
+                                    ('710', 'a',      '.', '.')], False]),   
+    ('dc:coverage',        [False, [('255', '[a-z]',  '.', '.')], False]),
+    ('dc:creator',         [True,  [('100', '[a-z]',  '.', '.'),
+                                    ('110', '[a-z]',  '.', '.'),
+                                    ('111', '[a-z]',  '.', '.'),
+                                    ('245', 'c',      '.', '.')], False]),
+    ('dc:dateCopyrighted', [True,  [('264', 'c',      '.', '4')], False]),
+    ('dc:description',     [False, [('300', '[a-z3]', '.', '.')], False]),
+    ('dc:extent',          [False, [('300', '[a-z]',  '.', '.')], False]),
+    ('dc:format',          [True,  [('337', 'a',      '.', '.')], False]),
+    ('dc:hasFormat',       [True,  [('533', 'a',      '.', '.')], False]),
+    ('dc:identifier',      [True,  [('020', '[a-z]',  '.', '.'),
+                                    ('021', '[a-z]',  '.', '.'),
+                                    ('022', '[a-z]',  '.', '.'),
+                                    ('023', '[a-z]',  '.', '.'),
+                                    ('024', '[a-z]',  '.', '.'),
+                                    ('025', '[a-z]',  '.', '.'),
+                                    ('026', '[a-z]',  '.', '.'),
+                                    ('027', '[a-z]',  '.', '.'),
+                                    ('028', '[a-z]',  '.', '.'),
+                                    ('029', '[a-z]',  '.', '.'),
+                                    ('856', 'u',      '.', '.')], True]),
+    ('dc:isPartOf',        [True,  [('490', '[a-z]',  '.', '.'),
+                                    ('533', 'f',      '.', '.'),
+                                    ('700', 't',      '.', '.'),
+                                    ('830', '[a-z]',  '.', '.')], False]),
+    ('dc:issued',          [True,  [('264', 'c',      '1', '.')], False]),
+    ('dc:language',        [True,  [('041', '[a-z]',  '.', '.')], True]),
+    ('dc:location',        [True,  [('264', 'a',      '1', '.'),
+                                    ('533',  'b',      '.', '.')], False]),
+    ('dc:medium',          [True,  [('338', '[a-z]',  '.', '.')], False]),
+    ('dc:periodOfTime',    [True,  [('650', 'y',      '.', '.')], False]),
+    ('dc:publisher',       [True,  [('264', 'b',      '1', '.')], False]),
+    ('dc:relation',        [True,  [('730', 'a',      '.', '.')], False]),
+    ('dc:subject',         [True,  [('050', '[a-z]',  '.', '.')], False]),
+    ('dc:subject',         [True,  [('650', '[ax]',   '.', '.')], True]),
+    ('dc:title',           [True,  [('130', '[a-z]',  '.', '.'), 
+                                    ('240', '[a-z]',  '.', '.'),
+                                    ('245', '[a-z]',  '.', '.'),
+                                    ('246', '[a-z]',  '.', '.')], False]),
+    ('dc:type',            [True,  [('336', '[a-z]',  '.', '.'),
+                                    ('650', 'v',      '.', '.'),
+                                    ('651', 'v',      '.', '.'),
+                                    ('655', '[cv2]',  '.', '.')], False])
+  ]
+
+
+  def __init__(self, record_str):
+    """
+       Parameters:
+       record_str -- a marcxml record, as a string.
+    """
+    for _, (repeat_dc, _, repeat_sf) in self.mappings:
+      if repeat_dc == False:
+        assert repeat_sf == False
+    super().__init__(record_str)
+
+ 
+  def xml(self):
     """
        Returns:
        XML dublin core data. 
@@ -75,29 +87,76 @@ class MarcToDc(MarcXmlConverter):
     ElementTree.register_namespace('dc', 'http://purl.org/dc/elements/1.1/')
 
     metadata = ElementTree.Element('metadata')
-    for dc_element, marc_fields in self.mappings.items():
-      for marc_field in marc_fields:
-        for field_text in self.get_marc_field(*marc_field):
+    for dc_element, (repeat_dc, marc_fields, repeat_sf) in self.mappings:
+      if repeat_dc:
+        if repeat_sf:
+          for marc_field in marc_fields:
+            for field_text in self.get_marc_field(*marc_field):
+              ElementTree.SubElement(
+                metadata,
+                dc_element.replace('dc:', '{http://purl.org/dc/elements/1.1/}')
+              ).text = field_text
+        else:
+          for marc_field in marc_fields:
+            field_text = ' '.join(self.get_marc_field(*marc_field))
+            if field_text:
+              ElementTree.SubElement(
+                metadata,
+                dc_element.replace('dc:', '{http://purl.org/dc/elements/1.1/}')
+              ).text = field_text
+      else:
+        field_text_arr = []
+        for marc_field in marc_fields:
+          field_text_arr = field_text_arr + self.get_marc_field(*marc_field)
+        field_text = ' '.join(field_text_arr)
+        if field_text:
           ElementTree.SubElement(
             metadata,
             dc_element.replace('dc:', '{http://purl.org/dc/elements/1.1/}')
           ).text = field_text
-    return ElementTree.tostring(metadata, 'utf-8', method='xml').decode('utf-8')
+
+    return metadata
+
+
+  def __str__(self):
+    """
+       Returns:
+       XML dublin core data as a string.
+    """
+
+    return ElementTree.tostring(self.xml(), 'utf-8', method='xml').decode('utf-8')
 
 
 if __name__ == '__main__':
+  def indent(elem, level=0):
+    i = "\n" + level * "  "
+    j = "\n" + (level - 1) * "  "
+    if len(elem):
+      if not elem.text or not elem.text.strip():
+        elem.text = i + "  "
+      if not elem.tail or not elem.tail.strip():
+        elem.tail = i
+      for subelem in elem:
+        indent(subelem, level + 1)
+      if not elem.tail or not elem.tail.strip():
+        elem.tail = j
+    else:
+      if level and (not elem.tail or not elem.tail.strip()):
+        elem.tail = j
+    return elem 
+
   marcxml = ElementTree.fromstring(sys.stdin.read())
-  sys.stdout.write('<dublin_core>')
+
+  dublin_core = ElementTree.Element('dublin_core')
   for record in marcxml.findall('{http://www.loc.gov/MARC21/slim}record'):
-    sys.stdout.write(
-      str(
-        MarcToDc(
-          ElementTree.tostring(
-            record, 
-            'utf-8', 
-            method='xml'
-          ).decode('utf-8')
-        )
-      )
+    dublin_core.append(
+      MarcToDc(
+        ElementTree.tostring(
+          record, 
+          'utf-8', 
+          method='xml'
+        ).decode('utf-8')
+      ).xml()
     )
-  sys.stdout.write('</dublin_core>')
+  indent(dublin_core)
+  ElementTree.dump(dublin_core)

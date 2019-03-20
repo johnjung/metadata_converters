@@ -15,20 +15,35 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
   
     schema['@context'] = 'https://schema.org'
   
-    schema['@type']    = 'Map'
+    schema['@type'] = 'Map'
   
     # e.g., http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2B8-1923-U5
-    schema['url']      = next(iter(self.get_marc_field('856', 'u')), None)
-  
-    schema['name']     = ' '.join(self.get_marc_field('245', 'a') + self.get_marc_field('245', 'b'))
+    schema['url'] = next(iter(self.get_marc_field('856', 'u', '.', '.')), None)
+ 
+    name_str = ' '.join(self.get_marc_field('245', '[ab]', '.', '.'))
+    if name_str:
+      schema['name'] = name_str
   
     # creator/@type is either 'Organization' or 'Person'.
-    creator_type = 'Person' if self.get_marc_field('100') else 'Organization'
+    if self.get_marc_field('100', '[a-z]', '.', '.'):
+      creator_type = 'Person'
+    else:
+      creator_type = 'Organization'
   
-    # get creators from the 100, 110, or 111 fields if possible. Otherwise get them from the 245c.
-    creators = self.get_marc_field('100') + self.get_marc_field('110') + self.get_marc_field('111')
+    # get creators from the 100, 110, or 111 fields if possible. 
+    # Otherwise get them from the 245c.
+    creators = []
+    creator_str = ' '.join(self.get_marc_field('100', '[a-z]', '.', '.'))
+    if creator_str:
+      creators.append(creator_str)
+    creator_str = ' '.join(self.get_marc_field('110', '[a-z]', '.', '.'))
+    if creator_str:
+      creators.append(creator_str)
+    creator_str = ' '.join(self.get_marc_field('111', '[a-z]', '.', '.'))
+    if creator_str:
+      creators.append(creator_str)
     if not creators:
-      creators = self.get_marc_field('245', 'c')
+      creators = [' '.join(self.get_marc_field('245', 'c', '.', '.'))]
   
     if len(creators) == 1:
       schema['creator'] = {
@@ -42,9 +57,24 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
           '@type': creator_type,
           'name': creator
         }) 
-      schema['creator'] = schema_creator
-  
-    schema['description'] = ' '.join(self.get_marc_field('255') + self.get_marc_field('500') + self.get_marc_field('538'))
+      if schema_creator:
+        schema['creator'] = schema_creator
+ 
+    description_str = ' '.join(
+      self.get_marc_field('255', '[a-z]', '.', '.') + \
+      self.get_marc_field('500', '[a-z]', '.', '.') + \
+      self.get_marc_field('538', '[a-z]', '.', '.')
+    )
+    if description_str:
+      schema['description'] = description_str
+
+    identifier = self.get_marc_field('001', '.', '.', '.')
+    if identifier:
+      schema['identifier'] = 'http://pi.lib.uchicago.edu/1001/cat/bib/{}'.format(identifier[0])
+
+    publishers = self.get_marc_field('264', 'b', '1', '.')
+    if publishers:
+      schema['publisher']
 
     return schema
 

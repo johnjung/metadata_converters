@@ -1,3 +1,4 @@
+import re
 import xml.etree.ElementTree as ElementTree
 
 class MarcXmlConverter:
@@ -9,35 +10,32 @@ class MarcXmlConverter:
     self.record = ElementTree.fromstring(record_str)
 
 
-  def get_marc_field(self, field_tag, subfield_code=None, ind1=None, ind2=None): 
+  def get_marc_field(self, field_tag, subfield_code, ind1, ind2): 
     """
        Parameters:
        field_tag     -- a string, e.g. '245'
-       subfield_code -- a string, e.g. 'a', or None
-       ind1          -- a string, e.g. '4', or None
-       ind2          -- a string, e.g. '5', or None
+       subfield_code -- a regular expression (as a string), e.g. '[a-z]'
+       ind1          -- a regular expression (as a string), e.g. '4'
+       ind2          -- a regular expression (as a string), e.g. '5'
+ 
+       Returns:
+       A list of strings, the values of all MARC tags and subfields that matched. 
     """
     results = []
     for element in self.record:
       try:
-        if element.attrib['tag'] != field_tag:
+        if not element.attrib['tag'] == field_tag:
           continue
       except KeyError:
         continue
       if element.tag == '{http://www.loc.gov/MARC21/slim}controlfield':
         results.append(element.text)
       elif element.tag == '{http://www.loc.gov/MARC21/slim}datafield':
-        try:
-          if ind1 and element.attrib['ind1'] != ind1:
-            continue
-          if ind2 and element.attrib['ind2'] != ind2:
-            continue
-        except KeyError:
+        if not re.match(ind1, element.attrib['ind1']):
+          continue
+        if not re.match(ind2, element.attrib['ind2']):
           continue
         for subfield in element:
-          if subfield_code:
-            if subfield.attrib['code'] == subfield_code:
-              results.append(subfield.text)
-          else:
+          if re.match(subfield_code, subfield.attrib['code']):
             results.append(subfield.text)
     return results
