@@ -5,81 +5,79 @@ import xml.etree.ElementTree as ElementTree
 
 from marcxml_converter import MarcXmlConverter
 
+
 class MarcXmlToSchemaDotOrg(MarcXmlConverter):
-  def json(self):
-    """
-       Returns:
-       JSON-LD.
-   """
-    schema = {}
-  
-    schema['@context'] = 'https://schema.org'
-  
-    schema['@type'] = 'Map'
-  
-    # e.g., http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2B8-1923-U5
-    schema['url'] = next(iter(self.get_marc_field('856', 'u', '.', '.')), None)
- 
-    name_str = ' '.join(self.get_marc_field('245', '[ab]', '.', '.'))
-    if name_str:
-      schema['name'] = name_str
-  
-    # creator/@type is either 'Organization' or 'Person'.
+
+
+  def get_creator(self):
+    '''
+       Get creators from the 100, 110, or 111 fields if possible. 
+       Otherwise get them from the 245c.
+    '''
     if self.get_marc_field('100', '[a-z]', '.', '.'):
       creator_type = 'Person'
     else:
       creator_type = 'Organization'
-  
-    # get creators from the 100, 110, or 111 fields if possible. 
-    # Otherwise get them from the 245c.
+ 
     creators = []
-    creator_str = ' '.join(self.get_marc_field('100', '[a-z]', '.', '.'))
-    if creator_str:
-      creators.append(creator_str)
-    creator_str = ' '.join(self.get_marc_field('110', '[a-z]', '.', '.'))
-    if creator_str:
-      creators.append(creator_str)
-    creator_str = ' '.join(self.get_marc_field('111', '[a-z]', '.', '.'))
-    if creator_str:
-      creators.append(creator_str)
+    for m in ('100', '110', '111'):
+      creator_str = ' '.join(self.get_marc_field(m, '[a-z]', '.', '.'))
+      if creator_str:
+        creators.append(creator_str)
     if not creators:
       creators = [' '.join(self.get_marc_field('245', 'c', '.', '.'))]
-  
-    if len(creators) == 1:
-      schema['creator'] = {
-        '@type': creator_type,
-        'name': creators[0]
-      }
-    else:
-      schema_creator = []
-      for creator in creators:
-        schema_creator.append({
-          '@type': creator_type,
-          'name': creator
-        }) 
-      if schema_creator:
-        schema['creator'] = schema_creator
  
-    description_str = ' '.join(
-      self.get_marc_field('255', '[a-z]', '.', '.') + \
-      self.get_marc_field('500', '[a-z]', '.', '.') + \
-      self.get_marc_field('538', '[a-z]', '.', '.')
-    )
-    if description_str:
-      schema['description'] = description_str
+    if len(creators) == 0: 
+      return None
+    elif len(creators) == 1:
+      return {'@type': creator_type, 'name': creators[0]}
+    else:
+      return [{'@type': creator_type, 'name': c} for c in creators]
 
-    identifier = self.get_marc_field('001', '.', '.', '.')
-    if identifier:
-      schema['identifier'] = 'http://pi.lib.uchicago.edu/1001/cat/bib/{}'.format(identifier[0])
+ 
+  def get_description(self):
+    l = []
+    for m in ('255', '500', '538'):
+      l = l + self.get_marc_field(m, '[a-z]', '.', '.')
+    return ' '.join(l) or None
 
-    publishers = self.get_marc_field('264', 'b', '1', '.')
-    if publishers:
-      schema['publisher']
 
-    return schema
+  def get_identifier(self):
+    return next(iter(self.get_marc_field('001', '.', '.', '.')), None)
+
+
+  def get_name(self):
+    return ' '.join(self.get_marc_field('245', '[ab]', '.', '.')) or None
+
+
+  def get_url(self):
+   return next(iter(self.get_marc_field('856', 'u', '.', '.')), None)
+
+
+  def to_dict(self):
+    dict = {
+      '@context':    'https://schema.org',
+      '@type':       'Map',
+      'url':         self.get_url(),
+      'name':        self.get_name(),
+      'creator':     self.get_creator(),
+      'description': self.get_description(),
+      'identifier':  self.get_identifier()
+    }
+    for k in dict.keys():
+      if dict[k] == None:
+        dict.pop(k)
+    return dict
+
 
   def __str__(self):
-    return json.dumps(self.json())
+    """
+       Returns:
+       JSON-LD.
+   """
+
+    return json.dumps(self.to_dict())
+
     
 if __name__ == '__main__':
   marcxml = ElementTree.fromstring(sys.stdin.read())
@@ -93,6 +91,6 @@ if __name__ == '__main__':
           'utf-8', 
           method='xml'
         ).decode('utf-8')
-      ).json()
+      ).to_dict()
     )
   sys.stdout.write(json.dumps(output, ensure_ascii=False, indent=4))
