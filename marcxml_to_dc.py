@@ -79,14 +79,24 @@ class MarcToDc(MarcXmlConverter):
   def __init__(self, record_str):
     """
        Parameters:
-       record_str -- a marcxml record, as a string.
+       record_str -- a marcxml collection element with a single record.
     """
     for _, (repeat_dc, _, repeat_sf, _) in self.mappings:
       if repeat_dc == False:
         assert repeat_sf == False
     super().__init__(record_str)
+    self.dc = self.xml()
 
- 
+
+  def __getattr__(self, attr):
+    """Return dublin core elements as properties, e.g. self.identifier, self.title.
+
+       Returns:
+       a string.
+    """
+    return self.dc.find('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr)).text
+  
+  
   def xml(self):
     """
        Returns:
@@ -165,18 +175,6 @@ if __name__ == '__main__':
         elem.tail = j
     return elem 
 
-  marcxml = ElementTree.fromstring(sys.stdin.read())
-
-  dublin_core = ElementTree.Element('dublin_core')
-  for record in marcxml.findall('{http://www.loc.gov/MARC21/slim}record'):
-    dublin_core.append(
-      MarcToDc(
-        ElementTree.tostring(
-          record, 
-          'utf-8', 
-          method='xml'
-        ).decode('utf-8')
-      ).xml()
-    )
-  indent(dublin_core)
-  ElementTree.dump(dublin_core)
+  dc = MarcToDc(sys.stdin.read()).xml()
+  indent(dc)
+  ElementTree.dump(dc)

@@ -5,9 +5,9 @@ class MarcXmlConverter:
   def __init__(self, record_str):
     """
        Parameters:
-       record_str -- a marcxml record, as a string.
+       record_str -- a marcxml collection with a single record, as a string.
     """
-    self.record = ElementTree.fromstring(record_str)
+    self.record = ElementTree.fromstring(record_str).find('{http://www.loc.gov/MARC21/slim}record')
 
     # Only bring in 655's where the $2 subfield is set to 'lcgft'. 
     for element in self.record:

@@ -146,23 +146,13 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
     """
        Returns:
        JSON-LD.
-   """
-
-    return json.dumps(self.to_dict())
+    """
+    return json.dumps(
+      self.to_dict(),
+      ensure_ascii=False,
+      indent=4
+    )
 
     
 if __name__ == '__main__':
-  marcxml = ElementTree.fromstring(sys.stdin.read())
-
-  output = []
-  for record in marcxml.findall('{http://www.loc.gov/MARC21/slim}record'):
-    output.append(
-      MarcXmlToSchemaDotOrg(
-        ElementTree.tostring(
-          record, 
-          'utf-8', 
-          method='xml'
-        ).decode('utf-8')
-      ).to_dict()
-    )
-  sys.stdout.write(json.dumps(output, ensure_ascii=False, indent=4))
+  sys.stdout.write(str(MarcXmlToSchemaDotOrg(sys.stdin.read())))
