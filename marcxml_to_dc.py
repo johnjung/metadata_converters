@@ -5,7 +5,11 @@ import xml.etree.ElementTree as ElementTree
 from marcxml_converter import MarcXmlConverter
 
 class MarcToDc(MarcXmlConverter):
-  ''' mappings -- a list of tuples-
+  ''' The Library of Congress has a MARCXML to DC conversion here:
+      http://www.loc.gov/standards/marcxml/xslt/MARC21slim2SRWDC.xsl
+      It produces slightly different results. 
+
+      mappings -- a list of tuples-
         [0] -- Dublin Core metadata element.
         [1] -- a list-
           [0] a boolean, DC element is repeatable. 
