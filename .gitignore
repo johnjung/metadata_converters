@@ -1,0 +1,6 @@
+# Distribution / packaging
+dist/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
