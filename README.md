@@ -22,6 +22,9 @@ Internal documentation.
 [LibreCat/Catmandu](https://github.com/LibreCat/Catmandu)
 Another project, written in Perl, with converters to and from lots of metadata formats. 
 
+[How to use DCMI Metadata as linked data](http://www.dublincore.org/resources/userguide/publishing_metadata/)
+Some notes from dublincore.org.
+
 ## Author
 
 John Jung
