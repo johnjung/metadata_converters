@@ -1,7 +1,7 @@
-# marc_tools
+# metadata_tools
 
-Scripts to convert MARCXML to different data formats, like Dublin Core or
-Schema.org. 
+Scripts to convert metadata to and from different formats: e.g., MARCXML to DC,
+or MARCXML to Schema.org. 
 
 ## Contributing
 
@@ -20,7 +20,7 @@ The Library of Congress's MARC to Dublin Core crosswalk.
 Internal documentation.
 
 [LibreCat/Catmandu](https://github.com/LibreCat/Catmandu)
-This project, written in Perl, has converters to and from lots of metadata formats. 
+Another project, written in Perl, with converters to and from lots of metadata formats. 
 
 ## Author
 
