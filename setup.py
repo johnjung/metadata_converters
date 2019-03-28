@@ -12,5 +12,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/johnjung/metadata_tools',
-    packages=setuptools.find_packages()
+    packages=setuptools.find_packages(),
+    entry_points={
+        'console_scripts': [
+            'marc2dc = metadata_tools.marc2dc.main',
+            'marc2schemadotorg = metadata_tools.marc2schemadotorg.main'
+        ]
+    }
 )
