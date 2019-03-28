@@ -6,7 +6,7 @@
 
 import sys
 from docopt import docopt
-from converters import MarcXmlToSchemaDotOrg
+from .converters import MarcXmlToSchemaDotOrg
 
 
 def main():

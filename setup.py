@@ -15,8 +15,11 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     entry_points={
         'console_scripts': [
-            'marc2dc = metadata_tools.marc2dc.main',
-            'marc2schemadotorg = metadata_tools.marc2schemadotorg.main'
+            'marc2dc = metadata_tools.marc2dc:main',
+            'marc2schemadotorg = metadata_tools.marc2schemadotorg:main'
         ]
-    }
+    },
+    install_requires=[
+        'docopt'
+    ]
 )

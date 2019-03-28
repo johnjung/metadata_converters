@@ -6,7 +6,7 @@
 
 import sys
 from docopt import docopt
-from converters import MarcToDc
+from .converters import MarcToDc
 
 
 def main():
