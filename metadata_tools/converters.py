@@ -154,7 +154,7 @@ class MarcToDc(MarcXmlConverter):
 
     :rtype list
     """
-    return [t for t in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr)).text]
+    return [e.text for e in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr))]
 
 
   def _build_xml(self):
