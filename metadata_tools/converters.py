@@ -152,9 +152,9 @@ class MarcToDc(MarcXmlConverter):
     """Return individual Dublin Core elements as instance properties, e.g.
     self.identifier.
 
-    :rtype str
+    :rtype list
     """
-    return self.dc.find('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr)).text
+    return [t for t in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr)).text]
 
 
   def _build_xml(self):
