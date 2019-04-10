@@ -1,4 +1,4 @@
-# metadata_tools
+# metadata_converters
 
 Scripts to convert metadata to and from different formats: e.g., MARCXML to DC,
 or MARCXML to Schema.org. 
