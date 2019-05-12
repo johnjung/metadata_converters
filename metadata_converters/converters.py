@@ -9,12 +9,14 @@ class MarcXmlConverter:
   A class to convert MARCXML to other formats. Extend this class to make
   converters for outputting specific formats. 
 
-  :rtype :class:`MarcXmlConverter`
+  Returns:
+      a MarcXmlConverter
   """
   def __init__(self, marcxml):
     """Initialize an instance of the class MarcXmlConverter.
 
-    :param str marcxml: a marcxml collection with a single record.
+    Args:
+        marcxml (str): a marcxml collection with a single record.
     """
     self.record = ElementTree.fromstring(marcxml).find('{http://www.loc.gov/MARC21/slim}record')
 
@@ -31,13 +33,14 @@ class MarcXmlConverter:
   def get_marc_field(self, field_tag, subfield_code, ind1, ind2): 
     """Get a specific MARC field. 
 
-    :param str field_tag: e.g., "245"
-    :param str subfield_code: subfield codes as a regex, e.g. '[a-z]'
-    :param str ind1: first indicator as a regex, e.g. '4'
-    :param str ind2: second indicator as a regex, e.g. '4'
+    Args:
+        field_tag (str): e.g., "245"
+        subfield_code (str): subfield codes as a regex, e.g. '[a-z]'
+        ind1 (str): first indicator as a regex, e.g. '4'
+        ind2 (str): second indicator as a regex, e.g. '4'
 
-    :rtype list
-    :returns a list of strings, all matching MARC tags and subfields.
+    Returns:
+        list: of strings, all matching MARC tags and subfields.
     """
     results = []
     for element in self.record:
@@ -66,8 +69,6 @@ class MarcToDc(MarcXmlConverter):
   The Library of Congress MARCXML to DC conversion is here:
   http://www.loc.gov/standards/marcxml/xslt/MARC21slim2SRWDC.xsl
   It produces slightly different results. 
-
-  :rtype :class:`MarcToDc`
 
   mappings -- a list of tuples-
     [0] -- Dublin Core metadata element.
@@ -139,7 +140,8 @@ class MarcToDc(MarcXmlConverter):
   def __init__(self, marcxml):
     """Initialize an instance of the class MarcToDc.
 
-    :param str marcxml: a marcxml collection with a single record.
+    Args:
+        marcxml (str): a marcxml collection with a single record.
     """
     for _, (repeat_dc, _, repeat_sf, _) in self.mappings:
       if repeat_dc == False:
@@ -152,7 +154,8 @@ class MarcToDc(MarcXmlConverter):
     """Return individual Dublin Core elements as instance properties, e.g.
     self.identifier.
 
-    :rtype list
+    Returns:
+        list
     """
     return [e.text for e in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr))]
 
@@ -206,7 +209,8 @@ class MarcToDc(MarcXmlConverter):
   def __str__(self):
     """Return Dublin Core XML as a string.
 
-    :rtype str
+    Returns:
+        str
     """
     def indent(elem, level=0):
       i = "\n" + level * "  "
@@ -230,11 +234,7 @@ class MarcToDc(MarcXmlConverter):
 
 
 class MarcXmlToSchemaDotOrg(MarcXmlConverter):
-  """
-  A class to convert MARCXML to Schema.org.
-
-  :rtype :class:`MarcToSchemaDotOrg`
-  """
+  """A class to convert MARCXML to Schema.org."""
 
   mappings = [
     ('about',               [False, [('050', '[a-z]', '.', '.'),
@@ -287,7 +287,8 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
   def __init__(self, marcxml):
     """Initialize an instance of the class MarcToSchemaDotOrg.
 
-    :param str marcxml: a marcxml collection with a single record. 
+    Args:
+        marcxml (str): a marcxml collection with a single record. 
     """
     for _, (repeat_dc, _, repeat_sf, _) in self.mappings:
       if repeat_dc == False:
@@ -299,7 +300,8 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
     """Get creators from the 100, 110, or 111 fields if possible. 
     Otherwise get them from the 245c.
 
-    :rtype dict
+    Returns:
+        dict
     """
     if self.get_marc_field('100', '[a-z]', '.', '.'):
       creator_type = 'Person'
@@ -325,7 +327,8 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
   def __call__(self):
     """Return Schema.org data as a dictionary.
 
-    :rtype dict
+    Returns:
+        dict
     """
     dict = {
       '@context':    'https://schema.org',
@@ -377,7 +380,8 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
   def __str__(self):
     """Return Schema.org data as a JSON-LD string.
 
-    :rtype str
+    Returns:
+        str
     """
     return json.dumps(
       self(),
