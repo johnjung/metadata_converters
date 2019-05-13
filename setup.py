@@ -4,7 +4,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='metadata_converters',
+    name='Metadata Converters',
     version='0.0.1',
     author='John Jung',
     author_email='jej@uchicago.edu',
