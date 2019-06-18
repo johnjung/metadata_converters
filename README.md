@@ -25,6 +25,6 @@ Another project, written in Perl, with converters to and from lots of metadata f
 [How to use DCMI Metadata as linked data](http://www.dublincore.org/resources/userguide/publishing_metadata/)
 Some notes from dublincore.org.
 
-## Author
+## Contributors
 
-John Jung
+John Jung, José Reyes
