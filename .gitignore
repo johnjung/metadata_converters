@@ -5,6 +5,7 @@
 *cache*
 
 # Distribution / packaging
+build/
 dist/
 eggs/
 .eggs/

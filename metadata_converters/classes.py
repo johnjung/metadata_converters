@@ -162,7 +162,7 @@ class MarcToDc(MarcXmlConverter):
         return [e.text for e in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr))]
 
     def todict(self):
-	"""Return a dictionary/list/etc. of metadata elements, for display in
+        """Return a dictionary/list/etc. of metadata elements, for display in
         templates."""
         raise NotImplementedError
 
