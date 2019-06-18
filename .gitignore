@@ -4,6 +4,9 @@
 *$py.class
 *cache*
 
+# Testing
+dev/
+
 # Distribution / packaging
 build/
 dist/
