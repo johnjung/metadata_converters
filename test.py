@@ -21,7 +21,7 @@ class TestMarcXmlConverter(unittest.TestCase):
             self.assertTrue(len(data) > 0)
         self.collection = MarcXmlConverter(data)
         self.assertEqual(str(type(self.collection.record)), "<class 'xml.etree.ElementTree.Element'>")
-        #self.assertEqual(self.collection.get_marc_field('655', '', '', ''), ['Thematic maps.', 'lcgft'])
+        self.assertEqual(self.collection.get_marc_field('655', '', '', ''), ['Thematic maps.', 'lcgft'])
 
     def test_get_marc_field_field_tag(self):
         """Retrieve a marc data field and a control field using the
@@ -54,7 +54,6 @@ class TestMarcXmlConverter(unittest.TestCase):
         self.assertEqual(self.collection.get_marc_field('655', '[a]', '4', '7'), [])
         self.assertEqual(self.collection.get_marc_field('830', '', '', '0'), ['Social scientists map Chicago.', 'ICU', 'University of Chicago Digital Preservation Collection.', 'ICU'])
 
-
 class TestMarcToDc(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         """Create test objects. Test data should be placed in the test_data
@@ -72,12 +71,12 @@ class TestMarcToDc(unittest.TestCase):
             data = f.read().replace('\n', '')
             self.assertTrue(len(data) > 0)
         self.collection = MarcToDc(data)
-
+'''
     def test_get_rights_access(self):
         """Be sure the object can return the DC element."""
         print(str(self.collection))
         self.assertEqual(self.collection.identifier, 'temp')
-'''
+
     def test_get_contributor(self):
         """Be sure the object can return the DC element."""
         raise NotImplementedError

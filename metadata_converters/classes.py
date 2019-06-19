@@ -23,13 +23,16 @@ class MarcXmlConverter:
             '{http://www.loc.gov/MARC21/slim}record')
 
         # Only bring in 655's where the $2 subfield is set to 'lcgft'.
+        remove = []
         for element in self.record:
             if element.tag == '{http://www.loc.gov/MARC21/slim}datafield':
                 if element.attrib['tag'] == '655':
                     for subfield in element:
                         if subfield.attrib['code'] == '2' and not subfield.text == 'lcgft':
-                            self.record.remove(element)
-                            continue
+                            remove.append(element)
+                            break
+        for element in remove:
+            self.record.remove(element)
 
     def get_marc_field(self, field_tag, subfield_code, ind1, ind2):
         """Get a specific MARC field. 
