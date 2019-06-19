@@ -42,6 +42,9 @@
   <datafield tag="035" ind1=" " ind2=" ">
    <subfield code="a">(OCoLC)55093091</subfield>
   </datafield>
+  <datafield tag="041" ind1=" " ind2=" ">
+   <subfield code="a">English</subfield>
+  </datafield>
   <datafield tag="042" ind1=" " ind2=" ">
    <subfield code="a">dlr</subfield>
   </datafield>
@@ -81,6 +84,16 @@
    <subfield code="b">[publisher not identified],</subfield>
    <subfield code="c">[between 1908 and 1919?]</subfield>
   </datafield>
+  <datafield tag="264" ind1=" " ind2="4">
+   <subfield code="a">[Place of publication not identified] :</subfield>
+   <subfield code="b">[publisher not identified],</subfield>
+   <subfield code="c">[between 1908 and 1919]</subfield>
+  </datafield>
+  <datafield tag="264" ind1="1" ind2=" ">
+   <subfield code="a">[Place of publication not identified] :</subfield>
+   <subfield code="b">[publisher not identified],</subfield>
+   <subfield code="c">[between 1908 and 1919]</subfield>
+  </datafield>
   <datafield tag="300" ind1=" " ind2=" ">
    <subfield code="a">1 online resource (1 map)</subfield>
   </datafield>
@@ -90,7 +103,7 @@
    <subfield code="2">rdacontent</subfield>
   </datafield>
   <datafield tag="337" ind1=" " ind2=" ">
-   <subfield code="a">computer</subfield>
+   <subfield code="a">computer-test</subfield>
    <subfield code="b">c</subfield>
    <subfield code="2">rdamedia</subfield>
   </datafield>
@@ -142,6 +155,7 @@
    <subfield code="a">Tuberculosis.</subfield>
    <subfield code="2">fast</subfield>
    <subfield code="0">(OCoLC)fst01158499</subfield>
+   <subfield code="y">Chicago.</subfield>
   </datafield>
   <datafield tag="651" ind1=" " ind2="7">
    <subfield code="a">Illinois</subfield>
@@ -169,6 +183,18 @@
   <datafield tag="655" ind1=" " ind2="7">
    <subfield code="a">Thematic maps.</subfield>
    <subfield code="2">lcgft</subfield>
+  </datafield>
+  <datafield tag="700" ind1=" " ind2=" ">
+   <subfield code="a">temp1</subfield>
+   <subfield code="b">test1</subfield>
+  </datafield>
+  <datafield tag="710" ind1=" " ind2=" ">
+   <subfield code="a">temp2</subfield>
+   <subfield code="b">test2</subfield>
+  </datafield>
+  <datafield tag="730" ind1=" " ind2=" ">
+   <subfield code="a">temp2</subfield>
+   <subfield code="b">test2</subfield>
   </datafield>
   <datafield tag="776" ind1="0" ind2="8">
    <subfield code="i">Original paper version:</subfield>

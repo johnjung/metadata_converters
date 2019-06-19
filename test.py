@@ -71,96 +71,95 @@ class TestMarcToDc(unittest.TestCase):
             data = f.read().replace('\n', '')
             self.assertTrue(len(data) > 0)
         self.collection = MarcToDc(data)
-'''
+
     def test_get_rights_access(self):
         """Be sure the object can return the DC element."""
-        print(str(self.collection))
-        self.assertEqual(self.collection.identifier, 'temp')
+        self.assertEqual(self.collection.rights_access, ['Digital version available with restrictions Unrestricted online access'])
 
     def test_get_contributor(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.contributor, ['temp1', 'temp2'])
 
     def test_get_coverage(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.coverage, ['Scale [ca. 1:1,200] (W 87Â°40Ê¹01Êº--W 87Â°38Ê¹18Êº/N 41Â°52Ê¹11Êº--N 41Â°51Ê¹42Êº).'])
 
     def test_get_creator(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.creator, ['Sachs, Theodore B. (Theodore Bernard), 1868-1916.', 'by Theodore B. Sachs.'])
 
     def test_get_date_copyrighted(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.date_copyrighted, ['[between 1908 and 1919]'])
 
     def test_get_description(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.description, ['1 online resource (1 map)'])
 
-    #def test_get_format.extent(self):
+    def test_get_format_extent(self):
         """Be sure the object can return the DC element."""
-    #    raise NotImplementedError
+        self.assertEqual(self.collection.format_extent, ['1 online resource (1 map)'])
 
     def test_get_format(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.format, ['computer-test'])
 
     def test_get_relation_has_format(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.relation_hasFormat, ['Electronic reproduction.'])
 
     def test_get_identifier(self):
-        """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.identifier, ['http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2N3E51-1908-S2', 'temp test'])
 
     def test_get_relation_is_part_of(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.relation_isPartOf, ['(Social scientists map Chicago); (University of Chicago Digital Preservation Collection)', 'Social scientists map Chicago. University of Chicago Digital Preservation Collection.'])
 
     def test_get_date_issued(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.date_issued, ['[between 1908 and 1919]'])
 
     def test_get_language(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.language, ['English'])
 
     def test_get_coverage_location(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.coverage_location, ['[Chicago] :', '[Place of publication not identified] :'])
 
     def test_get_format_medium(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.format_medium, ['online resource'])
 
     def test_get_coverage_period_of_time(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.coverage_periodOfTime, ['Chicago.'])
 
     def test_get_publisher(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.publisher, ['[publisher not identified],'])
 
     def test_get_relation(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.relation, ['temp2'])
 
     def test_get_subject(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.subject, ['G4104.C6:2N3E51 1908 .S2', 'Tuberculosis'])
 
     def test_get_subject(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.subject[0], 'G4104.C6:2N3E51 1908 .S2')
+        self.assertEqual(self.collection.subject[1], 'Tuberculosis')
 
     def test_get_title(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        self.assertEqual(self.collection.title, ['Tuberculosis in a congested district in Chicago, Jan. 1st, 1906, to Jan. 1st, 1908, including the district represented in chart 1, population chiefly Jewish /'])
 
     def test_get_type(self):
         """Be sure the object can return the DC element."""
-        raise NotImplementedError
-'''
+        self.assertEqual(self.collection.type, ['Thematic maps', 'cartographic image'])
+
 
 if __name__ == '__main__':
     unittest.main()

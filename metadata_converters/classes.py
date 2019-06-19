@@ -162,7 +162,9 @@ class MarcToDc(MarcXmlConverter):
         Returns:
             list
         """
-        return [e.text for e in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr))]
+        vals = [e.text for e in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr.replace('_','.')))]   
+        vals.sort()
+        return vals
 
     def todict(self):
         """Return a dictionary/list/etc. of metadata elements, for display in
