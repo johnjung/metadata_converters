@@ -185,7 +185,7 @@ class MarcToDc(MarcXmlConverter):
                         ElementTree.SubElement(
                             metadata,
                             dc_element.replace(
-                                'dc:', '{http://purl.org/dc/elements/1.1/}')
+                                'DC.', '{http://purl.org/dc/elements/1.1/}')
                         ).text = field_text
                 else:
                     for marc_field in marc_fields:
@@ -198,7 +198,7 @@ class MarcToDc(MarcXmlConverter):
                         ElementTree.SubElement(
                             metadata,
                             dc_element.replace(
-                                'dc:', '{http://purl.org/dc/elements/1.1/}')
+                                'DC.', '{http://purl.org/dc/elements/1.1/}')
                         ).text = field_text
             else:
                 field_text_arr = []
@@ -212,7 +212,7 @@ class MarcToDc(MarcXmlConverter):
                     ElementTree.SubElement(
                         metadata,
                         dc_element.replace(
-                            'dc:', '{http://purl.org/dc/elements/1.1/}')
+                            'DC.', '{http://purl.org/dc/elements/1.1/}')
                     ).text = field_text
         self.dc = metadata
 

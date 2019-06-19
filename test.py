@@ -72,12 +72,12 @@ class TestMarcToDc(unittest.TestCase):
             data = f.read().replace('\n', '')
             self.assertTrue(len(data) > 0)
         self.collection = MarcToDc(data)
-'''
+
     def test_get_rights_access(self):
         """Be sure the object can return the DC element."""
-        print(self.collection.__str__())
-        self.assertEqual(self.collection.__getattr__('type'), 'sf')
-
+        print(str(self.collection))
+        self.assertEqual(self.collection.identifier, 'temp')
+'''
     def test_get_contributor(self):
         """Be sure the object can return the DC element."""
         raise NotImplementedError
