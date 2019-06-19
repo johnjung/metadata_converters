@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+ <record>
+  <leader>02937cem a2200589Ia 4500</leader>
+  <controlfield tag="001">1586198</controlfield>
+  <controlfield tag="003">OLE</controlfield>
+  <controlfield tag="005">20180216103237.0</controlfield>
+  <controlfield tag="006">m    go  c        </controlfield>
+  <controlfield tag="007">aj aanzn</controlfield>
+  <controlfield tag="007">cr cn||||||aap</controlfield>
+  <controlfield tag="007">cr cn||||||aba</controlfield>
+  <controlfield tag="008">940421s1940    ilu       a   o 0   eng d</controlfield>
+  <datafield tag="040" ind1=" " ind2=" ">
+   <subfield code="a">CGU</subfield>
+   <subfield code="b">eng</subfield>
+   <subfield code="c">CGU</subfield>
+   <subfield code="d">OCL</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">CGU</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">CGU</subfield>
+   <subfield code="d">OCLCO</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">CGU</subfield>
+   <subfield code="d">OCLCO</subfield>
+   <subfield code="d">OCLCF</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">OCLCO</subfield>
+   <subfield code="d">OCL</subfield>
+   <subfield code="d">OCLCO</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">CGU</subfield>
+  </datafield>
+  <datafield tag="034" ind1="1" ind2=" ">
+   <subfield code="a">a</subfield>
+   <subfield code="b">50000</subfield>
+   <subfield code="d">W0875100</subfield>
+   <subfield code="e">W0873100</subfield>
+   <subfield code="f">N0420100</subfield>
+   <subfield code="g">N0413800</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+   <subfield code="a">(OCoLC)30310436</subfield>
+  </datafield>
+  <datafield tag="042" ind1=" " ind2=" ">
+   <subfield code="a">dlr</subfield>
+  </datafield>
+  <datafield tag="043" ind1=" " ind2=" ">
+   <subfield code="a">n-us-il</subfield>
+  </datafield>
+  <datafield tag="050" ind1=" " ind2="4">
+   <subfield code="a">G4104.C6E1 1940</subfield>
+   <subfield code="b">.U55</subfield>
+  </datafield>
+  <datafield tag="052" ind1=" " ind2=" ">
+   <subfield code="a">4104</subfield>
+   <subfield code="b">.C6</subfield>
+  </datafield>
+  <datafield tag="072" ind1=" " ind2="7">
+   <subfield code="a">E1</subfield>
+   <subfield code="2">lcg</subfield>
+  </datafield>
+  <datafield tag="049" ind1=" " ind2=" ">
+   <subfield code="a">CGUA</subfield>
+  </datafield>
+  <datafield tag="110" ind1="2" ind2=" ">
+   <subfield code="a">University of Chicago.</subfield>
+   <subfield code="b">Social Science Research Committee.</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+   <subfield code="a">Census tracts of Chicago, 1940</subfield>
+   <subfield code="p">Races and nationalities.</subfield>
+  </datafield>
+  <datafield tag="246" ind1="3" ind2="0">
+   <subfield code="a">Races and nationalities</subfield>
+  </datafield>
+  <datafield tag="255" ind1=" " ind2=" ">
+   <subfield code="a">Scale [ca. 1:50,000]</subfield>
+   <subfield code="c">(W 87°51ʹ00ʺ--W 87°31ʹ00ʺ/N 42°01ʹ00ʺ--N 41°38ʹ00ʺ).</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+   <subfield code="a">[Chicago] :</subfield>
+   <subfield code="b">Social Science Research Committee, University of Chicago,</subfield>
+   <subfield code="c">[1940?]</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+   <subfield code="a">1 online resource (1 map)</subfield>
+  </datafield>
+  <datafield tag="336" ind1=" " ind2=" ">
+   <subfield code="a">cartographic image</subfield>
+   <subfield code="b">cri</subfield>
+   <subfield code="2">rdacontent</subfield>
+  </datafield>
+  <datafield tag="337" ind1=" " ind2=" ">
+   <subfield code="a">computer</subfield>
+   <subfield code="b">c</subfield>
+   <subfield code="2">rdamedia</subfield>
+  </datafield>
+  <datafield tag="338" ind1=" " ind2=" ">
+   <subfield code="a">online resource</subfield>
+   <subfield code="b">cr</subfield>
+   <subfield code="2">rdacarrier</subfield>
+  </datafield>
+  <datafield tag="506" ind1=" " ind2=" ">
+   <subfield code="a">Digital version available with restrictions</subfield>
+   <subfield code="f">Unrestricted online access</subfield>
+   <subfield code="5">ICU</subfield>
+   <subfield code="2">star</subfield>
+  </datafield>
+  <datafield tag="538" ind1=" " ind2=" ">
+   <subfield code="a">Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002.</subfield>
+   <subfield code="u">http://www.diglib.org/standards/bmarkfin.htm</subfield>
+  </datafield>
+  <datafield tag="583" ind1="1" ind2=" ">
+   <subfield code="a">digitized</subfield>
+   <subfield code="c">2006</subfield>
+   <subfield code="h">University of Chicago Library</subfield>
+   <subfield code="l">committed to preserve</subfield>
+   <subfield code="5">ICU</subfield>
+   <subfield code="2">pda</subfield>
+  </datafield>
+  <datafield tag="533" ind1=" " ind2=" ">
+   <subfield code="a">Electronic reproduction.</subfield>
+   <subfield code="b">[Chicago] :</subfield>
+   <subfield code="c">University of Chicago Library,</subfield>
+   <subfield code="d">[2006].</subfield>
+   <subfield code="f">(Social scientists map Chicago); (University of Chicago Digital Preservation Collection)</subfield>
+   <subfield code="5">ICU</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+   <subfield code="a">Ethnology</subfield>
+   <subfield code="z">Illinois</subfield>
+   <subfield code="z">Chicago</subfield>
+   <subfield code="v">Maps.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+   <subfield code="a">Immigrants</subfield>
+   <subfield code="z">Illinois</subfield>
+   <subfield code="z">Chicago</subfield>
+   <subfield code="v">Maps.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="7">
+   <subfield code="a">Ethnology.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst00916106</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="7">
+   <subfield code="a">Immigrants.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst00967712</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="7">
+   <subfield code="a">Illinois</subfield>
+   <subfield code="z">Chicago.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst01204048</subfield>
+  </datafield>
+  <datafield tag="655" ind1=" " ind2="7">
+   <subfield code="a">Thematic maps.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst01752679</subfield>
+  </datafield>
+  <datafield tag="655" ind1=" " ind2="7">
+   <subfield code="a">Maps.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst01423704</subfield>
+  </datafield>
+  <datafield tag="655" ind1=" " ind2="7">
+   <subfield code="a">Thematic maps.</subfield>
+   <subfield code="2">lcgft</subfield>
+  </datafield>
+  <datafield tag="776" ind1="0" ind2="8">
+   <subfield code="i">Original paper version:</subfield>
+   <subfield code="a">University of Chicago. Social Science Research Committee.</subfield>
+   <subfield code="t">Census tracts of Chicago, 1940. Races and nationalities.</subfield>
+   <subfield code="d">[Chicago] : Social Science Research Committee, University of Chicago, [1940?]</subfield>
+   <subfield code="h">1 map ; 87 x 56 cm.</subfield>
+   <subfield code="w">(OCoLC)270744829</subfield>
+  </datafield>
+  <datafield tag="830" ind1=" " ind2="0">
+   <subfield code="a">Social scientists map Chicago.</subfield>
+   <subfield code="5">ICU</subfield>
+  </datafield>
+  <datafield tag="830" ind1=" " ind2="0">
+   <subfield code="a">University of Chicago Digital Preservation Collection.</subfield>
+   <subfield code="5">ICU</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="0">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6E1-1940-U55</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6E1-1940-U55</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6E1 1940 .U55</subfield>
+  </datafield>
+  <datafield tag="929" ind1=" " ind2=" ">
+   <subfield code="t">LCC</subfield>
+   <subfield code="c">MapCl</subfield>
+   <subfield code="l">JRL</subfield>
+  </datafield>
+  <datafield tag="929" ind1=" " ind2=" ">
+   <subfield code="t">LCC</subfield>
+   <subfield code="c">MapCl</subfield>
+   <subfield code="l">JRL</subfield>
+  </datafield>
+ </record>
+ </collection>
