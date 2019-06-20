@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from pathlib import Path
 from metadata_converters import MarcXmlConverter, MarcToDc, MarcXmlToSchemaDotOrg
@@ -16,7 +17,7 @@ class TestMarcXmlConverter(unittest.TestCase):
         """MarcXmlConverter should have a .record property which is a
         xml.etree.ElementTree.Element."""
         file = Path('test_data/sample_record_01.xml')
-        with open(file, 'r') as f:
+        with open(file, 'r', encoding='utf-8') as f:
             data = f.read().replace('\n', '')
             self.assertTrue(len(data) > 0)
         self.collection = MarcXmlConverter(data)
@@ -67,8 +68,9 @@ class TestMarcToDc(unittest.TestCase):
         """MarcToDc extends the MarcXmlConverter class and should have a .record property which is a
         xml.etree.ElementTree.Element."""
         file = Path('test_data/sample_record_02.xml')
-        with open(file, 'r') as f:
-            data = f.read().replace('\n', '')
+        with open(file, 'r', encoding='utf-8') as f:
+            #data = f.read().replace('\n', '')
+            data = f.read()
             self.assertTrue(len(data) > 0)
         self.collection = MarcToDc(data)
 
@@ -82,7 +84,7 @@ class TestMarcToDc(unittest.TestCase):
 
     def test_get_coverage(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.coverage, ['Scale [ca. 1:1,200] (W 87Â°40Ê¹01Êº--W 87Â°38Ê¹18Êº/N 41Â°52Ê¹11Êº--N 41Â°51Ê¹42Êº).'])
+        self.assertEqual(self.collection.coverage, ['Scale [ca. 1:1,200] (W 87°40ʹ01ʺ--W 87°38ʹ18ʺ/N 41°52ʹ11ʺ--N 41°51ʹ42ʺ).'])
 
     def test_get_creator(self):
         """Be sure the object can return the DC element."""
@@ -160,6 +162,32 @@ class TestMarcToDc(unittest.TestCase):
         """Be sure the object can return the DC element."""
         self.assertEqual(self.collection.type, ['Thematic maps', 'cartographic image'])
 
+class TestMarcXmlToSchemaDotOrg(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        """Create test objects. Test data should be placed in the test_data
+        directory of this project. It should include sample data from different
+        digital collections projects, and the data should be varied enough to 
+        be able to catch different kinds of edge cases in testing."""
+        super().__init__(*args, **kwargs)
+        self.test_init()
+
+    def test_init(self):
+        """MarcXmlToSchemaDotOrg extends the MarcXmlConverter class and should 
+        have a call function that returns data as a dictionary."""
+        file = Path('test_data/sample_record_03.xml')
+        with open(file, 'r', encoding='utf-8') as f:
+            data = f.read().replace('\n', '')
+            self.assertTrue(len(data) > 0)
+        self.collection = MarcXmlToSchemaDotOrg(data)
+        raise NotImplementedError
+
+    def test_get_creator(self):
+        """Be sure the object can return the DC element."""
+        raise NotImplementedError
+
+    def test_get_about(self):
+        """Be sure the object can return the DC element."""
+        raise NotImplementedError
 
 if __name__ == '__main__':
     unittest.main()
