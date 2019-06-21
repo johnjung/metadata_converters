@@ -80,8 +80,8 @@ class TestMarcToDc(unittest.TestCase):
         self.assertEqual(self.collection.rights_access, ['Digital version available with restrictions Unrestricted online access'])
 
     def test_get_contributor(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.contributor, ['temp1', 'temp2'])
+        """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
+        self.assertEqual(self.collection.contributor, ['Auctor consequat', 'Enim cras orci'])
 
     def test_get_coverage(self):
         """Be sure the object can return the DC element."""
@@ -143,8 +143,8 @@ class TestMarcToDc(unittest.TestCase):
         self.assertEqual(self.collection.publisher, ['[publisher not identified],'])
 
     def test_get_relation(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.relation, ['temp2'])
+        """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
+        self.assertEqual(self.collection.relation, ['Primis etiam placerat primis'])
 
     def test_get_subject(self):
         """Be sure the object can return the DC element."""
@@ -196,8 +196,8 @@ class TestMarcXmlToSchemaDotOrg(unittest.TestCase):
         self.assertEqual(self.collection.schema['about'], 'G4104.C6P3 1943 .M21')
 
     def test_get_alternative_name(self):
-        """Be sure the object can return the Schema dictionary."""
-        self.assertEqual(self.collection.schema['alternativeName'], 'Test Name')
+        """Be sure the object can return the Schema dictionary. Testing with Lorem Ipsum random value in record"""
+        self.assertEqual(self.collection.schema['alternativeName'], 'Duis morbi convallis nullam')
 
     def test_get_content_location(self):
         """Be sure the object can return the Schema dictionary."""
@@ -228,12 +228,12 @@ class TestMarcXmlToSchemaDotOrg(unittest.TestCase):
         self.assertEqual(self.collection.schema['encoding'], 'Electronic reproduction.')
 
     def test_get_height(self):
-        """Be sure the object can return the Schema dictionary."""
-        self.assertEqual(self.collection.schema['height'], '(1 map)')
+        """Be sure the object can return the Schema dictionary. Testing with Lorem Ipsum random value in record"""
+        self.assertEqual(self.collection.schema['height'], 'Dictumst nec duis')
 
     def test_get_genre(self):
-        """Be sure the object can return the Schema dictionary."""
-        self.assertEqual(self.collection.schema['genre'], 'Maps. Test')
+        """Be sure the object can return the Schema dictionary. Testing with Lorem Ipsum random value in record"""
+        self.assertEqual(self.collection.schema['genre'], 'Maps. Netus accumsan ornare et')
 
     def test_get_identifier(self):
         """Be sure the object can return the Schema dictionary."""
@@ -272,16 +272,16 @@ class TestMarcXmlToSchemaDotOrg(unittest.TestCase):
         self.assertEqual(self.collection.schema['spatialCoverage'], 'Scale [ca. 1:580,000] (W 88°30ʹ00ʺ--W 86°44ʹ00ʺ/N 42°46ʹ00ʺ--N 41°17ʹ00ʺ).')
 
     def test_get_temporal_coverage(self):
-        """Be sure the object can return the Schema dictionary."""
-        self.assertEqual(self.collection.schema['temporalCoverage'], 'Testing Coverage')
+        """Be sure the object can return the Schema dictionary. Testing with Lorem Ipsum random value in record"""
+        self.assertEqual(self.collection.schema['temporalCoverage'], 'Metus feugiat sollicitudin')
 
     def test_get_url(self):
         """Be sure the object can return the Schema dictionary."""
         self.assertEqual(self.collection.schema['url'], 'http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6P3-1943-M21')
 
     def test_get_width(self):
-        """Be sure the object can return the Schema dictionary."""
-        self.assertEqual(self.collection.schema['width'], '(1 map)')
+        """Be sure the object can return the Schema dictionary. Testing with Lorem Ipsum random value in record"""
+        self.assertEqual(self.collection.schema['width'], 'Dictumst nec duis')
 
 if __name__ == '__main__':
     unittest.main()

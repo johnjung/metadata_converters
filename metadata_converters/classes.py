@@ -75,20 +75,21 @@ class MarcToDc(MarcXmlConverter):
     It produces slightly different results. 
 
     mappings -- a list of tuples-
-      [0] -- Dublin Core metadata element.
-      [1] -- a list-
-        [0] a boolean, DC element is repeatable. 
-        [1] a list, a MARC field specification-
-          [0] a string, the MARC field itself.
-          [1] a regular expression (as a string), allowable subfields. 
-          [2] a regular expression (as a string), indicator 1.
-          [3] a regular expression (as a string), indicator 2. 
-      [2] a boolean, subfields each get their own DC element. If False,
-          subfields are joined together into a single DC element.
-          assert this field==False if [0]==False.
-      [3] a regular expression (as a string) to strip out of the field, or
-          None if there is nothing to exclude.
-          if the resulting value is '' it won't be added.
+        [0] -- Dublin Core metadata element.
+        [1] -- a list-
+            [0] a boolean, DC element is repeatable. 
+            [1] a list, a MARC field specification-
+                [0] a string, the MARC field itself.
+                [1] a regular expression (as a string), allowable subfields. 
+                [2] a regular expression (as a string), indicator 1.
+                [3] a regular expression (as a string), indicator 2. 
+        [2] a boolean, subfields each get their own DC element. If False,
+            subfields are joined together into a single DC element.
+            assert this field==False if [0]==False.
+        [3] a regular expression (as a string) to strip out of the field, or
+            None if there is nothing to exclude.
+            if the resulting value is '' it won't be added.
+
     """
 
     # Are these appropriate custom qualifications?
@@ -163,8 +164,7 @@ class MarcToDc(MarcXmlConverter):
             list
         """
         vals = [e.text for e in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr.replace('_','.')))]   
-        vals.sort()
-        return vals
+        return sorted(vals)
 
     def todict(self):
         """Return a dictionary/list/etc. of metadata elements, for display in
@@ -364,9 +364,7 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
                     if len(field_texts) == 1:
                         dict_[schema_element] = list(field_texts)[0]
                     elif len(field_texts) > 1:
-                        texts = list(field_texts)
-                        texts.sort()
-                        dict_[schema_element] = texts
+                        dict_[schema_element] = sorted(field_texts)
                 else:
                     for marc_field in marc_fields:
                         field_text = ' '.join(self.get_marc_field(*marc_field))
@@ -377,9 +375,7 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
                     if len(field_texts) == 1:
                         dict_[schema_element] = list(field_texts)[0]
                     elif len(field_texts) > 1:
-                        texts = list(field_texts)
-                        texts.sort()
-                        dict_[schema_element] = texts
+                        dict_[schema_element] = sorted(field_texts)
             else:
                 field_text_arr = []
                 for marc_field in marc_fields:

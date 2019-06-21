@@ -185,16 +185,16 @@
    <subfield code="2">lcgft</subfield>
   </datafield>
   <datafield tag="700" ind1=" " ind2=" ">
-   <subfield code="a">temp1</subfield>
-   <subfield code="b">test1</subfield>
+   <subfield code="a">Enim cras orci</subfield>
+   <subfield code="b">Dui est lorem class facilisis mollis sollicitudin</subfield>
   </datafield>
   <datafield tag="710" ind1=" " ind2=" ">
-   <subfield code="a">temp2</subfield>
-   <subfield code="b">test2</subfield>
+   <subfield code="a">Auctor consequat</subfield>
+   <subfield code="b">Habitasse mauris enim</subfield>
   </datafield>
   <datafield tag="730" ind1=" " ind2=" ">
-   <subfield code="a">temp2</subfield>
-   <subfield code="b">test2</subfield>
+   <subfield code="a">Primis etiam placerat primis</subfield>
+   <subfield code="b">In nec eget laoreet tortor feugiat</subfield>
   </datafield>
   <datafield tag="776" ind1="0" ind2="8">
    <subfield code="i">Original paper version:</subfield>
