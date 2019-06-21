@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+<record>
+  <leader>02744cem a2200517Ia 4500</leader>
+  <controlfield tag="001">1582888</controlfield>
+  <controlfield tag="003">OLE</controlfield>
+  <controlfield tag="005">20180216105341.0</controlfield>
+  <controlfield tag="006">m    go  c        </controlfield>
+  <controlfield tag="007">aj aanzn</controlfield>
+  <controlfield tag="007">cr cn||||||aap</controlfield>
+  <controlfield tag="007">cr cn||||||aba</controlfield>
+  <controlfield tag="008">081111s1943    ilu       a   o 0   eng d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" ">
+   <subfield code="a">CGU</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+   <subfield code="a">CGU</subfield>
+   <subfield code="b">eng</subfield>
+   <subfield code="c">CGU</subfield>
+   <subfield code="d">CGU</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">CGU</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">OCLCA</subfield>
+   <subfield code="d">CGU</subfield>
+   <subfield code="d">OCLCF</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">OCLCO</subfield>
+   <subfield code="d">OCL</subfield>
+   <subfield code="d">OCLCQ</subfield>
+   <subfield code="d">CGU</subfield>
+  </datafield>
+  <datafield tag="034" ind1="1" ind2=" ">
+   <subfield code="a">a</subfield>
+   <subfield code="b">580000</subfield>
+   <subfield code="d">W0883000</subfield>
+   <subfield code="e">W0864400</subfield>
+   <subfield code="f">N0424600</subfield>
+   <subfield code="g">N0411700</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+   <subfield code="a">(OCoLC)270973314</subfield>
+  </datafield>
+  <datafield tag="041" ind1=" " ind2=" ">
+   <subfield code="a">Eng</subfield>
+  </datafield>
+  <datafield tag="042" ind1=" " ind2=" ">
+   <subfield code="a">dlr</subfield>
+  </datafield>
+  <datafield tag="043" ind1=" " ind2=" ">
+   <subfield code="a">n-us-il</subfield>
+  </datafield>
+  <datafield tag="050" ind1=" " ind2="4">
+   <subfield code="a">G4104.C6P3 1943</subfield>
+   <subfield code="b">.M21</subfield>
+  </datafield>
+  <datafield tag="052" ind1=" " ind2=" ">
+   <subfield code="a">4104</subfield>
+   <subfield code="b">C6</subfield>
+  </datafield>
+  <datafield tag="049" ind1=" " ind2=" ">
+   <subfield code="a">CGUA</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2=" ">
+   <subfield code="a">Mayer, Harold M.</subfield>
+   <subfield code="q">(Harold Melvin),</subfield>
+   <subfield code="d">1916-1994.</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+   <subfield code="a">Functional pattern of the railways in Metropolitan Chicago /</subfield>
+   <subfield code="c">Harold M. Mayer.</subfield>
+  </datafield>
+  <datafield tag="246" ind1="1" ind2="0">
+   <subfield code="a">Test</subfield>
+   <subfield code="c">Name</subfield>
+  </datafield>
+  <datafield tag="255" ind1=" " ind2=" ">
+   <subfield code="a">Scale [ca. 1:580,000]</subfield>
+   <subfield code="c">(W 88°30ʹ00ʺ--W 86°44ʹ00ʺ/N 42°46ʹ00ʺ--N 41°17ʹ00ʺ).</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+   <subfield code="a">[Chicago] :</subfield>
+   <subfield code="b">[publisher not identified],</subfield>
+   <subfield code="c">1943.</subfield>
+  </datafield>
+  <datafield tag="264" ind1="4" ind2=" ">
+   <subfield code="a">[Chicago] :</subfield>
+   <subfield code="b">[publisher not identified],</subfield>
+   <subfield code="c">1943.</subfield>
+  </datafield>
+  <datafield tag="264" ind1="1" ind2=" ">
+   <subfield code="a">[Chicago] :</subfield>
+   <subfield code="b">[publisher not identified],</subfield>
+   <subfield code="c">1843.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+   <subfield code="a">1 online resource (1 map)</subfield>
+   <subfield code="c">(1 map)</subfield>
+  </datafield>
+  <datafield tag="336" ind1=" " ind2=" ">
+   <subfield code="a">cartographic image</subfield>
+   <subfield code="b">cri</subfield>
+   <subfield code="2">rdacontent</subfield>
+  </datafield>
+  <datafield tag="337" ind1=" " ind2=" ">
+   <subfield code="a">computer</subfield>
+   <subfield code="b">c</subfield>
+   <subfield code="2">rdamedia</subfield>
+  </datafield>
+  <datafield tag="338" ind1=" " ind2=" ">
+   <subfield code="a">online resource</subfield>
+   <subfield code="b">cr</subfield>
+   <subfield code="2">rdacarrier</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+   <subfield code="a">"Figure 2."</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+   <subfield code="a">Also appeared in author's Ph. D. dissertation (University of Chicago, 1943): The railway pattern of metropolitan Chicago.</subfield>
+  </datafield>
+  <datafield tag="506" ind1=" " ind2=" ">
+   <subfield code="a">Digital version available with restrictions</subfield>
+   <subfield code="f">Unrestricted online access</subfield>
+   <subfield code="5">ICU</subfield>
+   <subfield code="2">star</subfield>
+  </datafield>
+  <datafield tag="538" ind1=" " ind2=" ">
+   <subfield code="a">Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002.</subfield>
+   <subfield code="u">http://www.diglib.org/standards/bmarkfin.htm</subfield>
+  </datafield>
+  <datafield tag="583" ind1="1" ind2=" ">
+   <subfield code="a">digitized</subfield>
+   <subfield code="c">2006</subfield>
+   <subfield code="h">University of Chicago Library</subfield>
+   <subfield code="l">committed to preserve</subfield>
+   <subfield code="5">ICU</subfield>
+   <subfield code="2">pda</subfield>
+  </datafield>
+  <datafield tag="533" ind1=" " ind2=" ">
+   <subfield code="a">Electronic reproduction.</subfield>
+   <subfield code="b">[Chicago] :</subfield>
+   <subfield code="c">University of Chicago Library,</subfield>
+   <subfield code="d">[2006].</subfield>
+   <subfield code="f">(Social scientists map Chicago); (University of Chicago Digital Preservation Collection)</subfield>
+   <subfield code="5">ICU</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+   <subfield code="a">Railroads</subfield>
+   <subfield code="z">Illinois</subfield>
+   <subfield code="z">Chicago</subfield>
+   <subfield code="v">Maps.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="7">
+   <subfield code="a">Railroads.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst01088711</subfield>
+   <subfield code="v">Test</subfield>
+   <subfield code="y">Testing Coverage</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="7">
+   <subfield code="a">Illinois</subfield>
+   <subfield code="z">Chicago.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst01204048</subfield>
+  </datafield>
+  <datafield tag="655" ind1=" " ind2="7">
+   <subfield code="a">Thematic maps.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst01752679</subfield>
+  </datafield>
+  <datafield tag="655" ind1=" " ind2="7">
+   <subfield code="a">Maps.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">(OCoLC)fst01423704</subfield>
+  </datafield>
+  <datafield tag="655" ind1=" " ind2="7">
+   <subfield code="a">Thematic maps.</subfield>
+   <subfield code="2">lcgft</subfield>
+  </datafield>
+  <datafield tag="700" ind1=" " ind2="7">
+   <subfield code="a">Thematic</subfield>
+  </datafield>
+  <datafield tag="776" ind1="0" ind2="8">
+   <subfield code="i">Original paper version:</subfield>
+   <subfield code="a">Mayer, Harold M. (Harold Melvin), 1916-</subfield>
+   <subfield code="t">Functional pattern of the railways in Metropolitan Chicago.</subfield>
+   <subfield code="d">[Chicago : s.n.], 1943.</subfield>
+   <subfield code="h">1 map ; 30 x 23 cm., on sheet 44 x 28 cm.</subfield>
+   <subfield code="w">(OCoLC)53894001</subfield>
+  </datafield>
+  <datafield tag="830" ind1=" " ind2="0">
+   <subfield code="a">Social scientists map Chicago.</subfield>
+   <subfield code="5">ICU</subfield>
+  </datafield>
+  <datafield tag="830" ind1=" " ind2="0">
+   <subfield code="a">University of Chicago Digital Preservation Collection.</subfield>
+   <subfield code="5">ICU</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="0">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6P3-1943-M21</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6P3-1943-M21</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6P3 1943 .M21</subfield>
+  </datafield>
+ </record></collection>

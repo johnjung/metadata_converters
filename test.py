@@ -2,6 +2,7 @@
 import unittest
 from pathlib import Path
 from metadata_converters import MarcXmlConverter, MarcToDc, MarcXmlToSchemaDotOrg
+import xml.etree.ElementTree as ElementTree
 
 
 class TestMarcXmlConverter(unittest.TestCase):
@@ -21,7 +22,7 @@ class TestMarcXmlConverter(unittest.TestCase):
             data = f.read().replace('\n', '')
             self.assertTrue(len(data) > 0)
         self.collection = MarcXmlConverter(data)
-        self.assertEqual(str(type(self.collection.record)), "<class 'xml.etree.ElementTree.Element'>")
+        self.assertIsInstance(self.collection.record, ElementTree.Element)
         self.assertEqual(self.collection.get_marc_field('655', '', '', ''), ['Thematic maps.', 'lcgft'])
 
     def test_get_marc_field_field_tag(self):
@@ -179,15 +180,108 @@ class TestMarcXmlToSchemaDotOrg(unittest.TestCase):
             data = f.read().replace('\n', '')
             self.assertTrue(len(data) > 0)
         self.collection = MarcXmlToSchemaDotOrg(data)
-        raise NotImplementedError
+        self.collection.schema = self.collection.__call__()
+        self.assertIsInstance(self.collection.schema, dict)
+        self.assertEqual(self.collection.schema['@context'], 'https://schema.org')
+        self.assertEqual(self.collection.schema['@type'], 'Map')
+        with self.assertRaises(KeyError):
+            self.collection.schema['badKey']
 
     def test_get_creator(self):
-        """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection._get_creator(), {'@type': 'Person', 'name': 'Mayer, Harold M. (Harold Melvin), 1916-1994.'})
 
     def test_get_about(self):
-        """Be sure the object can return the DC element."""
-        raise NotImplementedError
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['about'], 'G4104.C6P3 1943 .M21')
+
+    def test_get_alternative_name(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['alternativeName'], 'Test Name')
+
+    def test_get_content_location(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['contentLocation'], 'n-us-il 4104 C6 Illinois')
+
+    def test_get_contributor(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['contributor'], 'Thematic')
+
+    def test_get_copyright_year(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['copyrightYear'], '1943.')
+
+    def test_get_date_created(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['dateCreated'], '[2006].')
+
+    def test_get_date_published(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['datePublished'], '1843.')
+
+    def test_get_description(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['description'], '"Figure 2." Also appeared in author\'s Ph. D. dissertation (University of Chicago, 1943): The railway pattern of metropolitan Chicago. Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm')
+
+    def test_get_encoding(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['encoding'], 'Electronic reproduction.')
+
+    def test_get_height(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['height'], '(1 map)')
+
+    def test_get_genre(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['genre'], 'Maps. Test')
+
+    def test_get_identifier(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['identifier'], 'CGU')
+
+    def test_get_in_language(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['inLanguage'], 'Eng')
+
+    def test_get_is_accessible_for_free(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['isAccessibleForFree'], 'Digital version available with restrictions Unrestricted online access')
+
+    def test_get_is_part_of(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['isPartOf'], ['(Social scientists map Chicago); (University of Chicago Digital Preservation Collection)', 'Social scientists map Chicago. University of Chicago Digital Preservation Collection.', 'Thematic'])
+
+    def test_get_location_created(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['locationCreated'], '[Chicago] :')
+
+    def test_get_map_type(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['mapType'], 'Thematic maps')
+
+    def test_get_name(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['name'], 'Functional pattern of the railways in Metropolitan Chicago /')
+
+    def test_get_publisher(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['publisher'], '[publisher not identified],')
+
+    def test_get_spatial_coverage(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['spatialCoverage'], 'Scale [ca. 1:580,000] (W 88°30ʹ00ʺ--W 86°44ʹ00ʺ/N 42°46ʹ00ʺ--N 41°17ʹ00ʺ).')
+
+    def test_get_temporal_coverage(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['temporalCoverage'], 'Testing Coverage')
+
+    def test_get_url(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['url'], 'http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6P3-1943-M21')
+
+    def test_get_width(self):
+        """Be sure the object can return the Schema dictionary."""
+        self.assertEqual(self.collection.schema['width'], '(1 map)')
 
 if __name__ == '__main__':
     unittest.main()

@@ -342,14 +342,14 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
         Returns:
             dict
         """
-        dict = {
+        dict_ = {
             '@context':    'https://schema.org',
             '@type':       'Map',
             'creator':     self._get_creator()
         }
-        for k in dict.keys():
-            if dict[k] == None:
-                dict.pop(k)
+        for k in dict_.keys():
+            if dict_[k] == None:
+                dict_.pop(k)
 
         for schema_element, (repeat_schema, marc_fields, repeat_sf, strip_out) in self.mappings:
             if repeat_schema:
@@ -362,9 +362,11 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
                             if field_text:
                                 field_texts.add(field_text)
                     if len(field_texts) == 1:
-                        dict[schema_element] = list(field_texts)[0]
+                        dict_[schema_element] = list(field_texts)[0]
                     elif len(field_texts) > 1:
-                        dict[schema_element] = list(field_texts)
+                        texts = list(field_texts)
+                        texts.sort()
+                        dict_[schema_element] = texts
                 else:
                     for marc_field in marc_fields:
                         field_text = ' '.join(self.get_marc_field(*marc_field))
@@ -373,9 +375,11 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
                         if field_text:
                             field_texts.add(field_text)
                     if len(field_texts) == 1:
-                        dict[schema_element] = list(field_texts)[0]
+                        dict_[schema_element] = list(field_texts)[0]
                     elif len(field_texts) > 1:
-                        dict[schema_element] = list(field_texts)
+                        texts = list(field_texts)
+                        texts.sort()
+                        dict_[schema_element] = texts
             else:
                 field_text_arr = []
                 for marc_field in marc_fields:
@@ -385,9 +389,8 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
                 if strip_out:
                     field_text = re.sub(strip_out, '', field_text)
                 if field_text:
-                    dict[schema_element] = field_text
-
-        return dict
+                    dict_[schema_element] = field_text
+        return dict_
 
     def __str__(self):
         """Return Schema.org data as a JSON-LD string.
