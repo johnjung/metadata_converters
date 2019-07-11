@@ -17,3 +17,8 @@ eggs/
 
 # Sphinx documentation
 docs/build/
+
+# virtualenv
+venv/
+ENV/
+env/
