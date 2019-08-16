@@ -22,3 +22,5 @@ docs/build/
 venv/
 ENV/
 env/
+activate.bat
+deactivate.bat

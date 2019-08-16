@@ -399,3 +399,60 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
             ensure_ascii=False,
             indent=4
         )
+
+# RDF library and its packages to be able to work with graphs
+from rdflib import URIRef, BNode, Literal, Namespace, Graph
+from rdflib.namespace import RDF, RDFS, FOAF, DC, DCTERMS, XSD
+
+# Expands on the MarcToDc class to easily use DC mappings
+class MarcXmlToEDM(MarcToDc):
+    """A class to convert MARCXML to  Europeana Data Model (EDM)."""
+
+    # Setting namespaces for subject, predicate, object values
+    VRA = Namespace('http://purl.org/vra/')
+    OAI = Namespace('http://www.openarchives.org/OAI/2.0/')
+    ORE = Namespace('http://www.openarchives.org/ore/terms/')
+    ERC = Namespace('http://purl.org/kernel/elements/1.1/')
+    EDM = Namespace('http://www.europeana.eu/schemas/edm/')
+    self.BASE = Namespace('http://ark.lib.uchicago.edu/ark:/61001/')
+
+    def __init__(self, marcxml):
+        """Initialize an instance of the class MarcXmlToEDM.
+
+        Args:
+            graph (Graph): a EDM graph collection from a single record.
+        """
+        super().__init__(marcxml)
+        self.graph = Graph()
+        self._build_graph()
+
+    def _build_graph(self):
+        metadata = Graph()
+
+        # Create an identifier to use as the subject for Donna.
+        identifier = BNode(self.identifier)
+        issue = self.BASE.term(identifier)
+
+        # Add triples using store's add method by iterating through dc elements.
+        for dc_element in self.dc:
+            metadata.add(self.triple(self.identifier, DC.type, Literal(self.dc[dc_element])))
+
+        self.graph = metadata
+
+    def triple(self, subj, pred, obj):
+        """Return a triple constructed from the base URL and given predicate and obejct.
+
+        Returns:
+            truple (tuple): a tuple of three terms, subject, predicate, and object.
+        """
+        term = self.BASE.term(subj)
+        return (term, pred, obj)
+
+
+    def __str__(self):
+        """Return EDM data as a string.
+
+        Returns:
+            str
+        """
+        return self.graph.serialize(format='turtle', base=self.BASE).decode("utf-8")
