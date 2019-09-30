@@ -414,7 +414,7 @@ class MarcXmlToEDM(MarcToDc):
     ORE = Namespace('http://www.openarchives.org/ore/terms/')
     ERC = Namespace('http://purl.org/kernel/elements/1.1/')
     EDM = Namespace('http://www.europeana.eu/schemas/edm/')
-    self.BASE = Namespace('http://ark.lib.uchicago.edu/ark:/61001/')
+    BASE = Namespace('http://ark.lib.uchicago.edu/ark:/61001/')
 
     def __init__(self, marcxml):
         """Initialize an instance of the class MarcXmlToEDM.
