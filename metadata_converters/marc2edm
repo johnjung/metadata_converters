@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+"""Usage:
+    marc2edm -
+    marc2edm -f <path>
+Options:
+  -h --help     Show this screen.
+  -f --file     File path to make manifest from
+  -             Take input from the terminal
+"""
+
+
+import sys
+from docopt import docopt
+from classes import MarcXmlToEDM
+
+
+if __name__ == "__main__":
+    options = docopt(__doc__)
+
+    if options['--file']:
+        with open(options['<path>'], 'r') as file:
+            marcxml = file.read()
+    elif options['-']:
+        marcxml = sys.stdin.read()
+    else:
+        sys.exit()
+
+    sys.stdout.write(str(MarcXmlToEDM(marcxml)))

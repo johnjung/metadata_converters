@@ -1,8 +1,12 @@
+import datetime
 import json
 import re
 import sys
 import xml.etree.ElementTree as ElementTree
 
+from rdflib import BNode, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import RDF, RDFS, FOAF, DC, DCTERMS, XSD
+from rdflib.plugins.sparql import prepareQuery
 
 class MarcXmlConverter:
     """
@@ -92,9 +96,6 @@ class MarcToDc(MarcXmlConverter):
 
     """
 
-    # Are these appropriate custom qualifications?
-    # DC.coverage.location
-    # DC.coverage.periodOfTime
     mappings = [
         ('DC.rights.access',         [False, [('506', '[a-z]',  '.', '.')], False,   None]),
         ('DC.contributor',           [True,  [('700', 'a',      '.', '.'),
@@ -246,6 +247,60 @@ class MarcToDc(MarcXmlConverter):
 
         indent(self.dc)
         return ElementTree.tostring(self.dc, 'utf-8', method='xml').decode('utf-8')
+
+
+class SocSciMapsMarcToDc(MarcToDc):
+
+    # another mappings table maps DC elements to functions.
+    # special function names automatically get called and their data gets appended. 
+
+    mappings = [
+        ('DC.creator',     [True , [('100', '[a-z]', '.', '.')], False, None]),
+        ('DC.extent',      [False, [('300', 'c',     '.', '.')], False, None]),
+        ('DC.description', [False, [('500', '[a-z]', '.', '.')], False, None]),
+        ('DC.identifier',  [False, [('865', 'u',     '.', '.')], False, None]),
+        ('DC.title',       [False, [('245', '[a-z]', '.', '.')], False, None]), 
+        ('DC.type',        [False, [('336', 'a',     '.', '.')], False, None])
+    ]
+
+    def _get_coverage(self):
+        values = []
+        for element in self.record:
+            if not element.tag == '{http://www.loc.gov/MARC21/slim}datafield':
+                continue
+            if not element.attrib['tag'] == '651':
+                continue
+            if not element.attrib['ind2'] == '7':
+                continue
+            keep_subfields = False
+            for subfield in element:
+                if subfield.attrib['code'] == '2' and not subfield.text == 'fast':
+                    keep_subfields = True
+            if keep_subfields:
+                for subfield in element:
+                    if re.match('[a-z]', subfield.attrib['code']):
+                        values.append(subfield.text)
+        return ('DC.coverage', values)
+
+    def _date_or_publisher(self, subfield_code):
+        for element in self.record:
+            if not element.tag == '{http://www.loc.gov/MARC21/slim}datafield':
+                continue
+            for tag in ('260', '264'):
+                if element.attrib['tag'] == tag:
+                    for subfield in element:
+                        if subfield.attrib['code'] == subfield_code:
+                            return subfield.text
+        return ''
+
+    def _get_date(self):
+        return ('DC.date', self._date_or_publisher('c'))
+
+    def _get_language(self):
+        return ('DC.language', 'en')
+
+    def _get_publisher(self):
+        return ('DC.publisher', self._date_or_publisher('b'))
 
 
 class MarcXmlToSchemaDotOrg(MarcXmlConverter):
@@ -400,12 +455,8 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
             indent=4
         )
 
-# RDF library and its packages to be able to work with graphs
-from rdflib import URIRef, BNode, Literal, Namespace, Graph
-from rdflib.namespace import RDF, RDFS, FOAF, DC, DCTERMS, XSD
 
-# Expands on the MarcToDc class to easily use DC mappings
-class MarcXmlToEDM(MarcToDc):
+class SocSciMapsMarcXmlToEDM(SocSciMapsMarcToDc):
     """A class to convert MARCXML to  Europeana Data Model (EDM)."""
 
     # Setting namespaces for subject, predicate, object values
@@ -423,31 +474,170 @@ class MarcXmlToEDM(MarcToDc):
             graph (Graph): a EDM graph collection from a single record.
         """
         super().__init__(marcxml)
+
+        if isinstance(self.identifier, list):
+            self.identifier = self.identifier[0]
+
         self.graph = Graph()
+        self.graph.bind('dc', DC)
+        self.graph.bind('edm', self.EDM)
+        self.graph.bind('dcterms', DCTERMS)
+        self.graph.bind('ore', self.ORE)
         self._build_graph()
 
     def _build_graph(self):
-        metadata = Graph()
+        resource_map = URIRef('/rem/digital_collections/IIIF_Files{}'.format(
+            self.identifier.replace('http://pi.lib.uchicago.edu/1001', '')
+        ))
 
-        # Create an identifier to use as the subject for Donna.
-        identifier = BNode(self.identifier)
-        issue = self.BASE.term(identifier)
+	# check to see if the resource map node exists before adding a creation
+	# date.
+        if not bool(self.graph.query(
+            prepareQuery('ASK { ?s ?p ?o . }'),
+            initBindings={'s': resource_map}
+        )):
+            self.graph.set((
+                resource_map,
+                DCTERMS.created,
+                Literal(datetime.datetime.utcnow(), datatype=XSD.date)
+            ))
 
-        # Add triples using store's add method by iterating through dc elements.
-        for dc_element in self.dc:
-            metadata.add(self.triple(self.identifier, DC.type, Literal(self.dc[dc_element])))
+        self.graph.add((
+            resource_map,
+            DCTERMS.modified,
+            Literal(datetime.datetime.utcnow(), datatype=XSD.date)
+        ))
 
-        self.graph = metadata
+        self.graph.set((
+            resource_map,
+            DCTERMS.creator,
+            URIRef('http://library.uchicago.edu/')
+        ))
 
-    def triple(self, subj, pred, obj):
-        """Return a triple constructed from the base URL and given predicate and obejct.
+        self.graph.set((
+            resource_map,
+            RDF.type,
+            self.ORE.resourceMap
+        ))
 
-        Returns:
-            truple (tuple): a tuple of three terms, subject, predicate, and object.
-        """
-        term = self.BASE.term(subj)
-        return (term, pred, obj)
+        # aggregation
 
+        aggregation = URIRef('/aggregation/digital_collections/IIIF_Files{}'.format(
+            self.identifier.replace('http://pi.lib.uchicago.edu/1001', '')
+        ))
+        cultural_heritage_object = URIRef('/digital_collections/IIIF_Files{}'.format(
+            self.identifier.replace('http://pi.lib.uchicago.edu/1001', '')
+        ))
+
+        if not bool(self.graph.query(
+            prepareQuery('ASK { ?s ?p ?o . }'),
+            initBindings={'s': aggregation}
+        )):
+            self.graph.add((
+                aggregation,
+                DCTERMS.created,
+                Literal(datetime.datetime.utcnow(), datatype=XSD.date)
+            ))
+
+        self.graph.add((
+            aggregation,
+            DCTERMS.modified,
+            Literal(datetime.datetime.utcnow(), datatype=XSD.date)
+        ))
+
+        self.graph.set((
+            resource_map,
+            self.ORE.describes,
+            aggregation
+        ))
+
+        self.graph.add((
+            aggregation,
+            DCTERMS.modified,
+            Literal(datetime.datetime.utcnow(), datatype=XSD.date)
+        ))
+
+        self.graph.add((
+            aggregation,
+            self.EDM.aggreatagedCHO,
+            cultural_heritage_object
+        ))
+
+        self.graph.add((
+            aggregation,
+            self.EDM.dataProvider,
+            Literal("University of Chicago Library")
+        ))
+
+        self.graph.add((
+            aggregation,
+            self.EDM.isShownAt,
+            Literal(self.identifier)
+        ))
+
+        '''
+        self.graph.add((
+            aggregation,
+            self.EDM.isShownBy,
+            Literal('IIIF URL for highest quality image of map')
+        ))
+
+        self.graph.add((
+            aggregation,
+            self.EDM.object,
+            Literal('IIIF URL for highest quality image of map')
+        ))
+        '''
+
+        self.graph.add((
+            aggregation,
+            self.EDM.provider,
+            Literal('University of Chicago Library')
+        ))
+
+        self.graph.add((
+            aggregation,
+            self.EDM.rights,
+            URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')
+        ))
+
+        self.graph.set((
+            aggregation,
+            self.ORE.isDescribedBy,
+            cultural_heritage_object
+        ))
+
+        self.graph.set((
+            aggregation,
+            RDF.type,
+            self.ORE.aggregation
+        ))
+ 
+        # cultural_heritage_object
+
+        self.graph.set((
+            cultural_heritage_object,
+            RDF.type,
+            self.EDM.ProvidedCHO
+        ))
+
+        for p, o_element_str in (
+            (DC.title, '{http://purl.org/dc/elements/1.1/}title'),
+            (DC.description, '{http://purl.org/dc/elements/1.1/}description'),
+            (DC.language, '{http://purl.org/dc/elements/1.1/}language'),
+            (DC.subject, '{http://purl.org/dc/elements/1.1/}subject'),
+            (DC.type, '{http://purl.org/dc/elements/1.1/}type'),
+            (DC.coverage, '{http://purl.org/dc/elements/1.1/}coverage'),
+            (DCTERMS.spatial, '{http://purl.org/dc/terms/}spatial')
+        ):
+            try:
+                self.graph.add((
+                    cultural_heritage_object,
+                    p,
+                    Literal(self.dc.find(o_element_str).text)
+                ))
+            except AttributeError:
+                pass
 
     def __str__(self):
         """Return EDM data as a string.

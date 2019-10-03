@@ -1,32 +1,22 @@
 #!/usr/bin/env python
 """Usage:
-    marc2dc -
-    marc2dc -f <path>
-Options:
-  -h --help     Show this screen.
-  -f --file     File path to make manifest from
-  -             Take input from the terminal
+    marc2dc [--socscimaps]
 """
 
 
 import sys
 from docopt import docopt
-from classes import MarcToDc
+from classes import MarcToDc, SocSciMapsMarcToDc
 
 
 def main():
-	options = docopt(__doc__)
-	
-	if options['--file']:
-		with open(options['<path>'], 'r') as file:
-			marcxml = file.read()
-	elif options['-']:
-		marcxml = sys.stdin.read()
-	else:
-		sys.exit()
+        options = docopt(__doc__)
 
-	sys.stdout.write(str(MarcToDc(marcxml)))
-	sys.exit()
+        if options['--socscimaps']:
+            cls = SocSciMapsMarcToDc
+        else:
+            cls = MarcToDc
+        sys.stdout.write(str(cls(sys.stdin.read())))
 
 
 if __name__ == "__main__":
