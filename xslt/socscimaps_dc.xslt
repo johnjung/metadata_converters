@@ -4,24 +4,24 @@
          see: https://catalog.lib.uchicago.edu/vufind/Search/Results?type=SeriesBrowse&lookfor=%22Social%20scientists%20map%20Chicago%22 
 
          NOTES:
-         creator:
-         the spec says to use the 100 field. Should subfields a-z be
-         concatenated together, or just use subfield a?
-         
-         dates:
-         dates are encoded in a variety of formats:
+	 Note that one of the records in this series
+	 (http://pi.lib.uchicago.edu/1001/cat/bib/1595409) is an aggregate with
+	 multiple 856u fields. Skip this record when processing.
+
+         Although the spec was to assign a rights statement based on the year of 
+         the item, determining the date programmatically is challenging because
+         of the variety of date formats present:
+
          1924., 1925., 1927.  1935., 1943., [192-?], [192-], [1923], [1924],
          [1925], [1929], [193-?], [1930-1935], [1932], [1933], [1936], [1940?],
          [1943], [1957?], [approximately 1932], [approximately 1933], [between
          1908 and 1919?], [between 1933 and 1939], ©1926.
 
-         of the dates above, only one is definitively out of copyright. Beacuse
-         of that I assign the rights statement based on the identifier, and not
-         by parsing dates. 
+         Because of this, the rights statement is assigned based on the item's
+         identifier, not its date. 
 
-         identifier:
-         the first record in the series contains several 856's with subfield u.
-         should I use a single identifer for all of these records? -->
+         creator:
+         see https://github.com/johnjung/metadata_converters/issues/10 -->
 
     <!-- -->
     <xsl:template match="@*|node()">
