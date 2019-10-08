@@ -25,6 +25,10 @@ Another project, written in Perl, with converters to and from lots of metadata f
 [How to use DCMI Metadata as linked data](http://www.dublincore.org/resources/userguide/publishing_metadata/)
 Some notes from dublincore.org.
 
+[General spec](https://dldc.lib.uchicago.edu/dl/collections/digcollingestspecifications.html#sec-4-2)
+
+[Maps specific spec](https://docs.google.com/document/d/11QaNUMEtjp9DMkwkttvm1zMFF6rV1KrfVe2SYr1brVA/edit)
+
 [Sample data](https://docs.google.com/document/d/11QaNUMEtjp9DMkwkttvm1zMFF6rV1KrfVe2SYr1brVA/edit)
 
 ## Contributors
