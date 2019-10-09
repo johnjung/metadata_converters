@@ -1,1 +1,1 @@
-from .classes import MarcXmlConverter, MarcToDc, MarcXmlToSchemaDotOrg, SocSciMapsMarcXmlToEDM
+from .classes import MarcXmlConverter, MarcToDc, MarcXmlToOpenGraph, MarcXmlToSchemaDotOrg, SocSciMapsMarcXmlToEDM

@@ -1,4 +1,5 @@
 import datetime
+import jinja2
 import json
 import re
 import sys
@@ -530,3 +531,23 @@ class SocSciMapsMarcXmlToEDM(MarcToDc):
             str
         """
         return self.graph.serialize(format='turtle', base=self.BASE).decode("utf-8")
+
+
+class MarcXmlToOpenGraph(MarcXmlConverter):
+    def __init__(self, marcxml):
+        self.dc = MarcToDc(marcxml)
+    def __str__(self):
+        html = '\n'.join(('<meta property="og:title" content="{{ og_title }}" >',
+                        '<meta property="og:type" content="{{ og_type }}" >',
+                        '<meta property="og:url" content="{{ og_url }}" >',
+                        '<meta property="og:image" content="{{ og_image }}" >',
+                        '<meta property="og:description" content="{{ og_description }}" >',
+                        '<meta property="og:site_name" content="{{ og_site_name }}" >'))
+        return jinja2.Template(html).render(
+            og_description=self.dc.description[0],
+            og_image='image',
+            og_site_name='site_name',
+            og_title=self.dc.title[0],
+            og_type='website',
+            og_url='url'
+        )
