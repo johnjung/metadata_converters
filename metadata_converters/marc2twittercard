@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+"""Convert MARCXML to Twitter Card"""
+
+import sys
+from classes import MarcXmlToTwitterCard
+
+if __name__ == "__main__":
+    sys.stdout.write(str(MarcXmlToTwitterCard(sys.stdin.read())))

@@ -551,3 +551,23 @@ class MarcXmlToOpenGraph(MarcXmlConverter):
             og_type='website',
             og_url='url'
         )
+
+
+class MarcXmlToTwitterCard(MarcXmlConverter):
+    def __init__(self, marcxml):
+        self.dc = MarcToDc(marcxml)
+    def __str__(self):
+        html = '\n'.join(('<meta name="twitter:card" content="{{ twitter_card }}" >',
+                          '<meta name="twitter:site" content="{{ twitter_site }}" >',
+                          '<meta name="twitter:title" content="{{ twitter_title }}" >',
+                          '<meta name="twitter:description" content="{{ twitter_description }}" >',
+                          '<meta name="twitter:image" content="{{ twitter_image }}" >',
+                          '<meta name="twitter:image:alt" content="{{ twitter_image_alt }}" >'))
+        return jinja2.Template(html).render(
+            twitter_card='card',
+            twitter_description=self.dc.description[0],
+            twitter_image='image',
+            twitter_image_alt='image_alt',
+            twitter_site='site',
+            twitter_title=self.dc.title[0]
+        )
