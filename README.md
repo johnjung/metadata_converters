@@ -29,7 +29,7 @@ Some notes from dublincore.org.
 
 [Maps specific spec](https://docs.google.com/document/d/11QaNUMEtjp9DMkwkttvm1zMFF6rV1KrfVe2SYr1brVA/edit)
 
-[DC metadata](https://docs.google.com/spreadsheets/d/1Kz1nfTSBjc2PTJ8hrZ--JCBpKV061sdXQxRxVo8VY_Y/edit?usp=sharing)
+[MARC to DC with Collection Details (most up-to-date spec)](https://docs.google.com/spreadsheets/d/1Kz1nfTSBjc2PTJ8hrZ--JCBpKV061sdXQxRxVo8VY_Y/edit?usp=sharing)
 
 [Sample data](https://docs.google.com/document/d/11QaNUMEtjp9DMkwkttvm1zMFF6rV1KrfVe2SYr1brVA/edit)
 

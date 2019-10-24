@@ -17,7 +17,7 @@ class MarcToDc:
             'dcterms', 'http://purl.org/dc/terms/')
         self.record = ElementTree.fromstring(marcxml).find(
             '{http://www.loc.gov/MARC21/slim}record')
-        with open('marc2dc.json') as f:
+        with open('socscimaps_marc2dc.json') as f:
             data = json.load(f)
             self.template = data['template']
             self.crosswalk = data['crosswalk']

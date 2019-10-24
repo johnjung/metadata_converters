@@ -11,11 +11,6 @@
         "tag_re": ".*"
     },
     "crosswalk": {
-        "dc:accessRights": [
-            {
-                "tag_re": "506"
-            }
-        ],
         "dc:contributor": [
             {
                 "tag_re": "700|710",
@@ -58,8 +53,7 @@
         ],
         "dc:description": [
             {
-                "tag_re": "500|538",
-                "join_fields": true
+                "tag_re": "500|538"
             }
         ],
         "dc:extent": [
@@ -74,12 +68,6 @@
                 "subfield_re": "[ab]"
             }
         ],
-        "dc:hasFormat": [
-            {
-                "tag_re": "533|776",
-                "subfield_re": "a"
-            }
-        ],
         "dc:identifier": [
             {
                 "tag_re": "856",
@@ -90,23 +78,20 @@
                 "tag_re": "02[0-9]"
             }
         ],
-        "dc:isPartOf": [
-            {
-                "tag_re": "533",
-                "subfield_re": "f"
-            },
-            {
-                "tag_re": "830"
-            }
-        ],
         "dc:language": [
             {
-                "tag_re": "034"
+                "tag_re": "041"
             }
         ],
-        "dc:medium": [
+        "dc:publisher": [
             {
-                "tag_re": "338"
+                "tag_re": "260",
+                "subfield_re": "b"
+            },
+            {
+                "tag_re": "264",
+                "subfield_re": "b",
+                "indicator2_re": "1"
             }
         ],
         "dc:relation": [
@@ -132,22 +117,9 @@
                 "subfield_re": "[ab]"
             }
         ],
-        "dc:type": [
+        "dcterms:accessRights": [
             {
-                "tag_re": "336"
-            },
-            {
-                "tag_re": "60[01]",
-                "subfield_re": "v"
-            },
-            {
-                "tag_re": "655",
-                "filter": [
-                    {
-                        "subfield_re": "2",
-                        "value_re": "^fast$"
-                    }
-                ]
+                "tag_re": "506"
             }
         ],
         "dcterms:alternative": [
@@ -155,7 +127,22 @@
                 "tag_re": "246"
             }
         ],
-        "dcterms:isssued": [
+        "dcterms:hasFormat": [
+            {
+                "tag_re": "533|776",
+                "subfield_re": "a"
+            }
+        ],
+        "dcterms:isPartOf": [
+            {
+                "tag_re": "533",
+                "subfield_re": "f"
+            },
+            {
+                "tag_re": "830"
+            }
+        ],
+        "dcterms:issued": [
             {
                 "tag_re": "260",
                 "subfield_re": "c"
@@ -179,17 +166,6 @@
             {
                 "tag_re": "533",
                 "subfield_re": "b"
-            }
-        ],
-        "dcterms:publisher": [
-            {
-                "tag_re": "260",
-                "subfield_re": "b"
-            },
-            {
-                "tag_re": "264",
-                "subfield_re": "b",
-                "indicator2_re": "1"
             }
         ]
     }
