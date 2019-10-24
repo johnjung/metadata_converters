@@ -1,0 +1,196 @@
+{
+    "template": {
+        "exclude": [],
+        "filter": [],
+        "indicator1_re": ".",
+        "indicator2_re": ".",
+        "join_subfields": true,
+        "join_fields": false,
+        "return_first_result_only": false,
+        "subfield_re": "[a-z]",
+        "tag_re": ".*"
+    },
+    "crosswalk": {
+        "dc:accessRights": [
+            {
+                "tag_re": "506"
+            }
+        ],
+        "dc:contributor": [
+            {
+                "tag_re": "700|710",
+                "subfield_re": "a"
+            }
+        ],
+        "dc:coverage": [
+            {
+                "tag_re": "651", 
+                "subfield_re": "[az]",
+                "filter": [
+                    {
+                        "subfield_re": "2",
+                        "value_re": "^fast$"
+                    }
+                ]
+            }
+        ],
+        "dc:creator": [
+            {
+                "tag_re": "100|110|111"
+            },
+            {
+                "tag_re": "533",
+                "subfield_re": "c"
+            }
+        ],
+        "dc:date": [
+            {
+                "tag_re": "533",
+                "subfield_re": "d"
+            }
+        ],
+        "dc:dateCopyrighted": [
+            {
+                "tag_re": "264",
+                "subfield_re": "c",
+                "indicator1_re": "4"
+            }
+        ],
+        "dc:description": [
+            {
+                "tag_re": "500|538",
+                "join_fields": true
+            }
+        ],
+        "dc:extent": [
+            {
+                "tag_re": "300",
+                "subfield_re": "[ac]"
+            }
+        ],
+        "dc:format": [
+            {
+                "tag_re": "255",
+                "subfield_re": "[ab]"
+            }
+        ],
+        "dc:hasFormat": [
+            {
+                "tag_re": "533|776",
+                "subfield_re": "a"
+            }
+        ],
+        "dc:identifier": [
+            {
+                "tag_re": "856",
+                "subfield_re": "u",
+                "return_first_result_only": true
+            },
+            {
+                "tag_re": "02[0-9]"
+            }
+        ],
+        "dc:isPartOf": [
+            {
+                "tag_re": "533",
+                "subfield_re": "f"
+            },
+            {
+                "tag_re": "830"
+            }
+        ],
+        "dc:language": [
+            {
+                "tag_re": "034"
+            }
+        ],
+        "dc:medium": [
+            {
+                "tag_re": "338"
+            }
+        ],
+        "dc:relation": [
+            {
+                "tag_re": "730",
+                "subfield_re": "a"
+            }
+        ],
+        "dc:subject": [
+            {
+                "tag_re": "050"
+            },
+            {   "tag_re": "650",
+                "subfield_re": "[ax]"
+            }
+        ],
+        "dc:title": [
+            {
+                "tag_re": "130|240"
+            },
+            {
+                "tag_re": "245",
+                "subfield_re": "[ab]"
+            }
+        ],
+        "dc:type": [
+            {
+                "tag_re": "336"
+            },
+            {
+                "tag_re": "60[01]",
+                "subfield_re": "v"
+            },
+            {
+                "tag_re": "655",
+                "filter": [
+                    {
+                        "subfield_re": "2",
+                        "value_re": "^fast$"
+                    }
+                ]
+            }
+        ],
+        "dcterms:alternative": [
+            {
+                "tag_re": "246"
+            }
+        ],
+        "dcterms:isssued": [
+            {
+                "tag_re": "260",
+                "subfield_re": "c"
+            },
+            {
+                "tag_re": "264",
+                "subfield_re": "c",
+                "indicator2_re": "1"
+            }
+        ],
+        "dcterms:location": [
+            {
+                "tag_re": "260",
+                "subfield_re": "a"
+            },
+            {
+                "tag_re": "264",
+                "subfield_re": "a",
+                "indicator2_re": "1"
+            },
+            {
+                "tag_re": "533",
+                "subfield_re": "b"
+            }
+        ],
+        "dcterms:publisher": [
+            {
+                "tag_re": "260",
+                "subfield_re": "b"
+            },
+            {
+                "tag_re": "264",
+                "subfield_re": "b",
+                "indicator2_re": "1"
+            }
+        ]
+    }
+}

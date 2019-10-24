@@ -101,15 +101,14 @@ class MarcToDc(MarcXmlConverter):
         ('DC.rights.access',         [False, [('506', '[a-z]',  '.', '.')], False,   None]),
         ('DC.contributor',           [True,  [('700', 'a',      '.', '.'),
                                               ('710', 'a',      '.', '.')], False,   None]),
-        ('DC.coverage',              [False, [('255', '[a-z]',  '.', '.')], False,   None]),
         ('DC.creator',               [True,  [('100', '[a-z]',  '.', '.'),
                                               ('110', '[a-z]',  '.', '.'),
                                               ('111', '[a-z]',  '.', '.'),
-                                              ('245', 'c',      '.', '.')], False,   None]),
-        ('DC.date.copyrighted',      [True,  [('264', 'c',      '.', '4')], False,   None]),
-        ('DC.description',           [False, [('300', '[a-z3]', '.', '.')], False,   None]),
-        ('DC.format.extent',         [False, [('300', '[a-z]',  '.', '.')], False,   None]),
-        ('DC.format',                [True,  [('337', 'a',      '.', '.')], False,   '^computer$']),
+                                              ('533', 'c',      '.', '.')], False,   None]),
+        ('DC.date',                  [True,  [('533', 'd',      '.', '.')], False,   None]),
+        ('DC.description',           [False, [('500', '[a-z]',  '.', '.'),
+                                              ('538', '[a-z]',  '.', '.')], False,   None]),
+        ('DC.format',                [True,  [('255', '[ab]',   '.', '.')], False,   None]),
         ('DC.relation.hasFormat',    [True,  [('533', 'a',      '.', '.')], False,   None]),
         ('DC.identifier',            [True,  [('020', '[a-z]',  '.', '.'),
                                               ('021', '[a-z]',  '.', '.'),
@@ -122,29 +121,39 @@ class MarcToDc(MarcXmlConverter):
                                               ('028', '[a-z]',  '.', '.'),
                                               ('029', '[a-z]',  '.', '.'),
                                               ('856', 'u',      '.', '.')], False,   None]),
-        ('DC.relation.isPartOf',     [True,  [('490', '[a-z]',  '.', '.'),
-                                              ('533', 'f',      '.', '.'),
+        ('DC.relation.isPartOf',     [True,  [('533', 'f',      '.', '.'),
                                               ('700', 't',      '.', '.'),
                                               ('830', '[a-z]',  '.', '.')], False,   None]),
-        ('DC.date.issued',           [True,  [('264', 'c',      '1', '.')], False,   None]),
         ('DC.language',              [True,  [('041', '[a-z]',  '.', '.')], True,    None]),
+        ('DC.medium',                [True,  [('338', '[a-z]',  '.', '.')], True,    None]),
         ('DC.coverage.location',     [True,  [('264', 'a',      '1', '.'),
                                               ('533', 'b',      '.', '.')], False,   None]),
-        ('DC.format.medium',         [True,  [('338', 'a',      '.', '.')], False,   None]),
         ('DC.coverage.periodOfTime', [True,  [('650', 'y',      '.', '.')], False,   None]),
-        ('DC.publisher',             [True,  [('264', 'b',      '1', '.')], False,   None]),
+        ('DC.publisher',             [True,  [('260', 'b',      '.', '.'),
+                                              ('264', 'b',      '1', '.')], False,   None]),
         ('DC.relation',              [True,  [('730', 'a',      '.', '.')], False,   None]),
         ('DC.subject',               [True,  [('050', '[a-z]',  '.', '.')], False,   '[. ]*$']),
         ('DC.subject',               [True,  [('650', '[ax]',   '.', '.')], True,    '[. ]*$']),
         ('DC.title',                 [True,  [('130', '[a-z]',  '.', '.'),
                                               ('240', '[a-z]',  '.', '.'),
-                                              ('245', '[ab]',   '.', '.'),
-                                              ('246', '[a-z]',  '.', '.')], False,   None]),
-        ('DC.type',                  [True,  [('336', 'a',      '.', '.'),
+                                              ('245', '[ab]',   '.', '.')], False,   None]),
+        ('DC.type',                  [True,  [('336', '[a-z]',  '.', '.'),
                                               ('650', 'v',      '.', '.'),
-                                              ('651', 'v',      '.', '.'),
-                                              ('655', 'a',      '.', '.')], False,   '^Maps[. ]*$|[. ]*$'])
+                                              ('651', 'v',      '.', '.')], False,   '^Maps[. ]*$|[. ]*$']),
+        ('DCTERMS.alternative',      [True,  [('246', '[a-z]',  '.', '.')], False,   None]),
+        ('DCTERMS.dateCopyrighted',  [True,  [('264', 'c',      '4', '.')], False,   None]),
+        ('DCTERMS.extent',           [True,  [('300', '[ac]',   '.', '.')], False,   None]),
+        ('DCTERMS.issued',           [True,  [('260', 'c',      '.', '.'),
+                                              ('264', 'c',      '1', '.')], False,   None]),
+        ('DCTERMS.location',         [True,  [('260', 'a',      '.', '.'),
+                                              ('264', 'a',      '1', '.'),
+                                              ('533', 'b',      '.', '.')], False,   None])
     ]
+
+    # subjects should be deduped. 
+    # issued...should this be encoded as DCTERMS.issued, or DC.date.issued???
+    # dc:type 655 $2 fast.
+    # dcterms.dateCopyrighted ... is that a first or second indicator 4?
 
     def __init__(self, marcxml):
         """Initialize an instance of the class MarcToDc.
@@ -172,6 +181,15 @@ class MarcToDc(MarcXmlConverter):
         """Return a dictionary/list/etc. of metadata elements, for display in
         templates."""
         raise NotImplementedError
+
+    def _build_coverage(self):
+        raise NotImplementedError
+        # 034
+        # coordinate data...may not be present for all map collections.
+        # 650$z
+        # 651 _7 $a $2 fast
+        # 651 _7 $z $2 fast
+        # FAST only. Dedupe repeated headings across dc:coverage fields.
 
     def _build_xml(self):
         ElementTree.register_namespace(

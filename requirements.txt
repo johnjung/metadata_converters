@@ -1,3 +1,4 @@
 docopt
 jinja2
+jsonschema
 rdflib
