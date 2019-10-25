@@ -32,23 +32,6 @@
         "dc:creator": [
             {
                 "tag_re": "100|110|111"
-            },
-            {
-                "tag_re": "533",
-                "subfield_re": "c"
-            }
-        ],
-        "dc:date": [
-            {
-                "tag_re": "533",
-                "subfield_re": "d"
-            }
-        ],
-        "dc:dateCopyrighted": [
-            {
-                "tag_re": "264",
-                "subfield_re": "c",
-                "indicator1_re": "4"
             }
         ],
         "dc:description": [
@@ -86,11 +69,11 @@
         "dc:publisher": [
             {
                 "tag_re": "260",
-                "subfield_re": "b"
+                "subfield_re": "[ab]"
             },
             {
                 "tag_re": "264",
-                "subfield_re": "b",
+                "subfield_re": "[ab]",
                 "indicator2_re": "1"
             }
         ],
@@ -101,9 +84,6 @@
             }
         ],
         "dc:subject": [
-            {
-                "tag_re": "050"
-            },
             {   "tag_re": "650",
                 "subfield_re": "[ax]"
             }
@@ -127,17 +107,20 @@
                 "tag_re": "246"
             }
         ],
+        "dcterms:dateCopyrighted": [
+            {
+                "tag_re": "264",
+                "subfield_re": "c",
+                "indicator1_re": "4"
+            }
+        ],
         "dcterms:hasFormat": [
             {
-                "tag_re": "533|776",
+                "tag_re": "776",
                 "subfield_re": "a"
             }
         ],
         "dcterms:isPartOf": [
-            {
-                "tag_re": "533",
-                "subfield_re": "f"
-            },
             {
                 "tag_re": "830"
             }
@@ -151,21 +134,6 @@
                 "tag_re": "264",
                 "subfield_re": "c",
                 "indicator2_re": "1"
-            }
-        ],
-        "dcterms:location": [
-            {
-                "tag_re": "260",
-                "subfield_re": "a"
-            },
-            {
-                "tag_re": "264",
-                "subfield_re": "a",
-                "indicator2_re": "1"
-            },
-            {
-                "tag_re": "533",
-                "subfield_re": "b"
             }
         ]
     }

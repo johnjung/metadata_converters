@@ -105,7 +105,7 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
 
     def test_get_creator(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.creator, ['Sachs, Theodore B. (Theodore Bernard), 1868-1916.', 'University of Chicago Library,'])
+        self.assertEqual(self.collection.creator, ['Sachs, Theodore B. (Theodore Bernard), 1868-1916.'])
 
     def test_get_description(self):
         """Be sure the object can return the DC element."""
@@ -121,14 +121,14 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
 
     def test_get_has_format(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.hasFormat, ['Electronic reproduction.', 'Sachs, Theodore B. (Theodore Bernard), 1868-1916.'])
+        self.assertEqual(self.collection.hasFormat, ['Sachs, Theodore B. (Theodore Bernard), 1868-1916.'])
 
     def test_get_identifier(self):
         self.assertEqual(self.collection.identifier, ['http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2N3E51-1908-S2', 'temp test'])
 
     def test_get_is_part_of(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.isPartOf, ['(Social scientists map Chicago); (University of Chicago Digital Preservation Collection)', 'Social scientists map Chicago.', 'University of Chicago Digital Preservation Collection.'])
+        self.assertEqual(self.collection.isPartOf, ['Social scientists map Chicago.', 'University of Chicago Digital Preservation Collection.'])
 
     def test_get_issued(self):
         """Be sure the object can return the DC element."""
@@ -140,7 +140,7 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
 
     def test_get_publisher(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.publisher, ['[publisher not identified],'])
+        self.assertEqual(self.collection.publisher, ['[Place of publication not identified] : [publisher not identified],'])
 
     def test_get_relation(self):
         """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
@@ -148,12 +148,7 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
 
     def test_get_subject(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.subject, ['G4104.C6:2N3E51 1908 .S2', 'Tuberculosis'])
-
-    def test_get_subject(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.subject[0], 'G4104.C6:2N3E51 1908 .S2')
-        self.assertEqual(self.collection.subject[1], 'Tuberculosis')
+        self.assertEqual(self.collection.subject, ['Tuberculosis', 'Tuberculosis.'])
 
     def test_get_title(self):
         """Be sure the object can return the DC element."""

@@ -20,4 +20,3 @@ if __name__=='__main__':
             )
         )
         sys.stdout.write('\n')
-        sys.exit()
