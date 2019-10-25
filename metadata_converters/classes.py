@@ -1,6 +1,7 @@
 import datetime
 import jinja2
 import json
+import os
 import re
 import sys
 import xml.etree.ElementTree as ElementTree
@@ -71,201 +72,139 @@ class MarcXmlConverter:
         return results
 
 
-class MarcToDc(MarcXmlConverter):
-    """
-    A class to convert MARCXML to Dublin Core. 
-
-    The Library of Congress MARCXML to DC conversion is here:
-    http://www.loc.gov/standards/marcxml/xslt/MARC21slim2SRWDC.xsl
-    It produces slightly different results. 
-
-    mappings -- a list of tuples-
-        [0] -- Dublin Core metadata element.
-        [1] -- a list-
-            [0] a boolean, DC element is repeatable. 
-            [1] a list, a MARC field specification-
-                [0] a string, the MARC field itself.
-                [1] a regular expression (as a string), allowable subfields. 
-                [2] a regular expression (as a string), indicator 1.
-                [3] a regular expression (as a string), indicator 2. 
-        [2] a boolean, subfields each get their own DC element. If False,
-            subfields are joined together into a single DC element.
-            assert this field==False if [0]==False.
-        [3] a regular expression (as a string) to strip out of the field, or
-            None if there is nothing to exclude.
-            if the resulting value is '' it won't be added.
-
-    """
-
-    mappings = [
-        ('DC.rights.access',         [False, [('506', '[a-z]',  '.', '.')], False,   None]),
-        ('DC.contributor',           [True,  [('700', 'a',      '.', '.'),
-                                              ('710', 'a',      '.', '.')], False,   None]),
-        ('DC.creator',               [True,  [('100', '[a-z]',  '.', '.'),
-                                              ('110', '[a-z]',  '.', '.'),
-                                              ('111', '[a-z]',  '.', '.'),
-                                              ('533', 'c',      '.', '.')], False,   None]),
-        ('DC.date',                  [True,  [('533', 'd',      '.', '.')], False,   None]),
-        ('DC.description',           [False, [('500', '[a-z]',  '.', '.'),
-                                              ('538', '[a-z]',  '.', '.')], False,   None]),
-        ('DC.format',                [True,  [('255', '[ab]',   '.', '.')], False,   None]),
-        ('DC.relation.hasFormat',    [True,  [('533', 'a',      '.', '.')], False,   None]),
-        ('DC.identifier',            [True,  [('020', '[a-z]',  '.', '.'),
-                                              ('021', '[a-z]',  '.', '.'),
-                                              ('022', '[a-z]',  '.', '.'),
-                                              ('023', '[a-z]',  '.', '.'),
-                                              ('024', '[a-z]',  '.', '.'),
-                                              ('025', '[a-z]',  '.', '.'),
-                                              ('026', '[a-z]',  '.', '.'),
-                                              ('027', '[a-z]',  '.', '.'),
-                                              ('028', '[a-z]',  '.', '.'),
-                                              ('029', '[a-z]',  '.', '.'),
-                                              ('856', 'u',      '.', '.')], False,   None]),
-        ('DC.relation.isPartOf',     [True,  [('533', 'f',      '.', '.'),
-                                              ('700', 't',      '.', '.'),
-                                              ('830', '[a-z]',  '.', '.')], False,   None]),
-        ('DC.language',              [True,  [('041', '[a-z]',  '.', '.')], True,    None]),
-        ('DC.medium',                [True,  [('338', '[a-z]',  '.', '.')], True,    None]),
-        ('DC.coverage.location',     [True,  [('264', 'a',      '1', '.'),
-                                              ('533', 'b',      '.', '.')], False,   None]),
-        ('DC.coverage.periodOfTime', [True,  [('650', 'y',      '.', '.')], False,   None]),
-        ('DC.publisher',             [True,  [('260', 'b',      '.', '.'),
-                                              ('264', 'b',      '1', '.')], False,   None]),
-        ('DC.relation',              [True,  [('730', 'a',      '.', '.')], False,   None]),
-        ('DC.subject',               [True,  [('050', '[a-z]',  '.', '.')], False,   '[. ]*$']),
-        ('DC.subject',               [True,  [('650', '[ax]',   '.', '.')], True,    '[. ]*$']),
-        ('DC.title',                 [True,  [('130', '[a-z]',  '.', '.'),
-                                              ('240', '[a-z]',  '.', '.'),
-                                              ('245', '[ab]',   '.', '.')], False,   None]),
-        ('DC.type',                  [True,  [('336', '[a-z]',  '.', '.'),
-                                              ('650', 'v',      '.', '.'),
-                                              ('651', 'v',      '.', '.')], False,   '^Maps[. ]*$|[. ]*$']),
-        ('DCTERMS.alternative',      [True,  [('246', '[a-z]',  '.', '.')], False,   None]),
-        ('DCTERMS.dateCopyrighted',  [True,  [('264', 'c',      '4', '.')], False,   None]),
-        ('DCTERMS.extent',           [True,  [('300', '[ac]',   '.', '.')], False,   None]),
-        ('DCTERMS.issued',           [True,  [('260', 'c',      '.', '.'),
-                                              ('264', 'c',      '1', '.')], False,   None]),
-        ('DCTERMS.location',         [True,  [('260', 'a',      '.', '.'),
-                                              ('264', 'a',      '1', '.'),
-                                              ('533', 'b',      '.', '.')], False,   None])
-    ]
-
-    # subjects should be deduped. 
-    # issued...should this be encoded as DCTERMS.issued, or DC.date.issued???
-    # dc:type 655 $2 fast.
-    # dcterms.dateCopyrighted ... is that a first or second indicator 4?
-
+class SocSciMapsMarcXmlToDc:
+    """ If any exclude condition is met, the item will be excluded. If any filter
+        condition is met, the item will be filtered. """
     def __init__(self, marcxml):
-        """Initialize an instance of the class MarcToDc.
+        ElementTree.register_namespace(
+            'dc', 'http://purl.org/dc/elements/1.1/')
+        ElementTree.register_namespace(
+            'dcterms', 'http://purl.org/dc/terms/')
+        self.record = ElementTree.fromstring(marcxml).find(
+            '{http://www.loc.gov/MARC21/slim}record')
+        with open(os.path.join(os.path.dirname(__file__), 'json/socscimaps_marc2dc.json')) as f:
+            data = json.load(f)
+            self.template = data['template']
+            self.crosswalk = data['crosswalk']
+
+    def _filter_datafield(self, datafield, f):
+        """Return true if any subfields exist that match the conditions in r. 
 
         Args:
-            marcxml (str): a marcxml collection with a single record.
+            datafield (xml.etree.ElementTree.Element): a MARCXML datafield element.
+            f (dict): a rule, e.g.: { "subfield_re": "2", "value_re": "^fast$" }
+
+        Returns:
+            bool: datafield matches. 
         """
-        for _, (repeat_dc, _, repeat_sf, _) in self.mappings:
-            if repeat_dc == False:
-                assert repeat_sf == False
-        super().__init__(marcxml)
-        self._build_xml()
+        for subfield in datafield.findall('{http://www.loc.gov/MARC21/slim}subfield'):
+            if bool(re.search(f['subfield_re'], subfield.get('code'))) and \
+               bool(re.search(f['value_re'], subfield.text)):
+                return True
+        return False
+
+    def _get_subfield_values(self, datafield, r):
+        """
+        Return true if any subfields exist that match the conditions in r. 
+
+        Args:
+            datafield (xml.etree.ElementTree.Element): a MARCXML datafield element.
+            r (dict): a rule, e.g.: { "tag_re": "700", "subfield_re": "a" }
+
+        Returns:
+            A list of strings. 
+        """
+        values = []
+        for subfield in datafield.findall('{http://www.loc.gov/MARC21/slim}subfield'):
+            if re.search(r['subfield_re'], subfield.get('code')):
+                values.append(subfield.text)
+        return values
+
+    def _get_datafield_values(self, record, r):
+        """Return a list of values for a datafield. Only process datafields
+        with the appropriate tag and indicator values.
+
+        Args:
+            record (xml.etree.ElementTree.Element): a MARCXML record element.
+            r (dict): a rule, e.g. { "tag_re": "700", "subfield_re": "a" }
+
+        Returns:
+            A list of strings.
+        """
+        values = []
+        for datafield in record.findall('{http://www.loc.gov/MARC21/slim}datafield'):
+            if re.search(r['tag_re'], datafield.get('tag')) == None:
+                continue
+            if re.search(r['indicator1_re'], datafield.get('ind1')) == None:
+                continue
+            if re.search(r['indicator2_re'], datafield.get('ind2')) == None:
+                continue
+
+            _exclude = False
+            for f in r['exclude']:
+                if self._filter_datafield(datafield, f):
+                    _exclude = True
+            if _exclude:
+                continue
+  
+            _filter = True
+            if r['filter']:
+                _filter = False
+                for f in r['filter']:
+                    if self._filter_datafield(datafield, f):
+                        _filter = True
+            if not _filter:
+                continue
+
+            if r['join_subfields']:
+                values.append(' '.join(self._get_subfield_values(datafield, r)))
+            else:
+                values.extend(self._get_subfield_values(datafield, r))
+        if r['return_first_result_only'] and values:
+            return [values[0]]
+        elif r['join_fields']:
+            return [' '.join(values)]
+        else:
+            return values
 
     def __getattr__(self, attr):
         """Return individual Dublin Core elements as instance properties, e.g.
         self.identifier.
-
         Returns:
             list
         """
-        vals = [e.text for e in self.dc.findall('{{http://purl.org/dc/elements/1.1/}}{}'.format(attr.replace('_','.')))]   
-        return sorted(vals)
+        values = []
+        for e in self._asxml().findall(
+	    '{{http://purl.org/dc/elements/1.1/}}{}'.format(attr.replace('_','.'))
+        ):
+            values.append(e.text)
+        for e in self._asxml().findall(
+	    '{{http://purl.org/dc/terms/}}{}'.format(attr.replace('_','.'))
+        ):
+            values.append(e.text)
+        return sorted(values)
 
-    def todict(self):
-        """Return a dictionary/list/etc. of metadata elements, for display in
-        templates."""
-        raise NotImplementedError
-
-    def _build_coverage(self):
-        raise NotImplementedError
-        # 034
-        # coordinate data...may not be present for all map collections.
-        # 650$z
-        # 651 _7 $a $2 fast
-        # 651 _7 $z $2 fast
-        # FAST only. Dedupe repeated headings across dc:coverage fields.
-
-    def _build_xml(self):
-        ElementTree.register_namespace(
-            'dc', 'http://purl.org/dc/elements/1.1/')
-
+    def _asxml(self):
         metadata = ElementTree.Element('metadata')
-        for dc_element, (repeat_dc, marc_fields, repeat_sf, strip_out) in self.mappings:
-            if repeat_dc:
-                field_texts = set()
-                if repeat_sf:
-                    for marc_field in marc_fields:
-                        for field_text in self.get_marc_field(*marc_field):
-                            if strip_out:
-                                field_text = re.sub(strip_out, '', field_text)
-                            if field_text:
-                                field_texts.add(field_text)
-                    for field_text in field_texts:
-                        ElementTree.SubElement(
-                            metadata,
-                            dc_element.replace(
-                                'DC.', '{http://purl.org/dc/elements/1.1/}')
-                        ).text = field_text
-                else:
-                    for marc_field in marc_fields:
-                        field_text = ' '.join(self.get_marc_field(*marc_field))
-                        if strip_out:
-                            field_text = re.sub(strip_out, '', field_text)
-                        if field_text:
-                            field_texts.add(field_text)
-                    for field_text in field_texts:
-                        ElementTree.SubElement(
-                            metadata,
-                            dc_element.replace(
-                                'DC.', '{http://purl.org/dc/elements/1.1/}')
-                        ).text = field_text
-            else:
-                field_text_arr = []
-                for marc_field in marc_fields:
-                    field_text_arr = field_text_arr + \
-                        self.get_marc_field(*marc_field)
-                field_text = ' '.join(field_text_arr)
-                if strip_out:
-                    field_text = re.sub(strip_out, '', field_text)
-                if field_text:
-                    ElementTree.SubElement(
-                        metadata,
-                        dc_element.replace(
-                            'DC.', '{http://purl.org/dc/elements/1.1/}')
-                    ).text = field_text
-        self.dc = metadata
-
+        for e, rules in self.crosswalk.items():
+            values = []
+            for r in rules:
+                values.extend(
+                    self._get_datafield_values(
+                        self.record,
+                        {**self.template, **r}
+                    )
+                )
+            element_str = e.replace('dc:', '{http://purl.org/dc/elements/1.1/}').replace('dcterms:', '{http://purl.org/dc/terms/}')
+            for value in values:
+                ElementTree.SubElement(
+                    metadata,
+                    element_str
+                ).text = value
+        return metadata
+            
     def __str__(self):
-        """Return Dublin Core XML as a string.
-
-        Returns:
-            str
-        """
-        def indent(elem, level=0):
-            i = "\n" + level * "  "
-            j = "\n" + (level - 1) * "  "
-            if len(elem):
-                if not elem.text or not elem.text.strip():
-                    elem.text = i + "  "
-                if not elem.tail or not elem.tail.strip():
-                    elem.tail = i
-                for subelem in elem:
-                    indent(subelem, level + 1)
-                if not elem.tail or not elem.tail.strip():
-                    elem.tail = j
-            else:
-                if level and (not elem.tail or not elem.tail.strip()):
-                    elem.tail = j
-            return elem
-
-        indent(self.dc)
-        return ElementTree.tostring(self.dc, 'utf-8', method='xml').decode('utf-8')
+        return ElementTree.tostring(self._asxml(), 'utf-8', method='xml').decode('utf-8')
 
 
 class MarcXmlToSchemaDotOrg(MarcXmlConverter):
@@ -421,7 +360,7 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
         )
 
 
-class SocSciMapsMarcXmlToEDM(MarcToDc):
+class SocSciMapsMarcXmlToEDM:
     """A class to convert MARCXML to  Europeana Data Model (EDM)."""
 
     # from Charles, via Slack (10/3/2019 9:52am)

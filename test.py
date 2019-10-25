@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 from pathlib import Path
-from metadata_converters import MarcXmlConverter, MarcToDc, MarcXmlToSchemaDotOrg
+from metadata_converters import MarcXmlConverter, SocSciMapsMarcXmlToDc, MarcXmlToSchemaDotOrg
 import xml.etree.ElementTree as ElementTree
 
 
@@ -56,7 +56,28 @@ class TestMarcXmlConverter(unittest.TestCase):
         self.assertEqual(self.collection.get_marc_field('655', '[a]', '4', '7'), [])
         self.assertEqual(self.collection.get_marc_field('830', '', '', '0'), ['Social scientists map Chicago.', 'ICU', 'University of Chicago Digital Preservation Collection.', 'ICU'])
 
-class TestMarcToDc(unittest.TestCase):
+
+'''
+class TestMarcXmlToDc(unittest.TestCase):
+    def test_get_date_copyrighted(self):
+        """Be sure the object can return the DC element."""
+        self.assertEqual(self.collection.date_copyrighted, ['[between 1908 and 1919]'])
+
+    def test_get_format_medium(self):
+        """Be sure the object can return the DC element."""
+        self.assertEqual(self.collection.format_medium, ['online resource'])
+
+    def test_get_rights_access(self):
+        """Be sure the object can return the DC element."""
+        self.assertEqual(self.collection.rights_access, ['Digital version available with restrictions Unrestricted online access'])
+
+    def test_get_type(self):
+        """Be sure the object can return the DC element."""
+        self.assertEqual(self.collection.type, ['Thematic maps', 'cartographic image'])
+'''
+
+
+class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         """Create test objects. Test data should be placed in the test_data
         directory of this project. It should include sample data from different
@@ -70,14 +91,9 @@ class TestMarcToDc(unittest.TestCase):
         xml.etree.ElementTree.Element."""
         file = Path('test_data/sample_record_02.xml')
         with open(file, 'r', encoding='utf-8') as f:
-            #data = f.read().replace('\n', '')
             data = f.read()
             self.assertTrue(len(data) > 0)
-        self.collection = MarcToDc(data)
-
-    def test_get_rights_access(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.rights_access, ['Digital version available with restrictions Unrestricted online access'])
+        self.collection = SocSciMapsMarcXmlToDc(data)
 
     def test_get_contributor(self):
         """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
@@ -85,58 +101,42 @@ class TestMarcToDc(unittest.TestCase):
 
     def test_get_coverage(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.coverage, ['Scale [ca. 1:1,200] (W 87°40ʹ01ʺ--W 87°38ʹ18ʺ/N 41°52ʹ11ʺ--N 41°51ʹ42ʺ).'])
+        self.assertEqual(self.collection.coverage, ['Illinois Chicago Near West Side.', 'Illinois Chicago.'])
 
     def test_get_creator(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.creator, ['Sachs, Theodore B. (Theodore Bernard), 1868-1916.', 'by Theodore B. Sachs.'])
-
-    def test_get_date_copyrighted(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.date_copyrighted, ['[between 1908 and 1919]'])
+        self.assertEqual(self.collection.creator, ['Sachs, Theodore B. (Theodore Bernard), 1868-1916.', 'University of Chicago Library,'])
 
     def test_get_description(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.description, ['1 online resource (1 map)'])
+        self.assertEqual(self.collection.description, ['"Chart II."', 'Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm'])
 
-    def test_get_format_extent(self):
+    def test_get__extent(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.format_extent, ['1 online resource (1 map)'])
+        self.assertEqual(self.collection.extent, ['1 online resource (1 map)'])
 
     def test_get_format(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.format, ['computer-test'])
+        self.assertEqual(self.collection.format, ['Scale [ca. 1:1,200]'])
 
-    def test_get_relation_has_format(self):
+    def test_get_has_format(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.relation_hasFormat, ['Electronic reproduction.'])
+        self.assertEqual(self.collection.hasFormat, ['Electronic reproduction.', 'Sachs, Theodore B. (Theodore Bernard), 1868-1916.'])
 
     def test_get_identifier(self):
         self.assertEqual(self.collection.identifier, ['http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2N3E51-1908-S2', 'temp test'])
 
-    def test_get_relation_is_part_of(self):
+    def test_get_is_part_of(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.relation_isPartOf, ['(Social scientists map Chicago); (University of Chicago Digital Preservation Collection)', 'Social scientists map Chicago. University of Chicago Digital Preservation Collection.'])
+        self.assertEqual(self.collection.isPartOf, ['(Social scientists map Chicago); (University of Chicago Digital Preservation Collection)', 'Social scientists map Chicago.', 'University of Chicago Digital Preservation Collection.'])
 
-    def test_get_date_issued(self):
+    def test_get_issued(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.date_issued, ['[between 1908 and 1919]'])
+        self.assertEqual(self.collection.issued, ['[between 1908 and 1919?]'])
 
     def test_get_language(self):
         """Be sure the object can return the DC element."""
         self.assertEqual(self.collection.language, ['English'])
-
-    def test_get_coverage_location(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.coverage_location, ['[Chicago] :', '[Place of publication not identified] :'])
-
-    def test_get_format_medium(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.format_medium, ['online resource'])
-
-    def test_get_coverage_period_of_time(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.coverage_periodOfTime, ['Chicago.'])
 
     def test_get_publisher(self):
         """Be sure the object can return the DC element."""
@@ -159,10 +159,8 @@ class TestMarcToDc(unittest.TestCase):
         """Be sure the object can return the DC element."""
         self.assertEqual(self.collection.title, ['Tuberculosis in a congested district in Chicago, Jan. 1st, 1906, to Jan. 1st, 1908, including the district represented in chart 1, population chiefly Jewish /'])
 
-    def test_get_type(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.type, ['Thematic maps', 'cartographic image'])
 
+'''
 class TestMarcXmlToSchemaDotOrg(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         """Create test objects. Test data should be placed in the test_data
@@ -282,6 +280,7 @@ class TestMarcXmlToSchemaDotOrg(unittest.TestCase):
     def test_get_width(self):
         """Be sure the object can return the Schema dictionary. Testing with Lorem Ipsum random value in record"""
         self.assertEqual(self.collection.schema['width'], 'Dictumst nec duis')
+'''
 
 if __name__ == '__main__':
     unittest.main()
