@@ -5,19 +5,28 @@
 
 
 import sys
+import xml.etree.ElementTree as ElementTree
 from docopt import docopt
-from classes import MarcToDc, SocSciMapsMarcToDc
-
-
-def main():
-        options = docopt(__doc__)
-
-        if options['--socscimaps']:
-            cls = SocSciMapsMarcToDc
-        else:
-            cls = MarcToDc
-        sys.stdout.write(str(cls(sys.stdin.read())))
+from classes import SocSciMapsMarcXmlToDc
 
 
 if __name__ == "__main__":
-    main()
+    options = docopt(__doc__)
+
+    if options['--socscimaps']:
+        ElementTree.register_namespace('m', 'http://www.loc.gov/MARC21/slim')
+        for record in ElementTree.fromstring(
+            sys.stdin.read()
+        ).findall('{http://www.loc.gov/MARC21/slim}record'):
+            sys.stdout.write(
+                str(
+                    SocSciMapsMarcXmlToDc(
+                        '<collection>{}</collection>'.format(
+                            ElementTree.tostring(record, 'utf-8', method='xml').decode('utf-8')
+                        )
+                    )
+                )
+            )
+            sys.stdout.write('\n')
+    else:
+        raise NotImplementedError
