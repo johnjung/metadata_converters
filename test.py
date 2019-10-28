@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import unittest
+import json, unittest
+from jsonschema import validate
 from pathlib import Path
 from metadata_converters import MarcXmlConverter, SocSciMapsMarcXmlToDc, MarcXmlToSchemaDotOrg
 import xml.etree.ElementTree as ElementTree
@@ -94,6 +95,82 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
             data = f.read()
             self.assertTrue(len(data) > 0)
         self.collection = SocSciMapsMarcXmlToDc(data)
+
+    def test_json(self):
+        property_dict = {
+            "exclude": {
+                "items": {
+                    "subfield_re": {
+                        "type": "string"
+                    },
+                    "value_re": {
+                        "type": "string"
+                    }
+                },
+                "type": "array"
+            },
+            "filter": {
+                "items": {
+                    "subfield_re": {
+                        "type": "string"
+                    },
+                    "value_re": {
+                        "type": "string"
+                    }
+                },
+                "type": "array"
+            },
+            "indicator1_re": {
+                "type": "string"
+            },
+            "indicator2_re": {
+                "type": "string"
+            },
+            "join_fields": {
+                "type": "boolean"
+            },
+            "join_subfields": {
+                "type": "boolean"
+            },
+            "return_first_result_only": {
+                "type": "boolean"
+            },
+            "subfield_re": {
+                "type": "string"
+            },
+            "tag_re": {
+                "type": "string"
+            }
+        }
+    
+        with open('metadata_converters/json/socscimaps_marc2dc.json') as f:
+            validate(
+                instance = json.loads(f.read()),
+                schema = {
+                    "type": "object",
+                    "properties": {
+                        "template": {
+                            "additionalProperties": False,
+                            "properties": property_dict,
+                            "required": list(property_dict.keys()),
+                            "type": "object",
+                        },
+                        "crosswalk": {
+                            "patternProperties": {
+                                "^.*$": {
+                                    "items": {
+                                        "additionalProperties": False,
+                                        "properties": property_dict,
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            )
 
     def test_get_contributor(self):
         """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
