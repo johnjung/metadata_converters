@@ -9,24 +9,22 @@ import xml.etree.ElementTree as ElementTree
 from docopt import docopt
 from classes import SocSciMapsMarcXmlToDc
 
+ElementTree.register_namespace('m', 'http://www.loc.gov/MARC21/slim')
 
 if __name__ == "__main__":
     options = docopt(__doc__)
-
     if options['--socscimaps']:
-        ElementTree.register_namespace('m', 'http://www.loc.gov/MARC21/slim')
+        metadata = ElementTree.Element('metadata')
         for record in ElementTree.fromstring(
             sys.stdin.read()
         ).findall('{http://www.loc.gov/MARC21/slim}record'):
-            sys.stdout.write(
-                str(
-                    SocSciMapsMarcXmlToDc(
-                        '<collection>{}</collection>'.format(
-                            ElementTree.tostring(record, 'utf-8', method='xml').decode('utf-8')
-                        )
+            metadata.append(
+                SocSciMapsMarcXmlToDc(
+                    '<collection>{}</collection>'.format(
+                        ElementTree.tostring(record, 'utf-8', method='xml').decode('utf-8')
                     )
-                )
+                )._asxml()
             )
-            sys.stdout.write('\n')
+        sys.stdout.write(ElementTree.tostring(metadata, 'utf-8', method='xml').decode('utf-8'))
     else:
         raise NotImplementedError
