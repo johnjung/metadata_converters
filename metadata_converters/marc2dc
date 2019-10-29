@@ -3,7 +3,6 @@
     marc2dc [--socscimaps]
 """
 
-
 import sys
 import xml.etree.ElementTree as ElementTree
 from docopt import docopt

@@ -1,7 +1,11 @@
 import datetime
+import getpass
+import hashlib
 import jinja2
 import json
+import magic
 import os
+import paramiko
 import re
 import sys
 import xml.etree.ElementTree as ElementTree
@@ -371,41 +375,40 @@ class SocSciMapsMarcXmlToEDM:
     # is edm:WebResource the same as ore:resourceMap?
 
     # Setting namespaces for subject, predicate, object values
-    VRA = Namespace('http://purl.org/vra/')
+    BASE = Namespace('http://ark.lib.uchicago.edu/ark:/61001/')
+    EDM = Namespace('http://www.europeana.eu/schemas/edm/')
+    ERC = Namespace('http://purl.org/kernel/elements/1.1/')
+    MIX = Namespace('http://www.loc.gov/mix/v20/')
     OAI = Namespace('http://www.openarchives.org/OAI/2.0/')
     ORE = Namespace('http://www.openarchives.org/ore/terms/')
-    ERC = Namespace('http://purl.org/kernel/elements/1.1/')
-    EDM = Namespace('http://www.europeana.eu/schemas/edm/')
-    BASE = Namespace('http://ark.lib.uchicago.edu/ark:/61001/')
+    PREMIS = Namespace('info:lc/xmlns/premis-v2/')
+    VRA = Namespace('http://purl.org/vra/')
 
-    def __init__(self, marcxml):
+    def __init__(self, marcxml, master_file_metadata):
         """Initialize an instance of the class MarcXmlToEDM.
 
         Args:
             graph (Graph): a EDM graph collection from a single record.
         """
-        super().__init__(marcxml)
+        self.dc = SocSciMapsMarcXmlToDc(marcxml)
+        self.master_file_metadata = master_file_metadata
 
-        if isinstance(self.identifier, list):
-            self.identifier = self.identifier[0]
+        if isinstance(self.dc.identifier, list):
+            self.identifier = self.dc.identifier[0]
+        else:
+            self.identifier = self.dc.identifier
+
+    def build_graph(self):
+        self.short_id = self.identifier.replace('http://pi.lib.uchicago.edu/1001', '')
+        self.agg = URIRef('/aggregation/digital_collections/IIIF_Files{}'.format(self.short_id))
+        self.cho = URIRef('/digital_collections/IIIF_Files{}'.format(self.short_id))
+        self.pro = URIRef('/digital_collections/IIIF_Files/{}.mrc_or.xml'.format(self.short_id))
+        self.rem = URIRef('/rem/digital_collections/IIIF_Files{}'.format(self.short_id))
+        self.wbr = URIRef('/digital_collections/IIIF_Files/{}.tif'.format(self.short_id))
 
         self.graph = Graph()
-        for prefix, ns in (('dc', DC), ('dcterms', DCTERMS), ('edm', self.EDM),
-                           ('erc', self.ERC), ('ore', self.ORE)):
-            self.graph.bind(prefix, ns)
-        self._build_graph()
 
-    def _build_graph(self):
-        short_id = self.identifier.replace('http://pi.lib.uchicago.edu/1001', '')
-        agg = URIRef('/aggregation/digital_collections/IIIF_Files{}'.format(short_id))
-        cho = URIRef('/digital_collections/IIIF_Files{}'.format(short_id))
-        pro = URIRef('/digital_collections/IIIF_Files/{}.mrc_or.xml'.format(short_id))
-        rem = URIRef('/rem/digital_collections/IIIF_Files{}'.format(short_id))
-        wbr = URIRef('/digital_collections/IIIF_Files/{}.tif'.format(short_id))
-
-	# Only add creation dates if notes don't exist yet.
-
-        for sub in (rem, agg):
+        for sub in (self.rem, self.agg):
             if not bool(self.graph.query(
                 prepareQuery('ASK { ?s ?p ?o . }'),
                 initBindings={'s': sub}
@@ -413,73 +416,107 @@ class SocSciMapsMarcXmlToEDM:
                 self.graph.set((
                     sub,
                     DCTERMS.created,
-                    Literal(datetime.datetime.utcnow(), datatype=XSD.date)
+                    Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
                 ))
 
-        # Aggregation
-        self.graph.set((agg, RDF.type,                self.ORE.aggregation))
-        self.graph.set((agg, DCTERMS.modified,        Literal(datetime.datetime.utcnow(), datatype=XSD.date)))
-        self.graph.set((agg, self.EDM.aggreatagedCHO, cho))
-        self.graph.set((agg, self.EDM.dataProvider,   Literal("University of Chicago Library")))
-        self.graph.set((agg, self.ORE.isDescribedBy,  cho))
-        self.graph.set((agg, self.EDM.isShownAt,      Literal(self.identifier)))
-        #self.graph.set((agg, self.EDM.isShownBy,      Literal('IIIF URL for highest quality image of map')))
-        self.graph.set((agg, self.EDM.object,         Literal('IIIF URL for highest quality image of map')))
-        self.graph.set((agg, self.EDM.provider,       Literal('University of Chicago Library')))
-        self.graph.set((agg, self.EDM.rights,         URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')))
- 
-        # Cultural Heritage Object
-        self.graph.set((cho, RDF.type, self.EDM.ProvidedCHO))
+        for prefix, ns in (('dc', DC), ('dcterms', DCTERMS), ('edm', self.EDM),
+			   ('erc', self.ERC), ('mix', self.MIX), 
+                           ('ore', self.ORE), ('premis', self.PREMIS)):
+            self.graph.bind(prefix, ns)
+
+        self._build_aggregation()
+        self._build_cho()
+        self._build_proxy()
+        self._build_resource_map() 
+        self._build_web_resources()
+
+    def _build_aggregation(self):
+        self.graph.set((self.agg, RDF.type,                self.ORE.aggregation))
+        self.graph.set((self.agg, DCTERMS.modified,        Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)))
+        self.graph.set((self.agg, self.EDM.aggreatagedCHO, self.cho))
+        self.graph.set((self.agg, self.EDM.dataProvider,   Literal("University of Chicago Library")))
+        self.graph.set((self.agg, self.ORE.isDescribedBy,  self.cho))
+        self.graph.set((self.agg, self.EDM.isShownAt,      Literal(self.identifier)))
+        self.graph.set((self.agg, self.EDM.isShownBy,      Literal('IIIF URL for highest quality image of map')))
+        self.graph.set((self.agg, self.EDM.object,         Literal('IIIF URL for highest quality image of map')))
+        self.graph.set((self.agg, self.EDM.provider,       Literal('University of Chicago Library')))
+        self.graph.set((self.agg, self.EDM.rights,         URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')))
+
+    def _build_cho(self):
+        self.graph.set((self.cho, RDF.type, self.EDM.ProvidedCHO))
 
         for pre, obj_str in (
-            (DC.coverage,              'dc:coverage'),
-            (DC.creator,               'dc:creator'),
-            (DC.date,                  'dc:date'),
-            (DC.description,           'dc:description'),
-            (DC.extent,                'dc:extent'),
-            (DC.identifier,            'dc:identifier'),
-            (DC.language,              'dc:language'),
-            (DC.publisher,             'dc:publisher'),
-            (DC.rights,                'dc:rights'),
-            (DC.subject,               'dc:subject'),
-            (DC.title,                 'dc:title'),
-            (DC.type,                  'dc:type'),
-            (DCTERMS.spatial,          'dcterms:spatial'),
-            (self.EDM.date,            'dc:date'),
-            (self.ERC.what,            'dc:title'),
-            (self.ERC.when,            'dc:date'),
-            (self.ERC.who,             'dc:creator'),
+            (DC.coverage,     'dc:coverage'),
+            (DC.creator,      'dc:creator'),
+            (DC.date,         'dc:date'),
+            (DC.description,  'dc:description'),
+            (DC.extent,       'dc:extent'),
+            (DC.identifier,   'dc:identifier'),
+            (DC.language,     'dc:language'),
+            (DC.publisher,    'dc:publisher'),
+            (DC.rights,       'dc:rights'),
+            (DC.subject,      'dc:subject'),
+            (DC.title,        'dc:title'),
+            (DC.type,         'dc:type'),
+            (DCTERMS.spatial, 'dcterms:spatial'),
+            (self.EDM.date,   'dc:date'),
+            (self.ERC.what,   'dc:title'),
+            (self.ERC.when,   'dc:date'),
+            (self.ERC.who,    'dc:creator'),
         ):
             obj_str = obj_str.replace('dc:',      '{http://purl.org/dc/elements/1.1/}')
             obj_str = obj_str.replace('dcterms:', '{http://purl.org/dc/terms/}')
 
-            for dc_obj_el in self.dc.findall(obj_str):
+            for dc_obj_el in self.dc._asxml().findall(obj_str):
                 try:
-                    self.graph.set((cho, pre, Literal(dc_obj_el.text)))
+                    self.graph.set((self.cho, pre, Literal(dc_obj_el.text)))
                 except AttributeError:
                     pass
 
-        self.graph.set((cho, DCTERMS.isPartOf, Literal('pi-for-the-collection-in-wagtail')))
-        self.graph.set((cho, self.EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))
-        self.graph.set((cho, self.EDM.type, Literal('IMAGE')))
-        self.graph.set((cho, self.ERC.where, cho)) # huh?
+        self.graph.set((self.cho, DCTERMS.isPartOf, Literal('pi-for-the-collection-in-wagtail')))
+        self.graph.set((self.cho, self.EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))
+        self.graph.set((self.cho, self.EDM.type, Literal('IMAGE')))
+        self.graph.set((self.cho, self.ERC.where, self.cho))
 
-        # Proxy
-        self.graph.set((pro, RDF.type, self.ORE.proxy))
-        self.graph.set((pro, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
-        self.graph.set((pro, self.ORE.proxyFor, cho))
-        self.graph.set((pro, self.ORE.proxyIn, agg))
+    def _build_proxy(self):
+        self.graph.set((self.pro, RDF.type, self.ORE.proxy))
+        self.graph.set((self.pro, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
+        self.graph.set((self.pro, self.ORE.proxyFor, self.cho))
+        self.graph.set((self.pro, self.ORE.proxyIn, self.agg))
 
-        # Resource Map
-        self.graph.set((rem, DCTERMS.modified, Literal(datetime.datetime.utcnow(), datatype=XSD.date)))
-        self.graph.set((rem, DCTERMS.creator, URIRef('http://library.uchicago.edu/')))
-        self.graph.set((rem, RDF.type, self.ORE.resourceMap))
-        self.graph.set((rem, self.ORE.describes, agg))
+    def _build_resource_map(self):
+        self.graph.set((self.rem, DCTERMS.modified, Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)))
+        self.graph.set((self.rem, DCTERMS.creator, URIRef('http://library.uchicago.edu/')))
+        self.graph.set((self.rem, RDF.type, self.ORE.resourceMap))
+        self.graph.set((self.rem, self.ORE.describes, self.agg))
 
-        # Web Resource
-        self.graph.set((wbr, RDF.type, self.EDM.WebResource))
-        self.graph.set((wbr, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('image/tiff')))
-
+    def _build_web_resources(self):
+        for metadata in self.master_file_metadata:
+            self.graph.set((self.wbr, RDF.type, self.EDM.WebResource))
+            for p, o in (
+                ('http://purl.org/dc/elements/1.1/format',            metadata['mime_type']),
+                ('http://www.loc.gov/mix/v20/bitsPerSampleUnit',      'integer'),
+                ('http://www.loc.gov/mix/v20/fileSize',               metadata['size']),
+                ('http://www.loc.gov/mix/v20/formatName',             metadata['mime_type']),
+                ('http://www.loc.gov/mix/v20/imageHeight',            metadata['height']),
+                ('http://www.loc.gov/mix/v20/imageWidth',             metadata['width']),
+                ('http://www.loc.gov/mix/v20/messageDigest',          metadata['md5']),
+                ('http://www.loc.gov/mix/v20/messageDigestAlgorithm', 'MD5'),
+                ('info:lc/xmlns/premis-v2/compositionLevel',          0),
+                ('info:lc/xmlns/premis-v2/eventDateTime',             datetime.datetime.utcnow()),
+                ('info:lc/xmlns/premis-v2/eventIdentifierType',       'ARK'),
+                ('info:lc/xmlns/premis-v2/eventIdentifierValue',      '[NOID]'),
+                ('info:lc/xmlns/premis-v2/eventType',                 'creation'),
+                ('info:lc/xmlns/premis-v2/formatName',                metadata['mime_type']),
+                ('info:lc/xmlns/premis-v2/messageDigest',             metadata['sha256']),
+                ('info:lc/xmlns/premis-v2/messageDigestAlgorithm',    'SHA-256'),
+                ('info:lc/xmlns/premis-v2/messageDigestOriginator',   '/sbin/sha256'),
+                ('info:lc/xmlns/premis-v2/objectCategory',            'file'),
+                ('info:lc/xmlns/premis-v2/objectIdentifierType',      'ARK'),
+                ('info:lc/xmlns/premis-v2/objectIdentifierValue',     metadata['path']),
+                ('info:lc/xmlns/premis-v2/originalName',              metadata['name']),
+                ('info:lc/xmlns/premis-v2/size',                      metadata['size'])):
+                self.graph.set((self.wbr, URIRef(p), Literal(o)))
 
     def __str__(self):
         """Return EDM data as a string.

@@ -1,4 +1,6 @@
 docopt
 jinja2
 jsonschema
+paramiko
+python-magic
 rdflib

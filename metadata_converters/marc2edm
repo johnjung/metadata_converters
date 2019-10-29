@@ -1,8 +1,125 @@
 #!/usr/bin/env python
-"""This script currently works for the Social Scientists Maps collection. """
+"""Usage:
+    marc2dc --socscimaps
+"""
 
+import getpass
+import hashlib
+import os
+import paramiko
+import pathlib
+import subprocess
+import tempfile
 import sys
+import xml.etree.ElementTree as ElementTree
 from classes import SocSciMapsMarcXmlToEDM
+from docopt import docopt
 
 if __name__ == "__main__":
-    sys.stdout.write(str(SocSciMapsMarcXmlToEDM(sys.stdin.read())))
+    options = docopt(__doc__)
+
+    if options['--socscimaps']:
+    
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect('s3.lib.uchicago.edu', username=getpass.getuser())
+        ftp = ssh.open_sftp()
+
+        for record in ElementTree.fromstring(
+            sys.stdin.read()
+        ).findall('{http://www.loc.gov/MARC21/slim}record'):
+
+	    # get the identifier from the catalog record. Build paths to the
+	    # master file on remote and local drives. 
+            identifier = record.find('/'.join([
+                '{http://www.loc.gov/MARC21/slim}datafield[@tag="856"]',
+                '{http://www.loc.gov/MARC21/slim}subfield[@code="u"]'
+            ])).text.split('/').pop()
+            remote_tiff_path = '/'.join([
+		'',
+                'data',
+                'voldemort',
+                'digital_collections',
+                'data',
+		'ldr_oc_admin',
+                'files',
+                'IIIF_Files',
+		'social_scientists_maps',
+                identifier,
+                'tifs',
+                '{0}.tif'.format(identifier)
+            ])
+            local_tiff_path = os.path.join(
+                tempfile.gettempdir(),
+                '{}.tif'.format(identifier)
+            )
+
+            # download the file, only if necessary.
+            if not os.path.exists(local_tiff_path):
+                ftp.get(remote_tiff_path, local_tiff_path)
+
+            # get technical metadata from JHOVE.
+            result = subprocess.run([
+                "{}/jhove/jhove".format(pathlib.Path.home()),
+                "-h",
+                "xml",
+                local_tiff_path
+            ], capture_output=True)
+            jhove = ElementTree.fromstring(result.stdout.decode('utf-8'))
+            mix = jhove.find('.//{http://www.loc.gov/mix/v20}mix')
+
+            # mimetype
+            mime_type = mix.find('/'.join([
+                '{http://www.loc.gov/mix/v20}BasicDigitalObjectInformation',
+                '{http://www.loc.gov/mix/v20}FormatDesignation',
+                '{http://www.loc.gov/mix/v20}formatName' 
+            ])).text
+
+            # size in bytes
+            size = int(jhove.find('/'.join([
+                '{http://schema.openpreservation.org/ois/xml/ns/jhove}repInfo',
+                '{http://schema.openpreservation.org/ois/xml/ns/jhove}size'
+            ])).text)
+
+            # width in pixels.
+            width = int(mix.find('/'.join([
+                '{http://www.loc.gov/mix/v20}BasicImageInformation',
+                '{http://www.loc.gov/mix/v20}BasicImageCharacteristics',
+                '{http://www.loc.gov/mix/v20}imageWidth'
+            ])).text)
+
+            # height in pixels.
+            height = int(mix.find('/'.join([
+                '{http://www.loc.gov/mix/v20}BasicImageInformation',
+                '{http://www.loc.gov/mix/v20}BasicImageCharacteristics',
+                '{http://www.loc.gov/mix/v20}imageHeight'
+            ])).text)
+
+            # md5, sha256
+            with open(local_tiff_path, 'rb') as f:
+                tiff_contents = f.read()
+                md5 = hashlib.md5(tiff_contents).hexdigest()
+                sha256 = hashlib.sha256(tiff_contents).hexdigest()
+   
+            edm = SocSciMapsMarcXmlToEDM(
+                '<collection>{}</collection>'.format(
+                    ElementTree.tostring(record, 'utf-8', method='xml').decode('utf-8')
+                ),
+                [{
+                    'height': height,
+                    'md5': md5,
+                    'mime_type': mime_type,
+                    'name': '{}.tif'.format(identifier),
+                    'path': remote_tiff_path,
+                    'sha256': sha256,
+                    'size': size,
+                    'width': width
+                }]
+            )
+
+            edm.build_graph()
+            sys.stdout.write(str(edm))
+
+        ftp.close()
+    else:
+        raise NotImplementedError
