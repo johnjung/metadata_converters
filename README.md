@@ -25,6 +25,8 @@ Another project, written in Perl, with converters to and from lots of metadata f
 [How to use DCMI Metadata as linked data](http://www.dublincore.org/resources/userguide/publishing_metadata/)
 Some notes from dublincore.org.
 
+[DCMI Metadata expressed in RDF Schema Language](https://www.dublincore.org/schemas/rdfs/)
+
 [General spec](https://dldc.lib.uchicago.edu/dl/collections/digcollingestspecifications.html#sec-4-2)
 
 [Maps specific spec](https://docs.google.com/document/d/11QaNUMEtjp9DMkwkttvm1zMFF6rV1KrfVe2SYr1brVA/edit)
@@ -35,7 +37,13 @@ Some notes from dublincore.org.
 
 [PREMIS OWL Ontology](http://www.loc.gov/standards/premis/ontology/pdf/premis3-owl-guidelines.pdf)
 
+[PREMIS Data Dictionary Version 3](http://www.loc.gov/standards/premis/v3/premis-3-0-final.pdf)
+
 [JHOVE](https://jhove.openpreservation.org)
+
+[Validating RDF](https://book.validatingrdf.com/)
+
+[W3C RDF Validator](https://www.w3.org/RDF/Validator/)
 
 SBCL
 
