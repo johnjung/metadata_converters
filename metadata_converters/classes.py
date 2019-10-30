@@ -402,7 +402,7 @@ class SocSciMapsMarcXmlToEDM:
         self.short_id = self.identifier.replace('http://pi.lib.uchicago.edu/1001', '')
         self.agg = URIRef('/aggregation/digital_collections/IIIF_Files{}'.format(self.short_id))
         self.cho = URIRef('/digital_collections/IIIF_Files{}'.format(self.short_id))
-        self.pro = URIRef('/digital_collections/IIIF_Files/{}.mrc_or.xml'.format(self.short_id))
+        self.pro = URIRef('/digital_collections/IIIF_Files/social_scientists_maps/{0}/{0}.dc.xml'.format(self.identifier.split('/').pop()))
         self.rem = URIRef('/rem/digital_collections/IIIF_Files{}'.format(self.short_id))
         self.wbr = URIRef('/digital_collections/IIIF_Files/{}.tif'.format(self.short_id))
 
