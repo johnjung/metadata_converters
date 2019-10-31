@@ -45,7 +45,7 @@ Some notes from dublincore.org.
 
 [W3C RDF Validator](https://www.w3.org/RDF/Validator/)
 
-SBCL
+[ShEx in Python](https://github.com/hsolbrig/PyShEx)
 
 ## Contributors
 

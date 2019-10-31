@@ -1,0 +1,77 @@
+PREFIX :                           <https://www.lib.uchicago.edu/>
+PREFIX dc:                         <http://purl.org/dc/elements/1.1/>
+PREFIX dcterms:                    <http://purl.org/dc/terms/>
+PREFIX edm:                        <http://www.europeana.eu/schemas/edm/>
+PREFIX erc:                        <http://purl.org/kernel/elements/1.1/>
+PREFIX mix:                        <http://www.loc.gov/mix/v20/>
+PREFIX ore:                        <http://www.openarchives.org/ore/terms/>
+PREFIX premis:                     <info:lc/xmlns/premis-v2/>
+PREFIX xsd:                        <http://www.w3.org/2001/XMLSchema#>
+
+:aggregation {
+    dcterms:created                xsd:dateTime ;
+    dcterms:modified               xsd:dateTime ;
+    edm:aggreatagedCHO             @:providedCHO ;
+    edm:dataProvider               xsd:string ;
+    edm:isShownAt                  xsd:string ;
+    edm:isShownBy                  xsd:string ;
+    edm:object                     xsd:string ;
+    edm:provider                   xsd:string ;
+    edm:rights                     IRI ;
+    ore:isDescribedBy              @:providedCHO ;
+}
+
+:providedCHO {
+    dc:coverage                    xsd:string ;
+    dc:creator                     xsd:string ;
+    dc:description                 xsd:string ;
+    dc:extent                      xsd:string ;
+    dc:identifier                  xsd:string ;
+    dc:publisher                   xsd:string ;
+    dc:subject                     xsd:string ;
+    dc:title                       xsd:string ;
+    dcterms:isPartOf               xsd:string ;
+    erc:what                       xsd:string ;
+    erc:where                      IRI ;
+    erc:who                        xsd:string ;
+    edm:currentLocation            xsd:string ;
+    edm:type                       xsd:string ;
+}
+
+:proxy {
+    dc:format                      xsd:string ;
+    ore:proxyFor                   @:WebResource ;
+    ore:proxyIn                    @:aggregation ;
+}
+
+:resourceMap {
+    dcterms:created                xsd:dateTime ;
+    dcterms:creator                IRI ;
+    dcterms:modified               xsd:dateTime ;
+    ore:describes                  @:aggregation ;
+}
+
+:WebResource {
+    dc:format                      xsd:string ;
+    mix:bitsPerSampleUnit          xsd:string ;
+    mix:fileSize                   xsd:integer ;
+    mix:formatName                 xsd:string ;
+    mix:imageHeight                xsd:integer ;
+    mix:imageWidth                 xsd:integer ;
+    mix:messageDigest              xsd:string ;
+    mix:messageDigestAlgorithm     xsd:string ; 
+    premis:compositionLevel        xsd:integer ;
+    premis:eventDateTime           xsd:dateTime ;
+    premis:eventIdentifierType     xsd:string ;
+    premis:eventIdentifierValue    xsd:string ;
+    premis:eventType               xsd:string ;
+    premis:formatName              xsd:string ;
+    premis:messageDigest           xsd:string ;
+    premis:messageDigestAlgorithm  xsd:string ;
+    premis:messageDigestOriginator xsd:string ;
+    premis:objectCategory          xsd:string ;
+    premis:objectIdentifierType    xsd:string ;
+    premis:objectIdentifierValue   xsd:string ;
+    premis:originalName            xsd:string ;
+    premis:size                    xsd:integer ;
+}
