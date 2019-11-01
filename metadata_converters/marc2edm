@@ -8,6 +8,7 @@ import hashlib
 import os
 import paramiko
 import pathlib
+import shutil
 import subprocess
 import tempfile
 import sys
@@ -15,22 +16,31 @@ import xml.etree.ElementTree as ElementTree
 from classes import SocSciMapsMarcXmlToEDM
 from docopt import docopt
 
+USE_SSH = False
+
 if __name__ == "__main__":
     options = docopt(__doc__)
 
     if options['--socscimaps']:
-    
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect('s3.lib.uchicago.edu', username=getpass.getuser())
-        ftp = ssh.open_sftp()
+        if USE_SSH:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect('s3.lib.uchicago.edu', username=getpass.getuser())
+            ftp = ssh.open_sftp()
 
-        for record in ElementTree.fromstring(
-            sys.stdin.read()
-        ).findall('{http://www.loc.gov/MARC21/slim}record'):
+        collection = ElementTree.fromstring(sys.stdin.read())
 
-	    # get the identifier from the catalog record. Build paths to the
-	    # master file on remote and local drives. 
+        # HACK: make the 856u match paths on disk. 
+        _856u = collection.find('/'.join((
+            '{http://www.loc.gov/MARC21/slim}record',
+            '{http://www.loc.gov/MARC21/slim}datafield[@tag="856"]',
+            '{http://www.loc.gov/MARC21/slim}subfield[@code="u"]'
+        )))
+        _856u.text = _856u.text.replace('/maps/chisoc/', '/social_scientists_maps/')
+
+        for record in collection.findall('{http://www.loc.gov/MARC21/slim}record'):
+	        # get the identifier from the catalog record. Build paths to the
+	        # master file on remote and local drives. 
             identifier = record.find('/'.join([
                 '{http://www.loc.gov/MARC21/slim}datafield[@tag="856"]',
                 '{http://www.loc.gov/MARC21/slim}subfield[@code="u"]'
@@ -56,15 +66,22 @@ if __name__ == "__main__":
 
             # download the file, only if necessary.
             if not os.path.exists(local_tiff_path):
-                ftp.get(remote_tiff_path, local_tiff_path)
+                if USE_SSH:
+                    ftp.get(remote_tiff_path, local_tiff_path)
+                else:
+                    shutil.copyfile('tifs/{}.tif'.format(identifier), local_tiff_path)
 
             # get technical metadata from JHOVE.
-            result = subprocess.run([
-                "{}/jhove/jhove".format(pathlib.Path.home()),
-                "-h",
-                "xml",
-                local_tiff_path
-            ], capture_output=True)
+            try:
+                result = subprocess.run([
+                    "{}/jhove/jhove".format(pathlib.Path.home()),
+                    "-h",
+                    "xml",
+                    local_tiff_path
+                ], capture_output=True)
+            except FileNotFoundError:
+                sys.stderr.write('Be sure JHOVE is installed and available in your homedir at ~/jhove/jhove.\n')
+                sys.exit()
             jhove = ElementTree.fromstring(result.stdout.decode('utf-8'))
             mix = jhove.find('.//{http://www.loc.gov/mix/v20}mix')
 
@@ -120,6 +137,7 @@ if __name__ == "__main__":
             edm.build_graph()
             sys.stdout.write(str(edm))
 
-        ftp.close()
+        if USE_SSH:
+            ftp.close()
     else:
         raise NotImplementedError

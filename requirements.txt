@@ -2,5 +2,6 @@ docopt
 jinja2
 jsonschema
 paramiko
+PyShEx
 python-magic
 rdflib
