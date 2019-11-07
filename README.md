@@ -47,6 +47,8 @@ Some notes from dublincore.org.
 
 [ShEx in Python](https://github.com/hsolbrig/PyShEx)
 
+[ORE primer](http://www.openarchives.org/ore/1.0/primer)
+
 ## Contributors
 
 John Jung, José Reyes

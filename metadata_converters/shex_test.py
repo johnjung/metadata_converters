@@ -4,7 +4,7 @@ from rdflib import URIRef
 
 
 if __name__=="__main__":
-    with open('ssmaps.ttl') as f:
+    with open('G4104-C6-1933-U5-a.ttl') as f:
         rdf = f.read()
     
     with open('shex/uchicago_library_ssmaps.shex') as f:

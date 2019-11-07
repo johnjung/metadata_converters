@@ -398,97 +398,168 @@ class SocSciMapsMarcXmlToEDM:
         else:
             self.identifier = self.dc.identifier
 
-    def build_graph(self):
         self.short_id = self.identifier.replace('http://pi.lib.uchicago.edu/1001', '')
-        self.agg = URIRef('/aggregation/digital_collections/IIIF_Files{}'.format(self.short_id))
-        self.cho = URIRef('/digital_collections/IIIF_Files{}'.format(self.short_id))
-        self.pro = URIRef('/digital_collections/IIIF_Files/social_scientists_maps/{0}/{0}.dc.xml'.format(self.identifier.split('/').pop()))
-        self.rem = URIRef('/rem/digital_collections/IIIF_Files{}'.format(self.short_id))
-        self.wbr = URIRef('/digital_collections/IIIF_Files/{}.tif'.format(self.short_id))
-
         self.graph = Graph()
-
-        for sub in (self.rem, self.agg):
-            if not bool(self.graph.query(
-                prepareQuery('ASK { ?s ?p ?o . }'),
-                initBindings={'s': sub}
-            )):
-                self.graph.set((
-                    sub,
-                    DCTERMS.created,
-                    Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
-                ))
-
         for prefix, ns in (('dc', DC), ('dcterms', DCTERMS), ('edm', self.EDM),
 			   ('erc', self.ERC), ('mix', self.MIX), 
                            ('ore', self.ORE), ('premis', self.PREMIS)):
             self.graph.bind(prefix, ns)
 
-        self._build_aggregation()
-        self._build_cho()
-        self._build_proxy()
-        self._build_resource_map() 
+
+    def build_repository_triples(self):
+        """Add triples for the repository itself, and to connect items with each other. 
+
+        Side Effect:
+            Add triples to self.graph
+        """
+ 
+        now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+
+        repository_agg = URIRef('aggregation/repository.lib.uchicago.edu')
+        repository_cho = URIRef('https://repository.lib.uchicago.edu/')
+        repository_pro = URIRef('https://repository.lib.uchicago.edu/index.dc.xml')
+        repository_rem = URIRef('rem/repository.lib.uchicago.edu')
+
+        # aggregation for the repository
+        self.graph.set((repository_agg, RDF.type,               self.ORE.aggregation))
+        self.graph.set((repository_agg, DCTERMS.created,        now))
+        self.graph.set((repository_agg, DCTERMS.modified,       now))
+        self.graph.set((repository_agg, self.EDM.aggregatedCHO, repository_cho))
+        self.graph.set((repository_agg, self.EDM.dataProvider,  Literal("The University of Chicago Library")))
+        self.graph.set((repository_agg, self.EDM.isShownAt,     URIRef('https://repository.lib.uchicago.edu/')))
+        self.graph.set((repository_agg, self.EDM.provider,      Literal("The University of Chicago Library")))
+        self.graph.set((repository_agg, self.EDM.rights,        URIRef('https://creativecommons.org/licenses/by-nc/4.0/')))
+        self.graph.set((repository_agg, self.ORE.isDescribedBy, repository_rem))
+
+        # cultural heritage object for the repository
+        self.graph.set((repository_cho, RDF.type,               self.EDM.ProvidedCHO))
+        self.graph.set((repository_cho, DC.coverage,            URIRef('https://vocab.getty.edu/page/tgn/7029392')))
+        self.graph.set((repository_cho, DC.coverage,            Literal('World')))
+        self.graph.set((repository_cho, DC.creator,             Literal('The University of Chicago Library')))
+        self.graph.set((repository_cho, DC.date,                Literal('2006')))
+        self.graph.set((repository_cho, DC.description,         Literal('The University of Chicago Library Digital Repository')))
+        self.graph.set((repository_cho, DC.identifier,          URIRef('repository.lib.uchicago.edu')))
+        self.graph.set((repository_cho, DC.rights,              URIRef('http://creativecommons.org/licenses/by-nc/4.0/')))
+        self.graph.set((repository_cho, DC.title,               Literal('The University of Chicago Library Digital Repository')))
+        self.graph.set((repository_cho, DC.type,                Literal('Collection')))
+        self.graph.set((repository_cho, DCTERMS.hasPart,        URIRef('repository.lib.uchicago.edu/digitalcollections')))
+        self.graph.set((repository_cho, DCTERMS.hasPart,        URIRef('repository.lib.uchicago.edu/specialcollections')))
+        self.graph.set((repository_cho, self.EDM.type,          Literal('COLLECTION')))
+        self.graph.set((repository_cho, self.EDM.year,          Literal('2006'))) 
+        self.graph.set((repository_cho, self.ERC.what,          Literal('The University of Chicago Library Digital Repository')))
+        self.graph.set((repository_cho, self.ERC.when,          Literal('2006')))
+        self.graph.set((repository_cho, self.ERC.where,         repository_cho))
+        self.graph.set((repository_cho, self.ERC.who,           Literal('The University of Chicago Library')))
+
+        # proxy for the repository
+        self.graph.set((repository_pro, RDF.type,               self.ORE.Proxy))
+        self.graph.set((repository_pro, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
+        self.graph.set((repository_pro, self.ORE.proxyFor,      repository_cho))
+        self.graph.set((repository_pro, self.ORE.proxyIn,       repository_agg))
+
+        # resource map for the repository
+        self.graph.set((repository_rem, RDF.type,               self.ORE.resourceMap))
+        self.graph.set((repository_rem, DCTERMS.created,        now))
+        self.graph.set((repository_rem, DCTERMS.modified,       now))
+        self.graph.set((repository_rem, DCTERMS.creator,        repository_cho))
+        self.graph.set((repository_rem, self.ORE.describes,     repository_agg))
+
+    def build_item_triples(self):
+        """Add triples for an individual item.
+
+        Aggregations exist because things on the web like web sites or
+        collections of web pages actually include several resources, even
+        though we refer to them by a single resource, like a home page.
+        See the ORE Primer (http://www.openarchives.org/ore/1.0/primer)
+        for more information. This is a bit abstract in the case of the social
+        scientist maps, where the model currently includes a single web page 
+        per map. 
+
+        The Cultural Heritage Object is the map itself.
+
+        Side Effect:
+            Add triples to self.graph
+        """
+        agg = URIRef('/aggregation/digital_collections/IIIF_Files{}'.format(self.short_id))
+        cho = URIRef('/digital_collections/IIIF_Files{}'.format(self.short_id))
+        pro = URIRef('/digital_collections/IIIF_Files/social_scientists_maps/{0}/{0}.dc.xml'.format(self.identifier.split('/').pop()))
+        rem = URIRef('/rem/digital_collections/IIIF_Files{}'.format(self.short_id))
+        wbr = URIRef('/digital_collections/IIIF_Files/{}.tif'.format(self.short_id))
+
+        now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+
+        # aggregation for the item.
+        self.graph.set((agg, RDF.type,                self.ORE.aggregation))
+        self.graph.set((agg, DCTERMS.created,         now))
+        self.graph.set((agg, DCTERMS.modified,        now))
+        self.graph.set((agg, self.EDM.aggreatagedCHO, cho))
+        self.graph.set((agg, self.EDM.dataProvider,   Literal("University of Chicago Library")))
+        self.graph.set((agg, self.ORE.isDescribedBy,  cho))
+        self.graph.set((agg, self.EDM.isShownAt,      Literal(self.identifier)))
+        self.graph.set((agg, self.EDM.isShownBy,      Literal('IIIF URL for highest quality image of map')))
+        self.graph.set((agg, self.EDM.object,         Literal('IIIF URL for highest quality image of map')))
+        self.graph.set((agg, self.EDM.provider,       Literal('University of Chicago Library')))
+        self.graph.set((agg, self.EDM.rights,         URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')))
+
+        self._build_cho(cho)
+
+        # proxy for the item.
+        self.graph.set((pro,      RDF.type,           self.ORE.proxy))
+        self.graph.set((pro,      URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
+        self.graph.set((pro,      self.ORE.proxyFor,  cho))
+        self.graph.set((pro,      self.ORE.proxyIn,   agg))
+
+        # resource map for the item.
+        self.graph.set((rem,      DCTERMS.created,    Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)))
+        self.graph.set((rem,      DCTERMS.modified,   Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)))
+        self.graph.set((rem,      DCTERMS.creator,    URIRef('http://library.uchicago.edu/')))
+        self.graph.set((rem,      RDF.type,           self.ORE.resourceMap))
+        self.graph.set((rem,      self.ORE.describes, agg))
+
         self._build_web_resources()
 
-    def _build_aggregation(self):
-        self.graph.set((self.agg, RDF.type,                self.ORE.aggregation))
-        self.graph.set((self.agg, DCTERMS.modified,        Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)))
-        self.graph.set((self.agg, self.EDM.aggreatagedCHO, self.cho))
-        self.graph.set((self.agg, self.EDM.dataProvider,   Literal("University of Chicago Library")))
-        self.graph.set((self.agg, self.ORE.isDescribedBy,  self.cho))
-        self.graph.set((self.agg, self.EDM.isShownAt,      Literal(self.identifier)))
-        self.graph.set((self.agg, self.EDM.isShownBy,      Literal('IIIF URL for highest quality image of map')))
-        self.graph.set((self.agg, self.EDM.object,         Literal('IIIF URL for highest quality image of map')))
-        self.graph.set((self.agg, self.EDM.provider,       Literal('University of Chicago Library')))
-        self.graph.set((self.agg, self.EDM.rights,         URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')))
+    def _build_cho(self, cho):
+        """The cultural herigate object is the map itself. 
 
-    def _build_cho(self):
-        self.graph.set((self.cho, RDF.type, self.EDM.ProvidedCHO))
+        This method adds triples that describe the cultural heritage object.
 
+        Args:
+            agg (URIRef): aggregation 
+            cho (URIRef): cultural heritage object
+
+        Side Effect:
+            Add triples to self.graph
+        """
+        self.graph.set((cho, RDF.type, self.EDM.ProvidedCHO))
         for pre, obj_str in (
-            (DC.coverage,     'dc:coverage'),
-            (DC.creator,      'dc:creator'),
-            (DC.date,         'dc:date'),
-            (DC.description,  'dc:description'),
-            (DC.extent,       'dc:extent'),
-            (DC.identifier,   'dc:identifier'),
-            (DC.language,     'dc:language'),
-            (DC.publisher,    'dc:publisher'),
-            (DC.rights,       'dc:rights'),
-            (DC.subject,      'dc:subject'),
-            (DC.title,        'dc:title'),
-            (DC.type,         'dc:type'),
-            (DCTERMS.spatial, 'dcterms:spatial'),
-            (self.EDM.date,   'dc:date'),
-            (self.ERC.what,   'dc:title'),
-            (self.ERC.when,   'dc:date'),
-            (self.ERC.who,    'dc:creator'),
+            (DC.coverage,     '{http://purl.org/dc/elements/1.1/}coverage'),
+            (DC.creator,      '{http://purl.org/dc/elements/1.1/}creator'),
+            (DC.date,         '{http://purl.org/dc/elements/1.1/}date'),
+            (DC.description,  '{http://purl.org/dc/elements/1.1/}description'),
+            (DC.extent,       '{http://purl.org/dc/elements/1.1/}extent'),
+            (DC.identifier,   '{http://purl.org/dc/elements/1.1/}identifier'),
+            (DC.language,     '{http://purl.org/dc/elements/1.1/}language'),
+            (DC.publisher,    '{http://purl.org/dc/elements/1.1/}publisher'),
+            (DC.rights,       '{http://purl.org/dc/elements/1.1/}rights'),
+            (DC.subject,      '{http://purl.org/dc/elements/1.1/}subject'),
+            (DC.title,        '{http://purl.org/dc/elements/1.1/}title'),
+            (DC.type,         '{http://purl.org/dc/elements/1.1/}type'),
+            (DCTERMS.spatial, '{http://purl.org/dc/terms/}spatial'),
+            (self.EDM.date,   '{http://purl.org/dc/elements/1.1/}date'),
+            (self.ERC.what,   '{http://purl.org/dc/elements/1.1/}title'),
+            (self.ERC.when,   '{http://purl.org/dc/elements/1.1/}date'),
+            (self.ERC.who,    '{http://purl.org/dc/elements/1.1/}creator'),
         ):
-            obj_str = obj_str.replace('dc:',      '{http://purl.org/dc/elements/1.1/}')
-            obj_str = obj_str.replace('dcterms:', '{http://purl.org/dc/terms/}')
-
             for dc_obj_el in self.dc._asxml().findall(obj_str):
                 try:
                     self.graph.set((self.cho, pre, Literal(dc_obj_el.text)))
                 except AttributeError:
                     pass
 
-        self.graph.set((self.cho, DCTERMS.isPartOf, Literal('pi-for-the-collection-in-wagtail')))
-        self.graph.set((self.cho, self.EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))
-        self.graph.set((self.cho, self.EDM.type, Literal('IMAGE')))
-        self.graph.set((self.cho, self.ERC.where, self.cho))
-
-    def _build_proxy(self):
-        self.graph.set((self.pro, RDF.type, self.ORE.proxy))
-        self.graph.set((self.pro, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
-        self.graph.set((self.pro, self.ORE.proxyFor, self.cho))
-        self.graph.set((self.pro, self.ORE.proxyIn, self.agg))
-
-    def _build_resource_map(self):
-        self.graph.set((self.rem, DCTERMS.modified, Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)))
-        self.graph.set((self.rem, DCTERMS.creator, URIRef('http://library.uchicago.edu/')))
-        self.graph.set((self.rem, RDF.type, self.ORE.resourceMap))
-        self.graph.set((self.rem, self.ORE.describes, self.agg))
+        self.graph.set((cho, DCTERMS.isPartOf, Literal('pi-for-the-collection-in-wagtail')))
+        self.graph.set((cho, self.EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))
+        self.graph.set((cho, self.EDM.type, Literal('IMAGE')))
+        self.graph.set((cho, self.ERC.where, cho))
 
     def _build_web_resources(self):
         for metadata in self.master_file_metadata:

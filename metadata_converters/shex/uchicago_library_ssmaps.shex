@@ -40,7 +40,7 @@ PREFIX xsd:                        <http://www.w3.org/2001/XMLSchema#>
 
 :proxy {
     dc:format                      xsd:string ;
-    ore:proxyFor                   @:WebResource ;
+    ore:proxyFor                   @:providedCHO ;
     ore:proxyIn                    @:aggregation ;
 }
 
