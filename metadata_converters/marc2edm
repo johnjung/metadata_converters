@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ElementTree
 from classes import SocSciMapsMarcXmlToEDM
 from docopt import docopt
 
-USE_SSH = True
+USE_SSH = False
 
 if __name__ == "__main__":
     options = docopt(__doc__)
@@ -135,6 +135,9 @@ if __name__ == "__main__":
             )
 
             edm.build_repository_triples()
+            edm.build_digital_collections_triples()
+            edm.build_map_collection_triples()
+            edm.build_socscimap_collection_triples()
             edm.build_item_triples()
             sys.stdout.write(str(edm))
 
