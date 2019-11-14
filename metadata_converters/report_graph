@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+"""Usage:
+    report_graph <predicate> 
+"""
+
+import csv, rdflib, re, sys
+from rdflib import Graph, Namespace
+from rdflib.namespace import DC, DCTERMS
+from rdflib.plugins.sparql import prepareQuery
+from docopt import docopt
+
+if __name__=="__main__":
+    options = docopt(__doc__)
+
+    g = Graph()
+    g.parse(sys.stdin, format='n3')
+
+    r = g.query(
+	'SELECT ?o WHERE {{ ?s {} ?o . }}'.format(options['<predicate>'])
+    )
+
+    for row in r:
+        print(row[0])

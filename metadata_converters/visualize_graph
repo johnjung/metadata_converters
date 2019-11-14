@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+"""Usage:
+    visualize_graph (--dot|--gephi) --cho
+"""
+
+import csv, rdflib, re, sys
+from rdflib import Graph, Namespace
+from rdflib.namespace import RDF
+from docopt import docopt
+
+EDM = Namespace('http://www.europeana.eu/schemas/edm/')
+
+if __name__=="__main__":
+    options = docopt(__doc__)
+
+    g = Graph()
+    g.parse(sys.stdin, format='n3')
+
+    if options['--cho']:
+        r = g.query(
+            '''SELECT ?s ?o
+               WHERE { ?s dcterms:hasPart|dcterms:isPartOf ?o . }''')
+        
+    # get a unique, sorted list of nodes.
+    nodes = sorted(list(set([item for row in r for item in row])))
+    nodes_orig = nodes.copy()
+    
+    # shorten really long references to nodes in the local filesystem.
+    for n in range(len(nodes)):
+        if str(nodes[n]).startswith('file:///'):
+            nodes[n] = re.sub('^.*(?=repository)', 'file:///', str(nodes[n]))
+        else:
+            nodes[n] = str(nodes[n])
+   
+    if options['--gephi']: 
+        # output a csv matrix for gephi.
+        out = [[''] + nodes]
+        for n in range(len(nodes)):
+            out.append([nodes[n]] + [0 for i in range(len(nodes))])
+        
+        # define edges by setting the appropriate matrix cell to 1.
+        for row in r:
+            i = nodes_orig.index(row[0])
+            j = nodes_orig.index(row[1])
+            out[j + 1][i + 1] = 1
+            out[i + 1][j + 1] = 1
+        
+        # write CSV to standard out.
+        w = csv.writer(sys.stdout)
+        for o in out:
+            w.writerow(o)
+
+    elif options['--dot']:
+        # output a dot file for graphviz.
+        sys.stdout.write('graph G {\n')
+        for i, node in enumerate(nodes):
+            sys.stdout.write('    N{} [label="{}"]\n'.format(i, node))
+        for row in r:
+            i = nodes_orig.index(row[0])
+            j = nodes_orig.index(row[1])
+            sys.stdout.write('    N{} -- N{};\n'.format(i, j))
+        sys.stdout.write('}\n')
