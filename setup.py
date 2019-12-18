@@ -20,9 +20,8 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     name='Metadata Converters',
     packages=setuptools.find_packages(),
-    package_dir='metadata_converters',
     package_data={
-        'json': ['socscimaps_marc2dc.json']
+        'metadata_converters': ['json/*.json']
     },
     url='https://github.com/johnjung/metadata_converters',
     version='0.0.1'
