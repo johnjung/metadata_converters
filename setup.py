@@ -8,6 +8,7 @@ setuptools.setup(
     version='0.0.1',
     author='John Jung',
     author_email='jej@uchicago.edu',
+    data_files=[('metadata_converters/json', ['socscimaps_marc2dc.json'])],
     description='Scripts to convert metadata to and from different formats.',
     long_description=long_description,
     long_description_content_type='text/markdown',
