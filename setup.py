@@ -13,9 +13,6 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/johnjung/metadata_converters',
     packages=setuptools.find_packages(),
-    package_data={
-        'metadata_converters': ['metadata_converters/json/*.json']
-    },
     entry_points={
         'console_scripts': [
             'marc2dc = metadata_converters.marc2dc:main',
