@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+"""Usage:
+    csv2dc -
+    csv2dc <identifier> -
+"""
+
+import csv, sys
+import xml.etree.ElementTree as ElementTree
+from docopt import docopt
+from io import BytesIO
+from io import StringIO
+
+if __name__ == "__main__":
+    options = docopt(__doc__)
+
+    records = []
+
+    f = StringIO(sys.stdin.buffer.read().decode('cp1252'))
+    reader = csv.reader(f)
+
+    for row in reader:
+        if row[0] == 'Title':
+            continue
+        records.append(row)
+
+    if options['<identifier>']:
+        metadata = ElementTree.fromstring('<metadata></metadata>')
+        for r in records:
+            if r[2] == options['<identifier>']:
+                ElementTree.SubElement(metadata, 'title').text = r[0]
+                ElementTree.SubElement(metadata, 'date').text = r[1]
+                ElementTree.SubElement(metadata, 'description').text = r[3]
+                ElementTree.SubElement(metadata, 'identifier').text = r[2]
+                f = BytesIO()
+                ElementTree.ElementTree(metadata).write(f, encoding='utf-8', xml_declaration=True)
+                sys.stdout.write(f.getvalue().decode('utf-8'))
+    else:
+        for r in records:
+            sys.stdout.write('{}\n'.format(r[2]))
