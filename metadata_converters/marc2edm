@@ -15,111 +15,43 @@ import sys
 import xml.etree.ElementTree as ElementTree
 from classes import SocSciMapsMarcXmlToEDM
 from docopt import docopt
-
-USE_SSH = True
+from PIL import Image
 
 if __name__ == "__main__":
     options = docopt(__doc__)
 
     if options['--socscimaps']:
-        if USE_SSH:
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect('s3.lib.uchicago.edu', username=getpass.getuser())
-            ftp = ssh.open_sftp()
-
         collection = ElementTree.fromstring(sys.stdin.read())
 
         for record in collection.findall('{http://www.loc.gov/MARC21/slim}record'):
-	        # get the identifier from the catalog record. Build paths to the
-	        # master file on remote and local drives. 
             identifier = record.find('/'.join([
                 '{http://www.loc.gov/MARC21/slim}datafield[@tag="856"]',
                 '{http://www.loc.gov/MARC21/slim}subfield[@code="u"]'
             ])).text.split('/').pop()
-            remote_tiff_path = '/'.join([
-		'',
+            tiff_path = '/'.join([
+                '',
                 'data',
-                'voldemort',
                 'digital_collections',
-                'data',
-		'ldr_oc_admin',
-                'files',
+                'IIIF',
                 'IIIF_Files',
                 'maps',
-		'chisoc',
+                'chisoc',
                 identifier,
                 'tifs',
                 '{0}.tif'.format(identifier)
             ])
-            local_tiff_path = os.path.join(
-                tempfile.gettempdir(),
-                '{}.tif'.format(identifier)
-            )
-
-            # download the file, only if necessary.
-            if not os.path.exists(local_tiff_path):
-                if USE_SSH:
-                    try:
-                        ftp.get(remote_tiff_path, local_tiff_path)
-                    except FileNotFoundError:
-                        sys.stdout.write('could not find remote file {}\n'.format(remote_tiff_path))
-                else:
-                    shutil.copyfile('tifs/{}.tif'.format(identifier), local_tiff_path)
-
-            # get technical metadata from JHOVE.
-            try:
-                result = subprocess.run([
-                    "{}/jhove/jhove".format(pathlib.Path.home()),
-                    "-h",
-                    "xml",
-                    local_tiff_path
-                ], capture_output=True)
-            except FileNotFoundError:
-                sys.stderr.write('Be sure JHOVE is installed and available in your homedir at ~/jhove/jhove.\n')
-                sys.exit()
-
-            jhove = ElementTree.fromstring(result.stdout.decode('utf-8'))
 
             try:
-                mix = jhove.find('.//{http://www.loc.gov/mix/v20}mix')
+                mime_type = 'image/tiff'
+                size = os.path.getsize(tiff_path)
+                img = Image.open(tiff_path)
+                width = img.size[0]
+                height = img.size[1]
             except AttributeError:
-                sys.stdout.write('JHOVE had trouble with {}\n'.format(local_tiff_path))
+                sys.stdout.write('trouble with {}\n'.format(tiff_path))
                 sys.exit()
 
-            try:
-                # mimetype
-                mime_type = mix.find('/'.join([
-                    '{http://www.loc.gov/mix/v20}BasicDigitalObjectInformation',
-                    '{http://www.loc.gov/mix/v20}FormatDesignation',
-                    '{http://www.loc.gov/mix/v20}formatName' 
-                ])).text
-
-                # size in bytes
-                size = int(jhove.find('/'.join([
-                    '{http://schema.openpreservation.org/ois/xml/ns/jhove}repInfo',
-                    '{http://schema.openpreservation.org/ois/xml/ns/jhove}size'
-                ])).text)
-    
-                # width in pixels.
-                width = int(mix.find('/'.join([
-                    '{http://www.loc.gov/mix/v20}BasicImageInformation',
-                    '{http://www.loc.gov/mix/v20}BasicImageCharacteristics',
-                    '{http://www.loc.gov/mix/v20}imageWidth'
-                ])).text)
-    
-                # height in pixels.
-                height = int(mix.find('/'.join([
-                    '{http://www.loc.gov/mix/v20}BasicImageInformation',
-                    '{http://www.loc.gov/mix/v20}BasicImageCharacteristics',
-                    '{http://www.loc.gov/mix/v20}imageHeight'
-                ])).text)
-            except AttributeError:
-                sys.stdout.write('JHOVE had trouble with {}\n'.format(local_tiff_path))
-                sys.exit()
-
-            # md5, sha256
-            with open(local_tiff_path, 'rb') as f:
+            with open(tiff_path, 'rb') as f:
                 tiff_contents = f.read()
                 md5 = hashlib.md5(tiff_contents).hexdigest()
                 sha256 = hashlib.sha256(tiff_contents).hexdigest()
@@ -133,15 +65,12 @@ if __name__ == "__main__":
                     'md5': md5,
                     'mime_type': mime_type,
                     'name': '{}.tif'.format(identifier),
-                    'path': remote_tiff_path,
+                    'path': tiff_path,
                     'sha256': sha256,
                     'size': size,
                     'width': width
                 }]
             )
-
-        if USE_SSH:
-            ftp.close()
 
         edm.build_item_triples()
 

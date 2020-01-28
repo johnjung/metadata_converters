@@ -2,6 +2,7 @@ docopt
 jinja2
 jsonschema
 paramiko
+Pillow
 PyShEx
 python-magic
 rdflib
