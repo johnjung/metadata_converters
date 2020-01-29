@@ -1,4 +1,5 @@
 docopt
+getpass
 jinja2
 jsonschema
 paramiko

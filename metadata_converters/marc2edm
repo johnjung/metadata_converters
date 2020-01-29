@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ElementTree
 from classes import SocSciMapsMarcXmlToEDM
 from docopt import docopt
 from PIL import Image
+Image.MAX_IMAGE_PIXELS = 1000000000
 
 if __name__ == "__main__":
     options = docopt(__doc__)
