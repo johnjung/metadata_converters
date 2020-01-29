@@ -24,3 +24,5 @@ ENV/
 env/
 activate.bat
 deactivate.bat
+
+setup.sh
