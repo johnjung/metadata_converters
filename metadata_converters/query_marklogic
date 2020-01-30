@@ -7,6 +7,10 @@ import json, os, requests, sys
 from docopt import docopt
 from requests.auth import HTTPBasicAuth
 
+# to delete all the triples from a collection, use the following curl
+# command:
+# curl --anyauth --user user:password -X DELETE http://server:port/v1/graphs?graph=collection
+
 if __name__=="__main__":
     options = docopt(__doc__)
 
