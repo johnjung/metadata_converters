@@ -454,7 +454,7 @@ class SocSciMapsMarcXmlToEDM:
         cho = URIRef('/digital_collections/IIIF_Files{}'.format(self.short_id))
         pro = URIRef('/digital_collections/IIIF_Files/social_scientists_maps/{0}/{0}.dc.xml'.format(self.identifier.split('/').pop()))
         rem = URIRef('/rem/digital_collections/IIIF_Files{}'.format(self.short_id))
-        wbr = URIRef('/digital_collections/IIIF_Files/{}.tif'.format(self.short_id))
+        wbr = URIRef('/digital_collections/IIIF_Files{}.tif'.format(self.short_id))
 
         now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
 
