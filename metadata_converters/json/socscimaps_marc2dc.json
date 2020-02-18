@@ -132,7 +132,9 @@
             },
             {
                 "tag_re": "264",
-                "subfield_re": "c"
+                "subfield_re": "c",
+                "indicator1_re": " ",
+                "indicator2_re": "1"
             }
         ]
     }

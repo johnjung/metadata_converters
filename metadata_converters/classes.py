@@ -188,17 +188,35 @@ class SocSciMapsMarcXmlToDc:
             values.append(e.text)
         return sorted(values)
 
+    def process_date(self, d):
+        # find every occurrence of either four digits in a row or three
+        # digits followed by a dash. 
+        dates = re.findall('[0-9]{3}[0-9-]', d)
+        # if there are two date chunks in the string, assume they are a
+        # date range. (e.g. 'yyyy-yyyy'
+        if len(dates) == 2:
+            return '-'.join(dates)
+        # if the date is three digits followed by a dash, assume it is
+        # a date range for a decade. (e.g. 'yyy0-yyy9')
+        elif dates[0][-1] == '-':
+            return '{0}0-{0}9'.format(dates[0][:3])
+        # otherwise assume that the four digit date is correct.
+        else:
+            return dates[0]
+
     def _asxml(self):
         metadata = ElementTree.Element('metadata')
         for e, rules in self.crosswalk.items():
             values = []
             for r in rules:
-                values.extend(
-                    self._get_datafield_values(
-                        self.record,
-                        {**self.template, **r}
-                    )
+                new_values = self._get_datafield_values(
+                    self.record,
+                    {**self.template, **r}
                 )
+                # special processing for date strings.
+                if e == 'dcterms:issued':
+                    new_values = map(self.process_date, new_values)
+                values.extend(new_values)
             element_str = e.replace('dc:', '{http://purl.org/dc/elements/1.1/}').replace('dcterms:', '{http://purl.org/dc/terms/}')
             for value in values:
                 ElementTree.SubElement(
