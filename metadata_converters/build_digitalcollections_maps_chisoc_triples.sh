@@ -1,6 +1,3 @@
-# G4104-C6-2N3-1927-U5 is missing- the TIFF is not available. requested
-# a rescan.
-
 for f in \
 G4104-C6-1933-U5-a \
 G4104-C6-1933-U5-b \
@@ -29,6 +26,7 @@ G4104-C6-2L9-1920z-U5 \
 G4104-C6-2M2-1924-U5 \
 G4104-C6-2N15-1920z-U5 \
 G4104-C6-2N3E51-1908-S2 \
+G4104-C6-2N3-1927-U5 \
 G4104-C6-2N6-1920z-U5 \
 G4104-C6-2W8-1925-U5 \
 G4104-C6-2W9-1920z-U5 \
