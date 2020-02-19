@@ -10,7 +10,10 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'marc2dc = metadata_converters.marc2dc:main',
-            'marc2schemadotorg = metadata_converters.marc2schemadotorg:main'
+            'marc2edm = metadata_converters.marc2edm:main',
+            'marc2opengraph = metadata_converters.marc2opengraph:main',
+            'marc2schemadotorg = metadata_converters.marc2schemadotorg:main',
+            'marc2twittercard = metadata_converters.marc2twittercard:main'
         ]
     },
     install_requires=[

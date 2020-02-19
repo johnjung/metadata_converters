@@ -11,8 +11,7 @@ Options:
 
 import sys
 from docopt import docopt
-from classes import MarcXmlToSchemaDotOrg
-
+from . import MarcXmlToSchemaDotOrg
 
 def main():
 	options = docopt(__doc__)
@@ -27,7 +26,6 @@ def main():
 
 	sys.stdout.write(str(MarcXmlToSchemaDotOrg(marcxml)))
 	sys.exit()
-
 
 if __name__ == "__main__":
     main()

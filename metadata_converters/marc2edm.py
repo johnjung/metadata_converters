@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-    marc2dc (--socscimaps|--socscimaps-project-triples)
+    marc2edm (--socscimaps|--socscimaps-project-triples)
 """
 
 import getpass
@@ -13,12 +13,12 @@ import subprocess
 import tempfile
 import sys
 import xml.etree.ElementTree as ElementTree
-from classes import SocSciMapsMarcXmlToEDM
+from . import SocSciMapsMarcXmlToEDM
 from docopt import docopt
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = 1000000000
 
-if __name__ == "__main__":
+def main():
     options = docopt(__doc__)
 
     if options['--socscimaps']:
@@ -83,3 +83,6 @@ if __name__ == "__main__":
 
         
     sys.stdout.write(SocSciMapsMarcXmlToEDM.triples())
+
+if __name__ == "__main__":
+    main()

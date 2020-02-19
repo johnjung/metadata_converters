@@ -6,11 +6,11 @@
 import sys
 import xml.etree.ElementTree as ElementTree
 from docopt import docopt
-from classes import SocSciMapsMarcXmlToDc
+from . import SocSciMapsMarcXmlToDc
 
 ElementTree.register_namespace('m', 'http://www.loc.gov/MARC21/slim')
 
-if __name__ == "__main__":
+def main():
     options = docopt(__doc__)
 
     marcxml_str = sys.stdin.read()
@@ -52,3 +52,6 @@ if __name__ == "__main__":
             sys.stdout.write(ElementTree.tostring(metadata, 'utf-8', method='xml').decode('utf-8'))
     else:
         raise NotImplementedError
+
+if __name__ == "__main__":
+    main()
