@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-    marc2edm (--socscimaps|--socscimaps-project-triples)
+    marc2edm (--socscimaps -|--socscimaps-project-triples)
 """
 
 import getpass
