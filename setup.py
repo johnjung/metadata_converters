@@ -13,7 +13,9 @@ setuptools.setup(
             'marc2edm = metadata_converters.marc2edm:main',
             'marc2opengraph = metadata_converters.marc2opengraph:main',
             'marc2schemadotorg = metadata_converters.marc2schemadotorg:main',
-            'marc2twittercard = metadata_converters.marc2twittercard:main'
+            'marc2twittercard = metadata_converters.marc2twittercard:main',
+            'query_marklogic = metadata_converters.query_marklogic:main',
+            'upload_to_marklogic = metadata_converters.upload_to_marklogic:main'
         ]
     },
     install_requires=[
