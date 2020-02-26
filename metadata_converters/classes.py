@@ -460,6 +460,14 @@ class SocSciMapsMarcXmlToEDM:
 
         self.short_id = self.identifier.replace('http://pi.lib.uchicago.edu/1001', '')
 
+        self.agg = URIRef('/aggregation/digital_collections/IIIF_Files{}'.format(self.short_id))
+        self.cho = URIRef('/digital_collections/IIIF_Files{}'.format(self.short_id))
+        self.pro = URIRef('/digital_collections/IIIF_Files/social_scientists_maps/{0}/{0}.dc.xml'.format(self.identifier.split('/').pop()))
+        self.rem = URIRef('/rem/digital_collections/IIIF_Files{}'.format(self.short_id))
+        self.wbr = URIRef('/digital_collections/IIIF_Files{}.tif'.format(self.short_id))
+
+        self.now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+
     def build_item_triples(self):
         """Add triples for an individual item.
 
@@ -476,48 +484,40 @@ class SocSciMapsMarcXmlToEDM:
         Side Effect:
             Add triples to self.graph
         """
-        agg = URIRef('/aggregation/digital_collections/IIIF_Files{}'.format(self.short_id))
-        cho = URIRef('/digital_collections/IIIF_Files{}'.format(self.short_id))
-        pro = URIRef('/digital_collections/IIIF_Files/social_scientists_maps/{0}/{0}.dc.xml'.format(self.identifier.split('/').pop()))
-        rem = URIRef('/rem/digital_collections/IIIF_Files{}'.format(self.short_id))
-        wbr = URIRef('/digital_collections/IIIF_Files{}.tif'.format(self.short_id))
-
-        now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
-
         # aggregation for the item.
-        self.graph.add((agg, RDF.type,                self.ORE.Aggregation))
-        self.graph.add((agg, DCTERMS.created,         now))
-        self.graph.add((agg, DCTERMS.modified,        now))
-        self.graph.add((agg, self.EDM.aggreatagedCHO, cho))
-        self.graph.add((agg, self.EDM.dataProvider,   Literal("The University of Chicago Library")))
-        self.graph.add((agg, self.ORE.isDescribedBy,  rem))
-        self.graph.add((agg, self.EDM.isShownAt,      Literal(self.identifier)))
-        self.graph.add((agg, self.EDM.isShownBy,      wbr))
-        self.graph.add((agg, self.EDM.object,         wbr))
-        self.graph.add((agg, self.EDM.provider,       Literal('The University of Chicago Library')))
-        self.graph.add((agg, self.EDM.rights,         URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')))
+        self.graph.add((self.agg, RDF.type,                self.ORE.Aggregation))
+        self.graph.add((self.agg, DCTERMS.created,         self.now))
+        self.graph.add((self.agg, DCTERMS.modified,        self.now))
+        self.graph.add((self.agg, self.EDM.aggreatagedCHO, self.cho))
+        self.graph.add((self.agg, self.EDM.dataProvider,   Literal("The University of Chicago Library")))
+        self.graph.add((self.agg, self.ORE.isDescribedBy,  self.rem))
+        self.graph.add((self.agg, self.EDM.isShownAt,      Literal(self.identifier)))
+        self.graph.add((self.agg, self.EDM.isShownBy,      self.wbr))
+        self.graph.add((self.agg, self.EDM.object,         self.wbr))
+        self.graph.add((self.agg, self.EDM.provider,       Literal('The University of Chicago Library')))
+        self.graph.add((self.agg, self.EDM.rights,         URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')))
 
-        self._build_cho(cho)
+        self._build_cho()
 
         # proxy for the item.
-        self.graph.add((pro,      RDF.type,           self.ORE.Proxy))
-        self.graph.add((pro,      URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
-        self.graph.add((pro,      self.ORE.proxyFor,  cho))
-        self.graph.add((pro,      self.ORE.proxyIn,   agg))
+        self.graph.add((self.pro,      RDF.type,           self.ORE.Proxy))
+        self.graph.add((self.pro,      URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
+        self.graph.add((self.pro,      self.ORE.proxyFor,  self.cho))
+        self.graph.add((self.pro,      self.ORE.proxyIn,   self.agg))
 
         # resource map for the item.
-        self.graph.add((rem,      DCTERMS.created,    Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)))
-        self.graph.add((rem,      DCTERMS.modified,   Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)))
-        self.graph.add((rem,      DCTERMS.creator,    URIRef('http://library.uchicago.edu')))
-        self.graph.add((rem,      RDF.type,           self.ORE.ResourceMap))
-        self.graph.add((rem,      self.ORE.describes, agg))
+        self.graph.add((self.rem,      DCTERMS.created,    self.now))
+        self.graph.add((self.rem,      DCTERMS.modified,   self.now))
+        self.graph.add((self.rem,      DCTERMS.creator,    URIRef('http://library.uchicago.edu')))
+        self.graph.add((self.rem,      RDF.type,           self.ORE.ResourceMap))
+        self.graph.add((self.rem,      self.ORE.describes, self.agg))
 
-        self._build_web_resources(wbr)
+        self._build_web_resources()
 
         # connect the item to its collection.
-        self.graph.add((URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc'), DCTERMS.hasPart, cho))
+        self.graph.add((URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc'), DCTERMS.hasPart, self.cho))
 
-    def _build_cho(self, cho):
+    def _build_cho(self):
         """The cultural herigate object is the map itself. 
 
         This method adds triples that describe the cultural heritage object.
@@ -529,7 +529,7 @@ class SocSciMapsMarcXmlToEDM:
         Side Effect:
             Add triples to self.graph
         """
-        self.graph.add((cho, RDF.type, self.EDM.ProvidedCHO))
+        self.graph.add((self.cho, RDF.type, self.EDM.ProvidedCHO))
         for pre, obj_str in (
             (DC.coverage,     '{http://purl.org/dc/elements/1.1/}coverage'),
             (DC.creator,      '{http://purl.org/dc/elements/1.1/}creator'),
@@ -550,19 +550,16 @@ class SocSciMapsMarcXmlToEDM:
             (self.ERC.who,    '{http://purl.org/dc/elements/1.1/}creator'),
         ):
             for dc_obj_el in self.dc._asxml().findall(obj_str):
-                try:
-                    self.graph.add((self.cho, pre, Literal(dc_obj_el.text)))
-                except AttributeError:
-                    pass
+                self.graph.add((self.cho, pre, Literal(dc_obj_el.text)))
 
-        self.graph.add((cho, DCTERMS.isPartOf, URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc')))
-        self.graph.add((cho, self.EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))
-        self.graph.add((cho, self.EDM.type, Literal('IMAGE')))
-        self.graph.add((cho, self.ERC.where, cho))
+        self.graph.add((self.cho, DCTERMS.isPartOf, URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc')))
+        self.graph.add((self.cho, self.EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))
+        self.graph.add((self.cho, self.EDM.type, Literal('IMAGE')))
+        self.graph.add((self.cho, self.ERC.where, self.cho))
 
-    def _build_web_resources(self, wbr):
+    def _build_web_resources(self):
         for metadata in self.master_file_metadata:
-            self.graph.add((wbr, RDF.type, self.EDM.WebResource))
+            self.graph.add((self.wbr, RDF.type, self.EDM.WebResource))
             for p, o in (
                 ('http://purl.org/dc/elements/1.1/format',            metadata['mime_type']),
                 ('http://www.loc.gov/mix/v20/bitsPerSampleUnit',      'integer'),
@@ -573,7 +570,7 @@ class SocSciMapsMarcXmlToEDM:
                 ('http://www.loc.gov/mix/v20/messageDigest',          metadata['md5']),
                 ('http://www.loc.gov/mix/v20/messageDigestAlgorithm', 'MD5'),
                 ('info:lc/xmlns/premis-v2/compositionLevel',          0),
-                ('info:lc/xmlns/premis-v2/eventDateTime',             datetime.datetime.utcnow()),
+                ('info:lc/xmlns/premis-v2/eventDateTime',             self.now),
                 ('info:lc/xmlns/premis-v2/eventIdentifierType',       'ARK'),
                 ('info:lc/xmlns/premis-v2/eventIdentifierValue',      '[NOID]'),
                 ('info:lc/xmlns/premis-v2/eventType',                 'creation'),
@@ -586,7 +583,7 @@ class SocSciMapsMarcXmlToEDM:
                 ('info:lc/xmlns/premis-v2/objectIdentifierValue',     metadata['path']),
                 ('info:lc/xmlns/premis-v2/originalName',              metadata['name']),
                 ('info:lc/xmlns/premis-v2/size',                      metadata['size'])):
-                self.graph.add((wbr, URIRef(p), Literal(o)))
+                self.graph.add((self.wbr, URIRef(p), Literal(o)))
 
     @classmethod
     def build_repository_triples(self):
