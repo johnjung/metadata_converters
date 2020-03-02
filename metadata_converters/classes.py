@@ -76,7 +76,7 @@ class MarcXmlConverter:
         return results
 
 
-class SocSciMapsMarcXmlToDc:
+class MarcXmlToDc:
     def __init__(self, marcxml_str):
         """
             marcxml_str: a string representation of XML, with
@@ -123,22 +123,6 @@ class SocSciMapsMarcXmlToDc:
                 datafields.append(datafield)
         return datafields
 
-    def _filter_datafield_by_indicator(
-        self,
-        datafield,
-        indicator_position,
-        indicator_re
-    ):
-        """
-        e.g. self._filter_datafield_by_indicator(datafield, 1, '^1$')
-        """
-        if indicator_position == 1:
-            return re.search(indicator_re, datafield.get('ind1') != None)
-        elif indicator_position == 2:
-            return re.search(indicator_re, datafield.get('ind2') != None)
-        else:
-            raise ValueError
-
     def __getattr__(self, attr):
         """Return individual Dublin Core elements as instance properties, e.g.
         self.identifier.
@@ -156,6 +140,8 @@ class SocSciMapsMarcXmlToDc:
             values.append(e.text)
         return sorted(values)
 
+
+class SocSciMapsMarcXmlToDc(MarcXmlToDc):
     def _asxml(self):
         def process_subject(s):
             if s[-1] == '.':
