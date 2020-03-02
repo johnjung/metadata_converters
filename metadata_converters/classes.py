@@ -77,99 +77,67 @@ class MarcXmlConverter:
 
 
 class SocSciMapsMarcXmlToDc:
-    """ If any exclude condition is met, the item will be excluded. If any filter
-        condition is met, the item will be filtered. """
-    def __init__(self, marcxml):
+    def __init__(self, marcxml_str):
+        """
+            marcxml_str: a string representation of XML, with
+                         <collection> as the root element.
+        """
         ElementTree.register_namespace(
             'dc', 'http://purl.org/dc/elements/1.1/')
         ElementTree.register_namespace(
             'dcterms', 'http://purl.org/dc/terms/')
-        self.record = ElementTree.fromstring(marcxml).find(
-            '{http://www.loc.gov/MARC21/slim}record')
-        with open(os.path.join(os.path.dirname(__file__), 'json/socscimaps_marc2dc.json')) as f:
-            data = json.load(f)
-            self.template = data['template']
-            self.crosswalk = data['crosswalk']
+        self.record = ElementTree.fromstring(marcxml_str).find(
+            '{http://www.loc.gov/MARC21/slim}record'
+        )
 
-    def _filter_datafield(self, datafield, f):
-        """Return true if any subfields exist that match the conditions in r. 
+    def _get_subfield_values(self, datafield, subfield_re):
+        """
+        Return a list of strings 
 
         Args:
             datafield (xml.etree.ElementTree.Element): a MARCXML datafield element.
-            f (dict): a rule, e.g.: { "subfield_re": "2", "value_re": "^fast$" }
-
-        Returns:
-            bool: datafield matches. 
-        """
-        for subfield in datafield.findall('{http://www.loc.gov/MARC21/slim}subfield'):
-            if bool(re.search(f['subfield_re'], subfield.get('code'))) and \
-               bool(re.search(f['value_re'], subfield.text)):
-                return True
-        return False
-
-    def _get_subfield_values(self, datafield, r):
-        """
-        Return true if any subfields exist that match the conditions in r. 
-
-        Args:
-            datafield (xml.etree.ElementTree.Element): a MARCXML datafield element.
-            r (dict): a rule, e.g.: { "tag_re": "700", "subfield_re": "a" }
+            subfield_re: a regex to find appropriate subfields. 
 
         Returns:
             A list of strings. 
         """
         values = []
         for subfield in datafield.findall('{http://www.loc.gov/MARC21/slim}subfield'):
-            if re.search(r['subfield_re'], subfield.get('code')):
+            if re.search(subfield_re, subfield.get('code')):
                 values.append(subfield.text)
         return values
 
-    def _get_datafield_values(self, record, r):
-        """Return a list of values for a datafield. Only process datafields
-        with the appropriate tag and indicator values.
+    def _get_datafields(self, tag_re):
+        """Return a list of datafields.
+           deal with control fields too?
 
         Args:
-            record (xml.etree.ElementTree.Element): a MARCXML record element.
-            r (dict): a rule, e.g. { "tag_re": "700", "subfield_re": "a" }
+            tag_re: a regex to find appropriate tags.
 
         Returns:
-            A list of strings.
+            A list of data fields. 
         """
-        values = []
-        for datafield in record.findall('{http://www.loc.gov/MARC21/slim}datafield'):
-            if re.search(r['tag_re'], datafield.get('tag')) == None:
-                continue
-            if re.search(r['indicator1_re'], datafield.get('ind1')) == None:
-                continue
-            if re.search(r['indicator2_re'], datafield.get('ind2')) == None:
-                continue
+        datafields = []
+        for datafield in self.record.findall('{http://www.loc.gov/MARC21/slim}datafield'):
+            if re.search(tag_re, datafield.get('tag')) != None:
+                datafields.append(datafield)
+        return datafields
 
-            _exclude = False
-            for f in r['exclude']:
-                if self._filter_datafield(datafield, f):
-                    _exclude = True
-            if _exclude:
-                continue
-  
-            _filter = True
-            if r['filter']:
-                _filter = False
-                for f in r['filter']:
-                    if self._filter_datafield(datafield, f):
-                        _filter = True
-            if not _filter:
-                continue
-
-            if r['join_subfields']:
-                values.append(' '.join(self._get_subfield_values(datafield, r)))
-            else:
-                values.extend(self._get_subfield_values(datafield, r))
-        if r['return_first_result_only'] and values:
-            return [values[0]]
-        elif r['join_fields']:
-            return [' '.join(values)]
+    def _filter_datafield_by_indicator(
+        self,
+        datafield,
+        indicator_position,
+        indicator_re
+    ):
+        """
+        e.g. self._filter_datafield_by_indicator(datafield, 1, '^1$')
+        """
+        if indicator_position == 1:
+            return re.search(indicator_re, datafield.get('ind1') != None)
+        elif indicator_position == 2:
+            return re.search(indicator_re, datafield.get('ind2') != None)
         else:
-            return values
+            raise ValueError
 
     def __getattr__(self, attr):
         """Return individual Dublin Core elements as instance properties, e.g.
@@ -189,22 +157,6 @@ class SocSciMapsMarcXmlToDc:
         return sorted(values)
 
     def _asxml(self):
-        def process_date(d):
-            # find every occurrence of either four digits in a row or three
-            # digits followed by a dash. 
-            dates = re.findall('[0-9]{3}[0-9-]', d)
-            # if there are two date chunks in the string, assume they are a
-            # date range. (e.g. 'yyyy-yyyy'
-            if len(dates) == 2:
-                return '-'.join(dates)
-            # if the date is three digits followed by a dash, assume it is
-            # a date range for a decade. (e.g. 'yyy0-yyy9')
-            elif dates[0][-1] == '-':
-                return '{0}0-{0}9'.format(dates[0][:3])
-            # otherwise assume that the four digit date is correct.
-            else:
-                return dates[0]
-
         def process_subject(s):
             if s[-1] == '.':
                 return s[:-1]
@@ -212,25 +164,138 @@ class SocSciMapsMarcXmlToDc:
                 return s
 
         metadata = ElementTree.Element('metadata')
-        for e, rules in self.crosswalk.items():
-            values = set()
-            for r in rules:
-                new_values = self._get_datafield_values(
-                    self.record,
-                    {**self.template, **r}
-                )
-                # special processing for subjects or date strings.
-                if e == 'dc:subject':
-                    new_values = set(map(process_subject, new_values))
-                elif e == 'dcterms:issued':
-                    new_values = set(map(process_date, new_values))
-                values = values.union(new_values)
-            element_str = e.replace('dc:', '{http://purl.org/dc/elements/1.1/}').replace('dcterms:', '{http://purl.org/dc/terms/}')
-            for value in values:
+
+        # dc:contributor
+        for datafield in self._get_datafields('^(700|710)$'):
+            for subfield_value in self._get_subfield_values(datafield, '^a$'):
                 ElementTree.SubElement(
                     metadata,
-                    element_str
-                ).text = value
+                    '{http://purl.org/dc/elements/1.1/}contributor'
+                ).text = subfield_value
+
+        # dc:coverage
+        for datafield in self._get_datafields('^651$'):
+            if re.search('^7$', datafield.get('ind2')) != None and \
+               'fast' in self._get_subfield_values(datafield, '^2$'):
+               subfield_values = self._get_subfield_values(datafield, '^[a-z]$')
+               if subfield_values:
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/elements/1.1/}coverage'
+                    ).text = ' -- '.join(subfield_values)
+
+        # dc:creator
+        for datafield in self._get_datafields('^(100|110|111)$'):
+            subfield_values = self._get_subfield_values(datafield, '^[a-z]$')
+            if subfield_values:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}creator'
+                ).text = ' '.join(subfield_values)
+
+        # dcterms:issued
+        for datafield in self._get_datafields('^(260|264)$'):
+            for subfield_value in self._get_subfield_values(datafield, '^c$'):
+                date_str = False
+                # find every occurrence of either four digits in a row
+                # or three digits followed by a dash.
+                dates = re.findall('[0-9]{3}[0-9-]', subfield_value)
+                # if there are two date chunks in the string, assume
+                # they are a date range. (e.g. 'yyyy-yyyy'
+                if len(dates) == 2:
+                    date_str = '-'.join(dates)
+                # if the date is three digits followed by a dash, assume
+                # it is a date range for a decade. (e.g. 'yyy0-yyy9')
+                elif dates[0][-1] == '-':
+                    date_str = '{0}0-{0}9'.format(dates[0][:3])
+                # otherwise assume that the four digit date is correct.
+                else:
+                    date_str = dates[0]
+               
+                if date_str:
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/elements/1.1/}date'
+                    ).text = date_str
+                    # first only
+                    break
+
+        # dc:description
+        for datafield in self._get_datafields('^500$'):
+            for subfield_value in self._get_subfield_values(datafield, '^[a-z]$'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}description'
+                ).text = subfield_value
+
+        # dc:identifier
+        for datafield in self._get_datafields('^856$'):
+            subfield_values = self._get_subfield_values(datafield, '^u$')
+            if subfield_values:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}identifier'
+                ).text = subfield_values[0]
+                # first only
+                break
+
+        # dc:language
+        ElementTree.SubElement(
+            metadata,
+            '{http://purl.org/dc/elements/1.1/}language'
+        ).text = 'en'
+
+        # dc:publisher
+        for datafield in self._get_datafields('^(260|264)$'):
+            subfield_values = self._get_subfield_values(datafield, '^b$')
+            if subfield_values:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}publisher'
+                ).text = subfield_values[0]
+                # first only
+                break
+
+        # dc:rights
+        ElementTree.SubElement(
+            metadata,
+            '{http://purl.org/dc/elements/1.1/}rights'
+        ).text = 'http://creativecommons.org/licenses/by-sa/4.0/'
+
+        # dc:subject
+        for datafield in self._get_datafields('^650$'):
+            if re.search('^7$', datafield.get('ind2')) != None and \
+               'fast' in self._get_subfield_values(datafield, '^2$'):
+                for subfield_value in self._get_subfield_values(datafield, '^a$'):
+                    if subfield_value[-1] == '.':
+                        subfield_value = subfield_value[:-1]
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/elements/1.1/}subfield'
+                    ).text = subfield_value
+
+        # dc:title
+        for datafield in self._get_datafields('^245$'):
+            subfield_values = self._get_subfield_values(datafield, '^[a-z]$')
+            if subfield_values:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}identifier'
+                ).text = ' '.join(subfield_values)
+                # first only
+                break
+
+        # dc:type
+        for datafield in self._get_datafields('^336$'):
+            subfield_values = self._get_subfield_values(datafield, '^a$')
+            if subfield_values:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}type'
+                ).text = subfield_values[0]
+                # first only
+                break
+
         return metadata
             
     def __str__(self):
