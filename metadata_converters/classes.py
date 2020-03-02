@@ -193,33 +193,6 @@ class SocSciMapsMarcXmlToDc:
                     '{http://purl.org/dc/elements/1.1/}creator'
                 ).text = ' '.join(subfield_values)
 
-        # dcterms:issued
-        for datafield in self._get_datafields('^(260|264)$'):
-            for subfield_value in self._get_subfield_values(datafield, '^c$'):
-                date_str = False
-                # find every occurrence of either four digits in a row
-                # or three digits followed by a dash.
-                dates = re.findall('[0-9]{3}[0-9-]', subfield_value)
-                # if there are two date chunks in the string, assume
-                # they are a date range. (e.g. 'yyyy-yyyy'
-                if len(dates) == 2:
-                    date_str = '-'.join(dates)
-                # if the date is three digits followed by a dash, assume
-                # it is a date range for a decade. (e.g. 'yyy0-yyy9')
-                elif dates[0][-1] == '-':
-                    date_str = '{0}0-{0}9'.format(dates[0][:3])
-                # otherwise assume that the four digit date is correct.
-                else:
-                    date_str = dates[0]
-               
-                if date_str:
-                    ElementTree.SubElement(
-                        metadata,
-                        '{http://purl.org/dc/elements/1.1/}date'
-                    ).text = date_str
-                    # first only
-                    break
-
         # dc:description
         for datafield in self._get_datafields('^500$'):
             for subfield_value in self._get_subfield_values(datafield, '^[a-z]$'):
@@ -271,7 +244,7 @@ class SocSciMapsMarcXmlToDc:
                         subfield_value = subfield_value[:-1]
                     ElementTree.SubElement(
                         metadata,
-                        '{http://purl.org/dc/elements/1.1/}subfield'
+                        '{http://purl.org/dc/elements/1.1/}subject'
                     ).text = subfield_value
 
         # dc:title
@@ -280,7 +253,7 @@ class SocSciMapsMarcXmlToDc:
             if subfield_values:
                 ElementTree.SubElement(
                     metadata,
-                    '{http://purl.org/dc/elements/1.1/}identifier'
+                    '{http://purl.org/dc/elements/1.1/}title'
                 ).text = ' '.join(subfield_values)
                 # first only
                 break
@@ -295,6 +268,33 @@ class SocSciMapsMarcXmlToDc:
                 ).text = subfield_values[0]
                 # first only
                 break
+
+        # dcterms:issued
+        for datafield in self._get_datafields('^(260|264)$'):
+            for subfield_value in self._get_subfield_values(datafield, '^c$'):
+                date_str = False
+                # find every occurrence of either four digits in a row
+                # or three digits followed by a dash.
+                dates = re.findall('[0-9]{3}[0-9-]', subfield_value)
+                # if there are two date chunks in the string, assume
+                # they are a date range. (e.g. 'yyyy-yyyy'
+                if len(dates) == 2:
+                    date_str = '-'.join(dates)
+                # if the date is three digits followed by a dash, assume
+                # it is a date range for a decade. (e.g. 'yyy0-yyy9')
+                elif dates[0][-1] == '-':
+                    date_str = '{0}0-{0}9'.format(dates[0][:3])
+                # otherwise assume that the four digit date is correct.
+                else:
+                    date_str = dates[0]
+               
+                if date_str:
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/terms/}issued'
+                    ).text = date_str
+                    # first only
+                    break
 
         return metadata
             
