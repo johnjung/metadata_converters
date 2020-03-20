@@ -1,39 +1,34 @@
 #!/usr/bin/env python
-"""Usage:
-    csv2dc -
-    csv2dc <identifier> -
-"""
-
-import csv, sys
+import csv, os, sys, textwrap
 import xml.etree.ElementTree as ElementTree
-from docopt import docopt
-from io import BytesIO
-from io import StringIO
 
 if __name__ == "__main__":
-    options = docopt(__doc__)
+    if len(sys.argv) < 2:
+        help_msg = 'This program takes a directory that contains one or more csv files as input and creates a sequence of .dc.xml files in that directory as output. The name of each CSV file that is outputted is constructed from the identifier in the CSV file itself.'
+        
+        for line in textwrap.wrap(help_msg):
+            sys.stdout.write('{}\n'.format(line))
+        sys.stdout.write('\nUsage:\n')
+        sys.stdout.write(' python csv2dc.py a_directory_containing_csv_files\n')
+        sys.exit()
 
-    records = []
-
-    f = StringIO(sys.stdin.buffer.read().decode('cp1252'))
-    reader = csv.reader(f)
-
-    for row in reader:
-        if row[0] == 'Title':
+    for filename in os.listdir(sys.argv[1]):
+        # only process .csv files.
+        if filename[-4:] != '.csv':
             continue
-        records.append(row)
-
-    if options['<identifier>']:
-        metadata = ElementTree.fromstring('<metadata></metadata>')
-        for r in records:
-            if r[2] == options['<identifier>']:
-                ElementTree.SubElement(metadata, 'title').text = r[0]
-                ElementTree.SubElement(metadata, 'date').text = r[1]
-                ElementTree.SubElement(metadata, 'description').text = r[3]
-                ElementTree.SubElement(metadata, 'identifier').text = r[2]
-                f = BytesIO()
-                ElementTree.ElementTree(metadata).write(f, encoding='utf-8', xml_declaration=True)
-                sys.stdout.write(f.getvalue().decode('utf-8'))
-    else:
-        for r in records:
-            sys.stdout.write('{}\n'.format(r[2]))
+        with open('{}{}{}'.format(sys.argv[1], os.sep, filename)) as c:
+            reader = csv.reader(c)
+            for row in reader:
+                if row[0] == 'Title':
+                    continue
+                identifier = row[2]
+                metadata = ElementTree.fromstring('<metadata></metadata>')
+                ElementTree.SubElement(metadata, 'title').text = row[0]
+                ElementTree.SubElement(metadata, 'date').text = row[1]
+                ElementTree.SubElement(metadata, 'description').text = row[3]
+                ElementTree.SubElement(metadata, 'identifier').text = identifier
+                ElementTree.ElementTree(metadata).write(
+                    '{}{}{}.dc.xml'.format(sys.argv[1], os.sep, identifier),
+                    encoding='utf-8',
+                    xml_declaration=True
+                )
