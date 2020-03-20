@@ -1,18 +1,61 @@
-import datetime
-import getpass
-import hashlib
-import jinja2
-import json
-import magic
-import os
-import paramiko
-import re
-import sys
+import datetime, getpass, hashlib, jinja2, json, magic, os, \
+       pymarc, re, string, sys
 import xml.etree.ElementTree as ElementTree
 
 from rdflib import BNode, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import RDF, RDFS, FOAF, DC, DCTERMS, XSD
 from rdflib.plugins.sparql import prepareQuery
+
+def remove_marc_punctuation(s):
+    s = re.sub('^\s*', '', s)
+    s = re.sub('[ .,:;]*$', '', s)
+    if s[0] == '[' and s[-1] == ']':
+        s = s[1:-1]
+    return s
+
+def list_is_a_subset_of_lists(l, lists_to_check):
+    for lst in lists_to_check:
+        if set(l).issubset(set(lst)):
+            return True
+    return False
+
+def remove_subsets(list_of_lists):
+    list_of_lists = sorted(list_of_lists, key=lambda l: len(l), reverse=True)
+
+    i = len(list_of_lists) - 1
+    while i >= 0:
+        if list_is_a_subset_of_lists(list_of_lists[i], list_of_lists[0:i]):
+            del list_of_lists[i]
+        i -= 1
+
+    return list_of_lists
+
+def process_date_string(s):
+    date_str = False
+    # find every occurrence of either four digits in a row or three
+    # digits followed by a dash.
+    dates = re.findall('[0-9]{3}[0-9-]', s)
+    # if there are two date chunks in the string, assume they are a date
+    # range. (e.g. 'yyyy-yyyy'
+    if len(dates) == 2:
+        return '-'.join(dates)
+    # if the date is three digits followed by a dash, assume it is a
+    # date range for a decade. (e.g. 'yyy0-yyy9')
+    elif len(dates) == 1 and dates[0][-1] == '-':
+        return '{0}0-{0}9'.format(dates[0][:3])
+    # otherwise assume that the four digit date is correct.
+    elif len(dates) == 1:
+        return dates[0]
+    else:
+        return ''
+
+def pairwise(iterable):
+    iterable = iter(iterable)
+    while True:
+        try:
+            yield next(iterable), next(iterable)
+        except StopIteration:
+            break
 
 class MarcXmlConverter:
     """
@@ -77,51 +120,21 @@ class MarcXmlConverter:
 
 
 class MarcXmlToDc:
-    def __init__(self, marcxml_str):
+    def __init__(self, digital_record, print_record):
         """
-            marcxml_str: a string representation of XML, with
-                         <collection> as the root element.
+            digital_record_id: identifier for the digital record.
         """
+        self.digital_record = digital_record
+        self.print_record = print_record
+
+        ElementTree.register_namespace(
+            'bf', 'http://id.loc.gov/ontologies/bibframe/')
         ElementTree.register_namespace(
             'dc', 'http://purl.org/dc/elements/1.1/')
         ElementTree.register_namespace(
             'dcterms', 'http://purl.org/dc/terms/')
-        self.record = ElementTree.fromstring(marcxml_str).find(
-            '{http://www.loc.gov/MARC21/slim}record'
-        )
-
-    def _get_subfield_values(self, datafield, subfield_re):
-        """
-        Return a list of strings 
-
-        Args:
-            datafield (xml.etree.ElementTree.Element): a MARCXML datafield element.
-            subfield_re: a regex to find appropriate subfields. 
-
-        Returns:
-            A list of strings. 
-        """
-        values = []
-        for subfield in datafield.findall('{http://www.loc.gov/MARC21/slim}subfield'):
-            if re.search(subfield_re, subfield.get('code')):
-                values.append(subfield.text)
-        return values
-
-    def _get_datafields(self, tag_re):
-        """Return a list of datafields.
-           deal with control fields too?
-
-        Args:
-            tag_re: a regex to find appropriate tags.
-
-        Returns:
-            A list of data fields. 
-        """
-        datafields = []
-        for datafield in self.record.findall('{http://www.loc.gov/MARC21/slim}datafield'):
-            if re.search(tag_re, datafield.get('tag')) != None:
-                datafields.append(datafield)
-        return datafields
+        ElementTree.register_namespace(
+            'mods', 'http://www.loc.gov/mods/v3/')
 
     def __getattr__(self, attr):
         """Return individual Dublin Core elements as instance properties, e.g.
@@ -140,8 +153,6 @@ class MarcXmlToDc:
             values.append(e.text)
         return sorted(values)
 
-
-class SocSciMapsMarcXmlToDc(MarcXmlToDc):
     def _asxml(self):
         def process_subject(s):
             if s[-1] == '.':
@@ -151,141 +162,448 @@ class SocSciMapsMarcXmlToDc(MarcXmlToDc):
 
         metadata = ElementTree.Element('metadata')
 
+        # bf:Local
+        ElementTree.SubElement(
+            metadata,
+            '{http://id.loc.gov/ontologies/bibframe/}Local'
+        ).text = 'http://pi.lib.uchicago.edu/1001/cat/bib/{}'.format(
+            self.print_record['001'].value()
+        )
+
+        # bf:ClassificationLcc
+        ElementTree.SubElement(
+            metadata,
+            '{http://id.loc.gov/ontologies/bibframe/}ClassificationLcc'
+        ).text = self.print_record['929']['a']
+
+        # dc:accessRights
+        for f in self.digital_record.get_fields('506'):
+            sf = f.get_subfields(*list(string.ascii_lowercase))
+            if sf:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/terms/}accessRights'
+                ).text = ' '.join(sf)
+
+        # dcterms:alternative
+        for f in self.digital_record.get_fields('246'):
+            sf = f.get_subfields(*list(string.ascii_lowercase))
+            if sf:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/terms/}alternative'
+                ).text = ' '.join(sf)
+
         # dc:contributor
-        for datafield in self._get_datafields('^(700|710)$'):
-            for subfield_value in self._get_subfield_values(datafield, '^a$'):
+        for f in self.digital_record.get_fields('700'):
+            for sf in f.get_subfields('a', 't'):
                 ElementTree.SubElement(
                     metadata,
                     '{http://purl.org/dc/elements/1.1/}contributor'
-                ).text = subfield_value
+                ).text = sf
+
+        for f in self.digital_record.get_fields('710'):
+            for sf in f.get_subfields('a'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}contributor'
+                ).text = remove_marc_punctuation(sf)
 
         # dc:coverage
-        for datafield in self._get_datafields('^651$'):
-            if re.search('^7$', datafield.get('ind2')) != None and \
-               'fast' in self._get_subfield_values(datafield, '^2$'):
-               subfield_values = self._get_subfield_values(datafield, '^[a-z]$')
-               if subfield_values:
+        for f in self.digital_record.get_fields('651'):
+            if f.indicator2 == '7' and f['2'] == 'fast':
+                for sf in f.get_subfields('a'):
                     ElementTree.SubElement(
                         metadata,
                         '{http://purl.org/dc/elements/1.1/}coverage'
-                    ).text = ' -- '.join(subfield_values)
+                    ).text = sf
 
         # dc:creator
-        for datafield in self._get_datafields('^(100|110|111)$'):
-            subfield_values = self._get_subfield_values(datafield, '^[a-z]$')
-            if subfield_values:
+        for n in ('100', '110', '111'):
+            for f in self.digital_record.get_fields(n):
+                sf = f.get_subfields(*list(string.ascii_lowercase))
+                if sf:
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/elements/1.1/}creator'
+                    ).text = remove_marc_punctuation(
+                        ' '.join(sf)
+                    )
+
+        for f in self.digital_record.get_fields('533'):
+            for sf in f.get_subfields('c'):
                 ElementTree.SubElement(
                     metadata,
                     '{http://purl.org/dc/elements/1.1/}creator'
-                ).text = ' '.join(subfield_values)
+                ).text = remove_marc_punctuation(sf)
+
+        # dc:date
+        for f in self.digital_record.get_fields('533'):
+            for sf in f.get_subfields('d'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}date'
+                ).text = remove_marc_punctuation(sf)
+                
+        # dc:dateCopyrighted
+        for f in self.digital_record.get_fields('264'):
+            if f.indicator2 == '4':
+                for sf in f.get_subfields('c'):
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/elements/1.1/}dateCopyrighted'
+                    ).text = sf
 
         # dc:description
-        for datafield in self._get_datafields('^500$'):
-            for subfield_value in self._get_subfield_values(datafield, '^[a-z]$'):
+        for n in ('500', '538'):
+            for f in self.digital_record.get_fields(n):
+                sf = f.get_subfields(*list(string.ascii_lowercase))
+                if sf:
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/elements/1.1/}description'
+                    ).text = ' '.join(sf)
+
+        # dc:format
+        formats = set()
+        for f in self.digital_record.get_fields('255'):
+            for sf in f.get_subfields('a', 'b'):
+                formats.add(sf)
+        for f in self.digital_record.get_fields('300'):
+            for sf in f.get_subfields('a', 'c'):
+                formats.add(sf)
+        for f in sorted(list(formats)):
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/elements/1.1/}format'
+            ).text = remove_marc_punctuation(f)
+
+        # dcterms:hasFormat
+        for f in self.digital_record.get_fields('533'):
+            for sf in f.get_subfields('a'):
                 ElementTree.SubElement(
                     metadata,
-                    '{http://purl.org/dc/elements/1.1/}description'
-                ).text = subfield_value
+                    '{http://purl.org/dc/terms/}hasFormat'
+                ).text = remove_marc_punctuation(sf)
+
+        for f in self.digital_record.get_fields('776'):
+            for sf in f.get_subfields('i'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/terms/}hasFormat'
+                ).text = remove_marc_punctuation(sf)
 
         # dc:identifier
-        for datafield in self._get_datafields('^856$'):
-            subfield_values = self._get_subfield_values(datafield, '^u$')
-            if subfield_values:
+        for n in ('020', '021', '022', '023', '024', '025', '026', '027', '028', '029'):
+            for f in self.digital_record.get_fields(n):
+                for sf in f.get_subfields(*list(string.ascii_lowercase)):
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/elements/1.1/}identifier'
+                    ).text = sf
+
+        if self.digital_record['856']['u'] is not None:
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/elements/1.1/}identifier'
+            ).text = self.digital_record['856']['u']
+
+        # dcterms:isPartOf
+        for f in self.digital_record.get_fields('533'):
+            for sf in f.get_subfields('f'):
                 ElementTree.SubElement(
                     metadata,
-                    '{http://purl.org/dc/elements/1.1/}identifier'
-                ).text = subfield_values[0]
-                # first only
-                break
+                    '{http://purl.org/dc/terms/}isPartOf'
+                ).text = sf
+
+        for f in self.digital_record.get_fields('700'):
+            if f['t'] is not None:
+                for sf in f.get_subfields('a'):
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/terms/}isPartOf'
+                    ).text = sf
+
+        for f in self.digital_record.get_fields('830'):
+            for sf in f.get_subfields(*list(string.ascii_lowercase)):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/terms/}isPartOf'
+                ).text = sf
+
+        # dcterms:issued
+        issued = set()
+        for f in self.digital_record.get_fields('260'):
+            for sf in f.get_subfields('c'):
+                issued.add(process_date_string(sf))
+        for f in self.digital_record.get_fields('264'):
+            if f.indicator2 == '1':
+                for sf in f.get_subfields('c'):
+                    issued.add(process_date_string(sf))
+        if issued:
+            for i in sorted(list(issued)):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/terms/}issued'
+                ).text = i
 
         # dc:language
-        ElementTree.SubElement(
-            metadata,
-            '{http://purl.org/dc/elements/1.1/}language'
-        ).text = 'en'
+        # get language from specific character positions in the 008. 
+        # see https://www.loc.gov/marc/languages/ for a lookup table. 
+        marc_code_list_for_languages = {
+            'eng': 'English'
+        }
+
+        for f in self.digital_record.get_fields('008'):
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/elements/1.1/}language'
+            ).text = marc_code_list_for_languages[f.value()[35:38]]
+
+        # dc:medium
+        for f in self.digital_record.get_fields('338'):
+            mediums = []
+            sf = f.get_subfields(*list(string.ascii_lowercase))
+            if sf:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}medium'
+                ).text = ' '.join(sf)
+
+        # bf:place
+        places = set()
+        for f in self.digital_record.get_fields('260'):
+            for sf in f.get_subfields('a'):
+                places.add(remove_marc_punctuation(sf))
+
+        for f in self.digital_record.get_fields('264'):
+            if f.indicator2 == '1':
+                for sf in f.get_subfields('a'):
+                    places.add(remove_marc_punctuation(sf))
+
+        for f in self.digital_record.get_fields('533'):
+            for sf in f.get_subfields('b'):
+                places.add(remove_marc_punctuation(sf))
+
+        for p in sorted(list(places)):
+            ElementTree.SubElement(
+                metadata,
+                '{http://id.loc.gov/ontologies/bibframe/}place'
+            ).text = p
 
         # dc:publisher
-        for datafield in self._get_datafields('^(260|264)$'):
-            subfield_values = self._get_subfield_values(datafield, '^b$')
-            if subfield_values:
+        for f in self.digital_record.get_fields('260'):
+            for sf in f.get_subfields('b'):
                 ElementTree.SubElement(
                     metadata,
                     '{http://purl.org/dc/elements/1.1/}publisher'
-                ).text = subfield_values[0]
-                # first only
-                break
+                ).text = remove_marc_punctuation(sf)
 
-        # dc:rights
-        ElementTree.SubElement(
-            metadata,
-            '{http://purl.org/dc/elements/1.1/}rights'
-        ).text = 'http://creativecommons.org/licenses/by-sa/4.0/'
-
-        # dc:subject
-        for datafield in self._get_datafields('^650$'):
-            if re.search('^7$', datafield.get('ind2')) != None and \
-               'fast' in self._get_subfield_values(datafield, '^2$'):
-                for subfield_value in self._get_subfield_values(datafield, '^a$'):
-                    if subfield_value[-1] == '.':
-                        subfield_value = subfield_value[:-1]
+        for f in self.digital_record.get_fields('264'):
+            if f.indicator2 == '1':
+                for sf in f.get_subfields('b'):
                     ElementTree.SubElement(
                         metadata,
-                        '{http://purl.org/dc/elements/1.1/}subject'
-                    ).text = subfield_value
+                        '{http://purl.org/dc/elements/1.1/}publisher'
+                    ).text = remove_marc_punctuation(sf)
+
+        # dc:relation
+        for f in self.digital_record.get_fields('730'):
+            for sf in f.get_subfields('a'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/elements/1.1/}relation'
+                ).text = sf
+
+        # dcterms:spatial
+        spatial = []
+        for f in self.digital_record.get_fields('034'):
+            for sf in f.get_subfields('d', 'e', 'f', 'g'):
+                spatial.append(sf)
+        if spatial: 
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/terms/}spatial'
+            ).text = ' '.join(spatial)
+
+        '''
+        for f in self.digital_record.get_fields('650'):
+            for sf in f.get_subfields('z'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/terms/}spatial'
+                ).text = remove_marc_punctuation(sf)
+        '''
+
+        spatials = []
+        for f in self.digital_record.get_fields('651'):
+            spatial = []
+            if f.indicator2 == '7' and f['2'] == 'fast':
+                for sf in f.get_subfields('z'):
+                    spatial.append(remove_marc_punctuation(sf))
+            spatials.append(spatial)
+
+        spatials = remove_subsets(spatials)
+
+        for s in spatials:
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/terms/}spatial'
+            ).text = ' -- '.join(s)
+
+        # dc:subject
+        subjects = set()
+        for f in self.digital_record.get_fields('650'):
+            for sf in f.get_subfields('a', 'x'):
+                subjects.add(remove_marc_punctuation(sf))
+
+        for s in sorted(list(subjects)):
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/elements/1.1/}subject'
+            ).text = s
+
+        # dc:temporal
+        for f in self.digital_record.get_fields('650'):
+            for sf in f.get_subfields('y'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/terms/}temporal'
+                ).text = sf
 
         # dc:title
-        for datafield in self._get_datafields('^245$'):
-            subfield_values = self._get_subfield_values(datafield, '^[a-z]$')
-            if subfield_values:
+        for f in self.digital_record.get_fields('245'):
+            title = []
+            for sf in f.get_subfields('a', 'b'):
+                title.append(sf)
+            if title:
                 ElementTree.SubElement(
                     metadata,
                     '{http://purl.org/dc/elements/1.1/}title'
-                ).text = ' '.join(subfield_values)
-                # first only
-                break
+                ).text = ' '.join(title)
 
-        # dc:type
-        for datafield in self._get_datafields('^336$'):
-            subfield_values = self._get_subfield_values(datafield, '^a$')
-            if subfield_values:
-                ElementTree.SubElement(
-                    metadata,
-                    '{http://purl.org/dc/elements/1.1/}type'
-                ).text = subfield_values[0]
-                # first only
-                break
-
-        # dcterms:issued
-        for datafield in self._get_datafields('^(260|264)$'):
-            for subfield_value in self._get_subfield_values(datafield, '^c$'):
-                date_str = False
-                # find every occurrence of either four digits in a row
-                # or three digits followed by a dash.
-                dates = re.findall('[0-9]{3}[0-9-]', subfield_value)
-                # if there are two date chunks in the string, assume
-                # they are a date range. (e.g. 'yyyy-yyyy'
-                if len(dates) == 2:
-                    date_str = '-'.join(dates)
-                # if the date is three digits followed by a dash, assume
-                # it is a date range for a decade. (e.g. 'yyy0-yyy9')
-                elif dates[0][-1] == '-':
-                    date_str = '{0}0-{0}9'.format(dates[0][:3])
-                # otherwise assume that the four digit date is correct.
-                else:
-                    date_str = dates[0]
-               
-                if date_str:
+        # mods:titleUniform
+        for n in ('130', '240'):
+            for f in self.digital_record.get_fields(n):
+                sf = f.get_subfields(*list(string.ascii_lowercase))
+                if sf:
                     ElementTree.SubElement(
                         metadata,
-                        '{http://purl.org/dc/terms/}issued'
-                    ).text = date_str
-                    # first only
-                    break
+                        '{http://www.loc.gov/mods/v3/}titleUniform'
+                    ).text = ' '.join(sf)
+
+        # dc:type
+        types = set()
+        for f in self.digital_record.get_fields('336'):
+            for sf in f.get_subfields(*list(string.ascii_lowercase)):
+                types.add(remove_marc_punctuation(sf))
+
+        for n in ('650', '651'):
+            for f in self.digital_record.get_fields(n): 
+                for sf in f.get_subfields('v'):
+                    types.add(remove_marc_punctuation(sf))
+
+        for f in self.digital_record.get_fields('655'):
+            if f['2'] == 'fast':
+                for sf in f.get_subfields(*list(string.ascii_lowercase)):
+                    types.add(remove_marc_punctuation(sf))
+
+        for t in sorted(list(types)):
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/elements/1.1/}type'
+            ).text = t
 
         return metadata
             
     def __str__(self):
         return ElementTree.tostring(self._asxml(), 'utf-8', method='xml').decode('utf-8')
+
+
+class DigitalMediaArchiveFilemakerToDc:
+    def _asxml(self):
+        metadata = ElementTree.Element('metadata')
+
+
+class SocSciMapsMarcXmlToDc(MarcXmlToDc):
+    def _asxml(self):
+        metadata = super()._asxml()
+
+        # remove dc:medium
+        for s in metadata.findall('{http://purl.org/dc/elements/1.1/}medium'):
+            metadata.remove(s)
+
+        # for the social scientists maps, we need to convert the 
+        # 651 _7 $a $2 fast to dcterms:spatial instead of dc:coverage.
+        # however, at this point we can't guarantee that any dc:coverage
+        # elements in hand came from that MARC field. Remove all
+        # coverage and spatial elements, and add spatial elements back
+        # to deal with this.
+
+        for c in metadata.findall('{http://purl.org/dc/elements/1.1/}coverage'):
+            metadata.remove(c)
+        for s in metadata.findall('{http://purl.org/dc/terms/}spatial'):
+            metadata.remove(s)
+
+        # dcterms:spatial
+        spatial = []
+        for f in self.digital_record.get_fields('034'):
+            for sf in f.get_subfields('d', 'e', 'f', 'g'):
+                spatial.append(sf)
+        if spatial: 
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/terms/}spatial'
+            ).text = ' '.join(spatial)
+
+        '''
+        for f in self.digital_record.get_fields('650'):
+            for sf in f.get_subfields('z'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://purl.org/dc/terms/}spatial'
+                ).text = remove_marc_punctuation(sf)
+        '''
+
+        spatials = []
+        for f in self.digital_record.get_fields('651'):
+            spatial = []
+            if f.indicator2 == '7' and f['2'] == 'fast':
+                for sf in f.get_subfields('a', 'z'):
+                    spatial.append(remove_marc_punctuation(sf))
+            spatials.append(spatial)
+
+        spatials = remove_subsets(spatials)
+
+        for s in spatials:
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/terms/}spatial'
+            ).text = ' -- '.join(s)
+
+        # remove existing dc:type elements, then add only the ones we
+        # want back.
+        for t in metadata.findall('{http://purl.org/dc/elements/1.1/}type'):
+            metadata.remove(t)
+
+        types = set()
+        for n in ('650', '651'):
+            for f in self.digital_record.get_fields(n):
+                for sf in f.get_subfields('v'):
+                    types.add(remove_marc_punctuation(sf))
+
+        for f in self.digital_record.get_fields('655'):
+            if f['2'] == 'fast':
+                for sf in f.get_subfields(*list(string.ascii_lowercase)):
+                    types.add(remove_marc_punctuation(sf))
+
+        for t in sorted(list(types)):
+            ElementTree.SubElement(
+                metadata,
+                '{http://purl.org/dc/elements/1.1/}type'
+            ).text = t
+
+        return metadata
 
 
 class MarcXmlToSchemaDotOrg(MarcXmlConverter):

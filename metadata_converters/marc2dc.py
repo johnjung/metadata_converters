@@ -1,57 +1,57 @@
 #!/usr/bin/env python
 """Usage:
-    marc2dc [--socscimaps] -
+    marc2dc [--socscimaps] <digital_record_id>
 """
 
-import sys
+import io, json, os, paramiko, sys
 import xml.etree.ElementTree as ElementTree
+
+from classes import SocSciMapsMarcXmlToDc
 from docopt import docopt
-from . import SocSciMapsMarcXmlToDc
+from pymarc import MARCReader
 
 ElementTree.register_namespace('m', 'http://www.loc.gov/MARC21/slim')
 
 def main():
     options = docopt(__doc__)
 
-    marcxml_str = sys.stdin.read()
-    if options['--socscimaps']:
-        records = ElementTree.fromstring(
-            marcxml_str
-        ).findall('{http://www.loc.gov/MARC21/slim}record')
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(
+        os.environ['SOLR_ACCESS_DOMAIN'],
+        username=os.environ['SOLR_ACCESS_USERNAME'],
+        password=os.environ['SOLR_ACCESS_PASSWORD']
+    )
 
-	# catch single records if they are wrapped in a <collection> element or
-	# if the <record> element is at the top level.
-        if len(records) == 0:
-            sys.stdout.write(
-                str(
-                    SocSciMapsMarcXmlToDc(
-                        '<collection>{}</collection>'.format(marcxml_str)
-                    )
-                )
-            )
-        elif len(records) == 1:
-            sys.stdout.write(
-                str(
-                    SocSciMapsMarcXmlToDc(
-                        '<collection>{}</collection>'.format(
-                            ElementTree.tostring(records[0], 'utf-8', method='xml').decode('utf-8')
-                        )
-                    )
-                )
-            )
-        else:
-            metadata = ElementTree.Element('metadata')
-            for record in records:
-                metadata.append(
-                    SocSciMapsMarcXmlToDc(
-                        '<collection>{}</collection>'.format(
-                            ElementTree.tostring(record, 'utf-8', method='xml').decode('utf-8')
-                        )
-                    )._asxml()
-                )
-            sys.stdout.write(ElementTree.tostring(metadata, 'utf-8', method='xml').decode('utf-8'))
-    else:
-        raise NotImplementedError
+    # request the digital record
+    url = 'http://vfsolr.uchicago.edu:8080/solr/biblio/select?q=id:{}'.format(str(options['<digital_record_id>']))
+    _, ssh_stdout, _ = ssh.exec_command('curl "{}"'.format(url))
+    data = json.loads(ssh_stdout.read())
+    fullrecord = data['response']['docs'][0]['fullrecord']
+
+    with io.BytesIO(fullrecord.encode('utf-8')) as fh:
+        reader = MARCReader(fh)
+        for record in reader:
+            digital_record = record
+
+    # get an oclc number for the print record
+    oclc_num = digital_record['776']['w'].replace('(OCoLC)', '')
+
+    # request the print record
+    url = 'http://vfsolr.uchicago.edu:8080/solr/biblio/select?q=oclc_num:{}'.format(str(oclc_num))
+    _, ssh_stdout, _ = ssh.exec_command('curl "{}"'.format(url))
+    data = json.loads(ssh_stdout.read())
+    fullrecord = data['response']['docs'][0]['fullrecord']
+
+    with io.BytesIO(fullrecord.encode('utf-8')) as fh:
+        reader = MARCReader(fh)
+        for record in reader:
+            print_record = record
+
+
+    sys.stdout.write(
+        str(SocSciMapsMarcXmlToDc(digital_record, print_record))
+    )
 
 if __name__ == "__main__":
     main()
