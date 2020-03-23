@@ -101,39 +101,39 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
         self.assertEqual(
             self.dc.contributor,
-            ['Hoyt, Homer,']
+            ['Hoyt, Homer']
         )
 
     def test_get_creator(self):
         """Be sure the object can return the DC element."""
         self.assertEqual(
             self.dc.creator,
-            ['University of Chicago Library', 'University of Chicago. Social Science Research Committee']
+            ['University of Chicago. Social Science Research Committee']
         )
 
     def test_get_description(self):
         """Be sure the object can return the DC element."""
         self.assertEqual(
             self.dc.description, 
-            ['"Chart II."', 'Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm']
-         )
+            ['Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm']
+        )
 
-    def test_get__extent(self):
+    def test_get_extent(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.dc.extent, ['1 online resource (1 map)'])
+        self.assertEqual(self.dc.extent, [])
 
     def test_get_format(self):
         """Be sure the object can return the DC element."""
         self.assertEqual(
             self.dc.format,
              ['1 online resource (1 map)', 'Scale approximately 1:175,300']
-         )
+        )
 
     def test_get_has_format(self):
         """Be sure the object can return the DC element."""
         self.assertEqual(
             self.dc.hasFormat, 
-            ['Electronic reproduction', 'Original paper version']
+            ['Original paper version']
         )
 
     def test_get_identifier(self):
