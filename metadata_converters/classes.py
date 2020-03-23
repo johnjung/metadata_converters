@@ -13,6 +13,32 @@ def remove_marc_punctuation(s):
         s = s[1:-1]
     return s
 
+def convert_034_coords_to_marc_rda(s):
+    s = s.split(' ')
+    return "$$c({} {}°{}'{}\"-{} {}°{}'{}\"/{} {}°{}'{}\"-{} {}°{}'{}\")".format(
+        s[0][0],
+        s[0][1:4].lstrip('0'),
+        s[0][4:6],
+        s[0][6:8],
+        s[1][0],
+        s[1][1:4].lstrip('0'),
+        s[1][4:6],
+        s[1][6:8],
+        s[2][0],
+        s[2][1:4].lstrip('0'),
+        s[2][4:6],
+        s[2][6:8],
+        s[3][0],
+        s[3][1:4].lstrip('0'),
+        s[3][4:6],
+        s[3][6:8]
+    )
+
+# Subfields $d, $e, $f, and $g always appear together. The coordinates may be recorded in the form hdddmmss (hemisphere-degrees-minutes-seconds), however, other forms are also allowed, such as decimal degrees. The subelements are each right justified and unused positions contain zeros.
+
+# $$c(E 5°57'00"-E 10°29'00"/N 47°48'00"-N 45°49'00")
+# W0875104 W0873125 N0420123 N0413839
+
 def list_is_a_subset_of_lists(l, lists_to_check):
     for lst in lists_to_check:
         if set(l).issubset(set(lst)):
@@ -24,7 +50,9 @@ def remove_subsets(list_of_lists):
 
     i = len(list_of_lists) - 1
     while i >= 0:
-        if list_is_a_subset_of_lists(list_of_lists[i], list_of_lists[0:i]):
+        if len(list_of_lists[i]) == 0:
+            del list_of_lists[i]
+        elif list_is_a_subset_of_lists(list_of_lists[i], list_of_lists[0:i]):
             del list_of_lists[i]
         i -= 1
 
@@ -176,7 +204,20 @@ class MarcXmlToDc:
             '{http://id.loc.gov/ontologies/bibframe/}ClassificationLcc'
         ).text = self.print_record['929']['a']
 
-        # dc:accessRights
+        # bf:coordinates
+        coordinates = []
+        for f in self.digital_record.get_fields('034'):
+            for sf in f.get_subfields('d', 'e', 'f', 'g'):
+                coordinates.append(sf)
+        if coordinates: 
+            ElementTree.SubElement(
+                metadata,
+                '{http://id.loc.gov/ontologies/bibframe/}coordinates'
+            ).text = convert_034_coords_to_marc_rda(
+                ' '.join(coordinates)
+            )
+
+        # dcterms:accessRights
         for f in self.digital_record.get_fields('506'):
             sf = f.get_subfields(*list(string.ascii_lowercase))
             if sf:
@@ -196,11 +237,12 @@ class MarcXmlToDc:
 
         # dc:contributor
         for f in self.digital_record.get_fields('700'):
-            for sf in f.get_subfields('a', 't'):
-                ElementTree.SubElement(
-                    metadata,
-                    '{http://purl.org/dc/elements/1.1/}contributor'
-                ).text = sf
+            if f['t'] is None:
+                for sf in f.get_subfields('a'):
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://purl.org/dc/elements/1.1/}contributor'
+                    ).text = remove_marc_punctuation(sf)
 
         for f in self.digital_record.get_fields('710'):
             for sf in f.get_subfields('a'):
@@ -216,7 +258,7 @@ class MarcXmlToDc:
                     ElementTree.SubElement(
                         metadata,
                         '{http://purl.org/dc/elements/1.1/}coverage'
-                    ).text = sf
+                    ).text = remove_marc_punctuation(sf)
 
         # dc:creator
         for n in ('100', '110', '111'):
@@ -230,28 +272,13 @@ class MarcXmlToDc:
                         ' '.join(sf)
                     )
 
-        for f in self.digital_record.get_fields('533'):
-            for sf in f.get_subfields('c'):
-                ElementTree.SubElement(
-                    metadata,
-                    '{http://purl.org/dc/elements/1.1/}creator'
-                ).text = remove_marc_punctuation(sf)
-
-        # dc:date
-        for f in self.digital_record.get_fields('533'):
-            for sf in f.get_subfields('d'):
-                ElementTree.SubElement(
-                    metadata,
-                    '{http://purl.org/dc/elements/1.1/}date'
-                ).text = remove_marc_punctuation(sf)
-                
-        # dc:dateCopyrighted
+        # dcterms:dateCopyrighted
         for f in self.digital_record.get_fields('264'):
             if f.indicator2 == '4':
                 for sf in f.get_subfields('c'):
                     ElementTree.SubElement(
                         metadata,
-                        '{http://purl.org/dc/elements/1.1/}dateCopyrighted'
+                        '{http://purl.org/dc/terms/}dateCopyrighted'
                     ).text = sf
 
         # dc:description
@@ -279,13 +306,6 @@ class MarcXmlToDc:
             ).text = remove_marc_punctuation(f)
 
         # dcterms:hasFormat
-        for f in self.digital_record.get_fields('533'):
-            for sf in f.get_subfields('a'):
-                ElementTree.SubElement(
-                    metadata,
-                    '{http://purl.org/dc/terms/}hasFormat'
-                ).text = remove_marc_punctuation(sf)
-
         for f in self.digital_record.get_fields('776'):
             for sf in f.get_subfields('i'):
                 ElementTree.SubElement(
@@ -309,13 +329,6 @@ class MarcXmlToDc:
             ).text = self.digital_record['856']['u']
 
         # dcterms:isPartOf
-        for f in self.digital_record.get_fields('533'):
-            for sf in f.get_subfields('f'):
-                ElementTree.SubElement(
-                    metadata,
-                    '{http://purl.org/dc/terms/}isPartOf'
-                ).text = sf
-
         for f in self.digital_record.get_fields('700'):
             if f['t'] is not None:
                 for sf in f.get_subfields('a'):
@@ -362,7 +375,6 @@ class MarcXmlToDc:
 
         # dc:medium
         for f in self.digital_record.get_fields('338'):
-            mediums = []
             sf = f.get_subfields(*list(string.ascii_lowercase))
             if sf:
                 ElementTree.SubElement(
@@ -380,10 +392,6 @@ class MarcXmlToDc:
             if f.indicator2 == '1':
                 for sf in f.get_subfields('a'):
                     places.add(remove_marc_punctuation(sf))
-
-        for f in self.digital_record.get_fields('533'):
-            for sf in f.get_subfields('b'):
-                places.add(remove_marc_punctuation(sf))
 
         for p in sorted(list(places)):
             ElementTree.SubElement(
@@ -416,30 +424,11 @@ class MarcXmlToDc:
                 ).text = sf
 
         # dcterms:spatial
-        spatial = []
-        for f in self.digital_record.get_fields('034'):
-            for sf in f.get_subfields('d', 'e', 'f', 'g'):
-                spatial.append(sf)
-        if spatial: 
-            ElementTree.SubElement(
-                metadata,
-                '{http://purl.org/dc/terms/}spatial'
-            ).text = ' '.join(spatial)
-
-        '''
-        for f in self.digital_record.get_fields('650'):
-            for sf in f.get_subfields('z'):
-                ElementTree.SubElement(
-                    metadata,
-                    '{http://purl.org/dc/terms/}spatial'
-                ).text = remove_marc_punctuation(sf)
-        '''
-
         spatials = []
         for f in self.digital_record.get_fields('651'):
             spatial = []
             if f.indicator2 == '7' and f['2'] == 'fast':
-                for sf in f.get_subfields('z'):
+                for sf in f.get_subfields('a', 'z'):
                     spatial.append(remove_marc_punctuation(sf))
             spatials.append(spatial)
 
@@ -463,7 +452,7 @@ class MarcXmlToDc:
                 '{http://purl.org/dc/elements/1.1/}subject'
             ).text = s
 
-        # dc:temporal
+        # dcterms:temporal
         for f in self.digital_record.get_fields('650'):
             for sf in f.get_subfields('y'):
                 ElementTree.SubElement(
@@ -529,57 +518,13 @@ class SocSciMapsMarcXmlToDc(MarcXmlToDc):
     def _asxml(self):
         metadata = super()._asxml()
 
+        # remove dc:coverage
+        for c in metadata.findall('{http://purl.org/dc/elements/1.1/}coverage'):
+            metadata.remove(c)
+
         # remove dc:medium
         for s in metadata.findall('{http://purl.org/dc/elements/1.1/}medium'):
             metadata.remove(s)
-
-        # for the social scientists maps, we need to convert the 
-        # 651 _7 $a $2 fast to dcterms:spatial instead of dc:coverage.
-        # however, at this point we can't guarantee that any dc:coverage
-        # elements in hand came from that MARC field. Remove all
-        # coverage and spatial elements, and add spatial elements back
-        # to deal with this.
-
-        for c in metadata.findall('{http://purl.org/dc/elements/1.1/}coverage'):
-            metadata.remove(c)
-        for s in metadata.findall('{http://purl.org/dc/terms/}spatial'):
-            metadata.remove(s)
-
-        # dcterms:spatial
-        spatial = []
-        for f in self.digital_record.get_fields('034'):
-            for sf in f.get_subfields('d', 'e', 'f', 'g'):
-                spatial.append(sf)
-        if spatial: 
-            ElementTree.SubElement(
-                metadata,
-                '{http://purl.org/dc/terms/}spatial'
-            ).text = ' '.join(spatial)
-
-        '''
-        for f in self.digital_record.get_fields('650'):
-            for sf in f.get_subfields('z'):
-                ElementTree.SubElement(
-                    metadata,
-                    '{http://purl.org/dc/terms/}spatial'
-                ).text = remove_marc_punctuation(sf)
-        '''
-
-        spatials = []
-        for f in self.digital_record.get_fields('651'):
-            spatial = []
-            if f.indicator2 == '7' and f['2'] == 'fast':
-                for sf in f.get_subfields('a', 'z'):
-                    spatial.append(remove_marc_punctuation(sf))
-            spatials.append(spatial)
-
-        spatials = remove_subsets(spatials)
-
-        for s in spatials:
-            ElementTree.SubElement(
-                metadata,
-                '{http://purl.org/dc/terms/}spatial'
-            ).text = ' -- '.join(s)
 
         # remove existing dc:type elements, then add only the ones we
         # want back.

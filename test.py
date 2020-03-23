@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-import json, unittest
-from jsonschema import validate
+import json, pymarc, sys, unittest
 from pathlib import Path
 from metadata_converters import MarcXmlConverter, SocSciMapsMarcXmlToDc, MarcXmlToSchemaDotOrg
 import xml.etree.ElementTree as ElementTree
@@ -77,7 +76,6 @@ class TestMarcXmlToDc(unittest.TestCase):
         self.assertEqual(self.collection.type, ['Thematic maps', 'cartographic image'])
 '''
 
-
 class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         """Create test objects. Test data should be placed in the test_data
@@ -90,146 +88,91 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
     def test_init(self):
         """MarcToDc extends the MarcXmlConverter class and should have a .record property which is a
         xml.etree.ElementTree.Element."""
-        file = Path('test_data/sample_record_02.xml')
-        with open(file, 'r', encoding='utf-8') as f:
-            data = f.read()
-            self.assertTrue(len(data) > 0)
-        self.collection = SocSciMapsMarcXmlToDc(data)
 
-    def test_json(self):
-        property_dict = {
-            "exclude": {
-                "items": {
-                    "subfield_re": {
-                        "type": "string"
-                    },
-                    "value_re": {
-                        "type": "string"
-                    }
-                },
-                "type": "array"
-            },
-            "filter": {
-                "items": {
-                    "subfield_re": {
-                        "type": "string"
-                    },
-                    "value_re": {
-                        "type": "string"
-                    }
-                },
-                "type": "array"
-            },
-            "indicator1_re": {
-                "type": "string"
-            },
-            "indicator2_re": {
-                "type": "string"
-            },
-            "join_fields": {
-                "type": "boolean"
-            },
-            "join_subfields": {
-                "type": "boolean"
-            },
-            "return_first_result_only": {
-                "type": "boolean"
-            },
-            "subfield_re": {
-                "type": "string"
-            },
-            "tag_re": {
-                "type": "string"
-            }
-        }
-    
-        with open('metadata_converters/json/socscimaps_marc2dc.json') as f:
-            validate(
-                instance = json.loads(f.read()),
-                schema = {
-                    "type": "object",
-                    "properties": {
-                        "template": {
-                            "additionalProperties": False,
-                            "properties": property_dict,
-                            "required": list(property_dict.keys()),
-                            "type": "object",
-                        },
-                        "crosswalk": {
-                            "patternProperties": {
-                                "^.*$": {
-                                    "items": {
-                                        "additionalProperties": False,
-                                        "properties": property_dict,
-                                        "type": "object"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            "type": "object"
-                        }
-                    }
-                }
-            )
+        digital_records = pymarc.parse_xml_to_array('test_data/ssmaps_digital_record.xml')
+        print_records = pymarc.parse_xml_to_array('test_data/ssmaps_print_record.xml')
+
+        self.dc = SocSciMapsMarcXmlToDc(
+            digital_records[0],
+            print_records[0]
+        )
 
     def test_get_contributor(self):
         """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
-        self.assertEqual(self.collection.contributor, ['Auctor consequat', 'Enim cras orci'])
-
-    def test_get_coverage(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.coverage, ['Illinois Chicago Near West Side.', 'Illinois Chicago.'])
+        self.assertEqual(
+            self.dc.contributor,
+            ['Hoyt, Homer,']
+        )
 
     def test_get_creator(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.creator, ['Sachs, Theodore B. (Theodore Bernard), 1868-1916.'])
+        self.assertEqual(
+            self.dc.creator,
+            ['University of Chicago Library', 'University of Chicago. Social Science Research Committee']
+        )
 
     def test_get_description(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.description, ['"Chart II."', 'Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm'])
+        self.assertEqual(
+            self.dc.description, 
+            ['"Chart II."', 'Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm']
+         )
 
     def test_get__extent(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.extent, ['1 online resource (1 map)'])
+        self.assertEqual(self.dc.extent, ['1 online resource (1 map)'])
 
     def test_get_format(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.format, ['Scale [ca. 1:1,200]'])
+        self.assertEqual(
+            self.dc.format,
+             ['1 online resource (1 map)', 'Scale approximately 1:175,300']
+         )
 
     def test_get_has_format(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.hasFormat, ['Sachs, Theodore B. (Theodore Bernard), 1868-1916.'])
+        self.assertEqual(
+            self.dc.hasFormat, 
+            ['Electronic reproduction', 'Original paper version']
+        )
 
     def test_get_identifier(self):
-        self.assertEqual(self.collection.identifier, ['http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2N3E51-1908-S2', 'temp test'])
-
-    def test_get_is_part_of(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.isPartOf, ['Social scientists map Chicago.', 'University of Chicago Digital Preservation Collection.'])
+        self.assertEqual(
+            self.dc.identifier, 
+            ['http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-a']
+        )
 
     def test_get_issued(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.issued, ['[between 1908 and 1919?]'])
+        self.assertEqual(
+            self.dc.issued, 
+            ['1932']
+        )
 
     def test_get_language(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.language, ['English'])
+        self.assertEqual(self.dc.language, ['English'])
 
     def test_get_publisher(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.publisher, ['[Place of publication not identified] : [publisher not identified],'])
-
-    def test_get_relation(self):
-        """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
-        self.assertEqual(self.collection.relation, ['Primis etiam placerat primis'])
+        self.assertEqual(
+            self.dc.publisher, 
+            ['Social Science Research Committee']
+        )
 
     def test_get_subject(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.subject, ['Tuberculosis', 'Tuberculosis.'])
+        self.assertEqual(
+            self.dc.subject,
+            ['Administrative and political divisions'],
+        )
 
     def test_get_title(self):
         """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.title, ['Tuberculosis in a congested district in Chicago, Jan. 1st, 1906, to Jan. 1st, 1908, including the district represented in chart 1, population chiefly Jewish /'])
+        self.assertEqual(
+            self.dc.title, 
+            ['Map of Chicago, showing original subdivisions, 1830 to 1843 /']
+        )
 
 
 '''
