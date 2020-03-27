@@ -758,13 +758,13 @@ class SocSciMapsMarcXmlToEDM:
                        ('premis', PREMIS)):
         graph.bind(prefix, ns)
 
-    def __init__(self, marcxml, master_file_metadata):
+    def __init__(self, digital_record, print_record, master_file_metadata):
         """Initialize an instance of the class MarcXmlToEDM.
 
         Args:
             graph (Graph): a EDM graph collection from a single record.
         """
-        self.dc = SocSciMapsMarcXmlToDc(marcxml)
+        self.dc = SocSciMapsMarcXmlToDc(digital_record, print_record)
         self.master_file_metadata = master_file_metadata
 
         if isinstance(self.dc.identifier, list):
