@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+ <record>
+  <leader>07590nem a2200841Ka 4500</leader>
+  <controlfield tag="001">7368097</controlfield>
+  <controlfield tag="003">ICU</controlfield>
+  <controlfield tag="005">20090421191300.0</controlfield>
+  <controlfield tag="007">aj aanzn</controlfield>
+  <controlfield tag="008">081105m19301935ilu       b     0   eng d</controlfield>
+  <datafield tag="034" ind1="0" ind2=" ">
+   <subfield code="a">a</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+   <subfield code="a">(OCoLC)269021352</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+   <subfield code="a">CGU</subfield>
+   <subfield code="c">CGU</subfield>
+   <subfield code="d">CGU</subfield>
+   <subfield code="d">UtOrBLW</subfield>
+  </datafield>
+  <datafield tag="043" ind1=" " ind2=" ">
+   <subfield code="a">n-us-il</subfield>
+  </datafield>
+  <datafield tag="049" ind1=" " ind2=" ">
+   <subfield code="a">CGUA</subfield>
+  </datafield>
+  <datafield tag="052" ind1=" " ind2=" ">
+   <subfield code="a">4104</subfield>
+   <subfield code="b">C6</subfield>
+  </datafield>
+  <datafield tag="090" ind1=" " ind2=" ">
+   <subfield code="a">G4104.C6 1933</subfield>
+   <subfield code="b">.U5</subfield>
+  </datafield>
+  <datafield tag="110" ind1="2" ind2=" ">
+   <subfield code="a">University of Chicago.</subfield>
+   <subfield code="b">Social Science Research Committee.</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+   <subfield code="a">[Thematic maps of Chicago].</subfield>
+  </datafield>
+  <datafield tag="255" ind1=" " ind2=" ">
+   <subfield code="a">Scales differ.</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+   <subfield code="a">[Chicago] :</subfield>
+   <subfield code="b">Social Science Research Committee, University of Chicago,</subfield>
+   <subfield code="c">[1930-1935]</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+   <subfield code="a">114 maps on 169 sheets ;</subfield>
+   <subfield code="c">sheets 29 x 22 cm.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+   <subfield code="a">Includes 78 charts.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+   <subfield code="a">Includes maps and charts showing land use, property values, and distribution of population and ethnic groups in Chicago and surrounding areas.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+   <subfield code="a">Reduced versions of most of the maps were also published in: One hundred years of land values in Chicago : the relationship of the growth of Chicago to the rise in its land values, 1830-1933 / by Homer Hoyt. Chicago, Ill. : The University of Chicago Press, c1933.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+   <subfield code="a">Some maps are &quot;prepared by Homer Hoyt.&quot; Some maps are &quot;prepared by Richard O. Lang.&quot; Many say &quot;Social Science Research Committee, University of Chicago.&quot;</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+   <subfield code="a">Chicago (Ill.)</subfield>
+   <subfield code="v">Maps.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="7">
+   <subfield code="a">Ethnology.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">http://id.worldcat.org/fast/fst00916106</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="7">
+   <subfield code="a">Land use.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">http://id.worldcat.org/fast/fst00991472</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="7">
+   <subfield code="a">Real property.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">http://id.worldcat.org/fast/fst01091096</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="7">
+   <subfield code="a">Illinois</subfield>
+   <subfield code="z">Chicago.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">http://id.worldcat.org/fast/fst01204048</subfield>
+  </datafield>
+  <datafield tag="655" ind1=" " ind2="7">
+   <subfield code="a">Maps.</subfield>
+   <subfield code="2">fast</subfield>
+   <subfield code="0">http://id.worldcat.org/fast/fst01423704</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+   <subfield code="a">Ethnology</subfield>
+   <subfield code="z">Illinois</subfield>
+   <subfield code="z">Chicago</subfield>
+   <subfield code="v">Maps.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+   <subfield code="a">Land use</subfield>
+   <subfield code="z">Illinois</subfield>
+   <subfield code="z">Chicago</subfield>
+   <subfield code="v">Maps.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+   <subfield code="a">Real property</subfield>
+   <subfield code="z">Illinois</subfield>
+   <subfield code="z">Chicago</subfield>
+   <subfield code="v">Maps.</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2=" ">
+   <subfield code="a">Hoyt, Homer,</subfield>
+   <subfield code="d">1895-1984.</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2=" ">
+   <subfield code="a">Lang, Richard Otto,</subfield>
+   <subfield code="d">1907-</subfield>
+  </datafield>
+  <datafield tag="776" ind1="0" ind2="8">
+   <subfield code="i">Electronic version:</subfield>
+   <subfield code="a">University of Chicago. Social Science Research Committee.</subfield>
+   <subfield code="t">[Thematic maps of Chicago].</subfield>
+   <subfield code="d">[Chicago] : Social Science Research Committee, University of Chicago, [1930-1935]</subfield>
+   <subfield code="w">(OCoLC)52867488</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago, showing original subdivisions, 1830 to 1843</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-a</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago showing land values, 1836</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-h</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago, showing original subdivisions, 1844 to 1862</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-b</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago showing land values, 1857</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-i</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago, showing original subdivisions, 1863 to 1879</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-c</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago showing land values, 1873</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-j</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago, showing original subdivisions, 1880 to 1932</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-d</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago showing land values, 1892</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-k</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago showing land values, 1910</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-l</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago showing land values, 1928</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-m</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Metropolitan region of Chicago, per cent of population white of native parentage, by townships, 1930</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-p</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago, showing types of cultural and economic areas</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-g</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago, showing extension of area occupied by high grade residential or apartment buildings, 1833-1933</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-e</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago, showing extension of area occupied by manufacturing and industrial buildings, 1833-1933</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-f</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago showing area occupied by predominant racial or nationality groups, 1933</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-n</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+   <subfield code="3">Map of Chicago showing distribution of buildings seven stories high or over, 1933</subfield>
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-o</subfield>
+  </datafield>
+  <datafield tag="903" ind1=" " ind2=" ">
+   <subfield code="a">MARS</subfield>
+  </datafield>
+  <datafield tag="929" ind1=" " ind2=" ">
+   <subfield code="t">LCC</subfield>
+   <subfield code="c">MapCl</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+   <subfield code="l">JRL</subfield>
+  </datafield>
+  <datafield tag="927" ind1=" " ind2=" ">
+   <subfield code="b">H7368097</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-a</subfield>
+   <subfield code="p">Map of Chicago, showing original subdivisions, 1830 to 1843</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-l</subfield>
+   <subfield code="p">Map of Chicago showing land values, 1910</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-h</subfield>
+   <subfield code="p">Map of Chicago showing land values, 1836</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-b</subfield>
+   <subfield code="p">Map of Chicago, showing original subdivisions, 1844 to 1862</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-i</subfield>
+   <subfield code="p">Map of Chicago showing land values, 1857</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-c</subfield>
+   <subfield code="p">Map of Chicago, showing original subdivisions, 1863 to 1879</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-j</subfield>
+   <subfield code="p">Map of Chicago showing land values, 1873</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-k</subfield>
+   <subfield code="p">Map of Chicago showing land values, 1892</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-p</subfield>
+   <subfield code="p">Metropolitan region of Chicago, per cent of population white of native parentage, by townships, 1930</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-g</subfield>
+   <subfield code="p">Map of Chicago, showing types of cultural and economic areas</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-e</subfield>
+   <subfield code="p">Map of Chicago, showing extension of area occupied by high grade residential or apartment buildings, 1833-1933</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-f</subfield>
+   <subfield code="p">Map of Chicago, showing extension of area occupied by manufacturing and industrial buildings, 1833-1933</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-n</subfield>
+   <subfield code="p">Map of Chicago showing area occupied by predominant racial or nationality groups, 1933</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-o</subfield>
+   <subfield code="p">Map of Chicago showing distribution of buildings seven stories high or over, 1933</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-d</subfield>
+   <subfield code="p">Map of Chicago, showing original subdivisions, 1880 to 1932</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+  <datafield tag="928" ind1=" " ind2=" ">
+   <subfield code="u">http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-m</subfield>
+   <subfield code="p">Map of Chicago showing land values, 1928</subfield>
+   <subfield code="c">FullText</subfield>
+   <subfield code="l">Online</subfield>
+   <subfield code="t">LCC</subfield>
+   <subfield code="a">G4104.C6 1933 .U5</subfield>
+  </datafield>
+ </record>
+</collection>

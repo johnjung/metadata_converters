@@ -296,7 +296,7 @@ class MarcXmlToDc:
         for f in self.digital_record.get_fields('255'):
             for sf in f.get_subfields('a', 'b'):
                 formats.add(sf)
-        for f in self.digital_record.get_fields('300'):
+        for f in self.print_record.get_fields('300'):
             for sf in f.get_subfields('a', 'c'):
                 formats.add(sf)
         for f in sorted(list(formats)):
@@ -313,20 +313,29 @@ class MarcXmlToDc:
                     '{http://purl.org/dc/terms/}hasFormat'
                 ).text = remove_marc_punctuation(sf)
 
-        # dc:identifier
-        for n in ('020', '021', '022', '023', '024', '025', '026', '027', '028', '029'):
-            for f in self.digital_record.get_fields(n):
-                for sf in f.get_subfields(*list(string.ascii_lowercase)):
-                    ElementTree.SubElement(
-                        metadata,
-                        '{http://purl.org/dc/elements/1.1/}identifier'
-                    ).text = sf
-
         if self.digital_record['856']['u'] is not None:
             ElementTree.SubElement(
                 metadata,
                 '{http://purl.org/dc/elements/1.1/}identifier'
             ).text = self.digital_record['856']['u']
+
+        # bf:ISBN
+        for n in ('020'):
+            for f in self.digital_record.get_fields(n):
+                for sf in f.get_subfields(*list(string.ascii_lowercase)):
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://id.loc.gov/ontologies/bibframe/}ISBN'
+                    ).text = sf
+
+        # bf:ISSN
+        for n in ('022'):
+            for f in self.digital_record.get_fields(n):
+                for sf in f.get_subfields(*list(string.ascii_lowercase)):
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://id.loc.gov/ontologies/bibframe/}ISSN'
+                    ).text = sf
 
         # dcterms:isPartOf
         for f in self.digital_record.get_fields('700'):
@@ -484,7 +493,7 @@ class MarcXmlToDc:
         # dc:type
         types = set()
         for f in self.digital_record.get_fields('336'):
-            for sf in f.get_subfields(*list(string.ascii_lowercase)):
+            for sf in f.get_subfields('a'):
                 types.add(remove_marc_punctuation(sf))
 
         for n in ('650', '651'):
@@ -716,6 +725,7 @@ class SocSciMapsMarcXmlToEDM:
 
     # Setting namespaces for subject, predicate, object values
     BASE = Namespace('http://ark.lib.uchicago.edu/ark:/61001/')
+    BF = Namespace('http://id.loc.gov/ontologies/bibframe/')
     EDM = Namespace('http://www.europeana.eu/schemas/edm/')
     ERC = Namespace('http://purl.org/kernel/elements/1.1/')
     MIX = Namespace('http://www.loc.gov/mix/v20/')
@@ -753,9 +763,9 @@ class SocSciMapsMarcXmlToEDM:
     SSMAPS_REM = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc/rem')
 
     graph = Graph()
-    for prefix, ns in (('dc', DC), ('dcterms', DCTERMS), ('edm', EDM), 
-                       ('erc', ERC), ('mix', MIX), ('ore', ORE), 
-                       ('premis', PREMIS)):
+    for prefix, ns in (('bf', BF), ('dc', DC), ('dcterms', DCTERMS),
+                       ('edm', EDM), ('erc', ERC), ('mix', MIX), 
+                       ('ore', ORE), ('premis', PREMIS)):
         graph.bind(prefix, ns)
 
     def __init__(self, digital_record, print_record, master_file_metadata):
@@ -764,6 +774,8 @@ class SocSciMapsMarcXmlToEDM:
         Args:
             graph (Graph): a EDM graph collection from a single record.
         """
+        self.digital_record = digital_record
+        self.print_record = print_record
         self.dc = SocSciMapsMarcXmlToDc(digital_record, print_record)
         self.master_file_metadata = master_file_metadata
 
@@ -845,26 +857,50 @@ class SocSciMapsMarcXmlToEDM:
         """
         self.graph.add((self.cho, RDF.type, self.EDM.ProvidedCHO))
         for pre, obj_str in (
-            (DC.coverage,     '{http://purl.org/dc/elements/1.1/}coverage'),
-            (DC.creator,      '{http://purl.org/dc/elements/1.1/}creator'),
-            (DC.date,         '{http://purl.org/dc/elements/1.1/}date'),
-            (DC.description,  '{http://purl.org/dc/elements/1.1/}description'),
-            (DC.extent,       '{http://purl.org/dc/elements/1.1/}extent'),
-            (DC.identifier,   '{http://purl.org/dc/elements/1.1/}identifier'),
-            (DC.language,     '{http://purl.org/dc/elements/1.1/}language'),
-            (DC.publisher,    '{http://purl.org/dc/elements/1.1/}publisher'),
-            (DC.rights,       '{http://purl.org/dc/elements/1.1/}rights'),
-            (DC.subject,      '{http://purl.org/dc/elements/1.1/}subject'),
-            (DC.title,        '{http://purl.org/dc/elements/1.1/}title'),
-            (DC.type,         '{http://purl.org/dc/elements/1.1/}type'),
-            (DCTERMS.spatial, '{http://purl.org/dc/terms/}spatial'),
-            (self.EDM.date,   '{http://purl.org/dc/elements/1.1/}date'),
-            (self.ERC.what,   '{http://purl.org/dc/elements/1.1/}title'),
-            (self.ERC.when,   '{http://purl.org/dc/elements/1.1/}date'),
-            (self.ERC.who,    '{http://purl.org/dc/elements/1.1/}creator'),
+            (self.BF.ClassificationLcc, '{http://id.loc.gov/ontologies/bibframe/}ClassificationLcc'),
+            (DC.coverage,               '{http://purl.org/dc/elements/1.1/}coverage'),
+            (DC.creator,                '{http://purl.org/dc/elements/1.1/}creator'),
+            (DC.description,            '{http://purl.org/dc/elements/1.1/}description'),
+            (DC.extent,                 '{http://purl.org/dc/elements/1.1/}extent'),
+            (DC.identifier,             '{http://purl.org/dc/elements/1.1/}identifier'),
+            (DC.language,               '{http://purl.org/dc/elements/1.1/}language'),
+            (self.BF.Local,             '{http://id.loc.gov/ontologies/bibframe/}Local'),
+            (DC.publisher,              '{http://purl.org/dc/elements/1.1/}publisher'),
+            (DC.rights,                 '{http://purl.org/dc/elements/1.1/}rights'),
+            (DCTERMS.spatial,           '{http://purl.org/dc/terms/}spatial'),
+            (DC.subject,                '{http://purl.org/dc/elements/1.1/}subject'),
+            (DC.title,                  '{http://purl.org/dc/elements/1.1/}title'),
+            (DC.type,                   '{http://purl.org/dc/elements/1.1/}type'),
+            (self.ERC.what,             '{http://purl.org/dc/elements/1.1/}title'),
+            (self.ERC.who,              '{http://purl.org/dc/elements/1.1/}creator')
         ):
             for dc_obj_el in self.dc._asxml().findall(obj_str):
                 self.graph.add((self.cho, pre, Literal(dc_obj_el.text)))
+
+        # dc:date
+        d = None
+        for f in self.digital_record.get_fields('260, 264'):
+            for sf in f.get_subfields('c'):
+                d = sf
+        if d:
+            self.graph.add((self.cho, DC.date, d))
+            self.graph.add((self.cho, self.EDM.year, d))
+            self.graph.add((self.cho, self.ERC.when, d))
+
+        # dc:format
+        for dc_obj_el in self.dc._asxml().findall('{http://purl.org/dc/elements/1.1/}format'):
+                self.graph.add((
+                    self.cho, 
+                    URIRef('http://purl.org/dc/elements/1.1/format'),
+                    Literal(dc_obj_el.text)
+                ))
+
+        # dc:rights
+        self.graph.add((
+            self.cho, 
+            URIRef('http://purl.org/dc/elements/1.1/rights'),
+            URIRef('http://creativecommons.org/licenses/by-sa/4.0/')
+        ))
 
         self.graph.add((self.cho, DCTERMS.isPartOf, URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc')))
         self.graph.add((self.cho, self.EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))

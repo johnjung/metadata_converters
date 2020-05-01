@@ -21,7 +21,7 @@ PREFIX xsd:                        <http://www.w3.org/2001/XMLSchema#>
     ore:isDescribedBy              @:providedCHO ;
 }
 
-:providedCHO {
+:ProvidedCHO {
     dc:coverage                    xsd:string ;
     dc:creator                     xsd:string ;
     dc:description                 xsd:string ;
@@ -38,13 +38,13 @@ PREFIX xsd:                        <http://www.w3.org/2001/XMLSchema#>
     edm:type                       xsd:string ;
 }
 
-:proxy {
+:Proxy {
     dc:format                      xsd:string ;
     ore:proxyFor                   @:providedCHO ;
     ore:proxyIn                    @:aggregation ;
 }
 
-:resourceMap {
+:ResourceMap {
     dcterms:created                xsd:dateTime ;
     dcterms:creator                IRI ;
     dcterms:modified               xsd:dateTime ;

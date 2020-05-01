@@ -126,7 +126,7 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         """Be sure the object can return the DC element."""
         self.assertEqual(
             self.dc.format,
-             ['1 online resource (1 map)', 'Scale approximately 1:175,300']
+             ['114 maps on 169 sheets', 'Scale approximately 1:175,300', 'sheets 29 x 22 cm']
         )
 
     def test_get_has_format(self):
