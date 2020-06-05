@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import json, pymarc, sys, unittest
-from pathlib import Path
 from metadata_converters import MarcXmlConverter, SocSciMapsMarcXmlToDc, MarcXmlToSchemaDotOrg
+from pathlib import Path
+from pymarc import MARCReader
 import xml.etree.ElementTree as ElementTree
 
-
+'''
 class TestMarcXmlConverter(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         """Create test objects. Test data should be placed in the test_data
@@ -55,25 +56,6 @@ class TestMarcXmlConverter(unittest.TestCase):
         self.assertEqual(self.collection.get_marc_field('', '', '', 's'), [])
         self.assertEqual(self.collection.get_marc_field('655', '[a]', '4', '7'), [])
         self.assertEqual(self.collection.get_marc_field('830', '', '', '0'), ['Social scientists map Chicago.', 'ICU', 'University of Chicago Digital Preservation Collection.', 'ICU'])
-
-
-'''
-class TestMarcXmlToDc(unittest.TestCase):
-    def test_get_date_copyrighted(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.date_copyrighted, ['[between 1908 and 1919]'])
-
-    def test_get_format_medium(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.format_medium, ['online resource'])
-
-    def test_get_rights_access(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.rights_access, ['Digital version available with restrictions Unrestricted online access'])
-
-    def test_get_type(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.collection.type, ['Thematic maps', 'cartographic image'])
 '''
 
 # https://docs.google.com/spreadsheets/d/1Kz1nfTSBjc2PTJ8hrZ--JCBpKV061sdXQxRxVo8VY_Y/edit#gid=0
@@ -98,106 +80,283 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
             print_records[0]
         )
 
-    def test_get_isbn(self):
-        """get bf:ISBN from the 020"""
-        raise NotImplementedError
+        # read MARC data for testing.
+        self.mrc = {}
+        for m in ('3451312', '7641168'):
+            with open('./test_data/{}.mrc'.format(m), 'rb') as fh:
+                reader = MARCReader(fh)
+                for record in reader:
+                    self.mrc[m] = record
 
-    def test_get_issn(self):
-        """get bf:ISSN from the 022"""
-        raise NotImplementedError
+        self.ns = {
+            'bf': 'http://id.loc.gov/ontologies/bibframe/',
+            'dc': 'http://purl.org/dc/elements/1.1/',
+            'dcterms': 'http://purl.org/dc/terms/'
+        }
+
+    # def test_get_isbn(self):
+    #     """get bf:ISBN from the 020"""
+    #     raise NotImplementedError
+
+    # def test_get_issn(self):
+    #     """get bf:ISSN from the 022"""
+    #     raise NotImplementedError
 
     def test_get_coordinates(self):
         """get bf:coordinates from the 034 $d $e $f $g
 
            encode this in the following format: 
-           $$c(W 87°51'04"-W 87°31'25"/N 42°01'23"-N 41°38'39")"""
-        raise NotImplementedError
+           $$c(W 87°51'04"-W 87°31'25"/N 42°01'23"-N 41°38'39")
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        self.assertEqual(
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('bf:coordinates', self.ns).text,
+            '''$$c(W 87°37'49"-W 87°34'20"/N 41°47'12"-N 41°45'53")'''
+        )
 
     def test_get_language(self):
-        """get dc:language from the 008"""
-        self.assertEqual(self.dc.language, ['English'])
+        """get dc:language from the 008
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        self.assertEqual(
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dc:language', self.ns).text,
+            'English'
+        )
 
     def test_get_creator(self):
-        """get dc:creator from the 100, 110, and 111"""
+        """get dc:creator from the 100, 110, and 111
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
         self.assertEqual(
-            self.dc.creator,
-            ['University of Chicago. Social Science Research Committee']
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dc:creator', self.ns).text,
+            'University of Chicago. Department of Sociology'
         )
 
-    def test_get_title_uniform(self):
-        """get mods:titleUniform from the 130 and 240."""
-        raise NotImplementedError
+    # def test_get_title_uniform(self):
+    #     """get mods:titleUniform from the 130 and 240."""
+    #     raise NotImplementedError
 
+    def test_get_title(self):
+        """get dc:title from 245 $a $b
 
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
 
-
-
-
-
-    def test_get_contributor(self):
-        """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
         self.assertEqual(
-            self.dc.contributor,
-            ['Hoyt, Homer']
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dc:title', self.ns).text,
+            'Woodlawn Community /'
         )
 
-    def test_get_description(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(
-            self.dc.description, 
-            ['Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm']
-        )
-
-    def test_get_extent(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.dc.extent, [])
+    # def test_get_alternative_title(self):
+    #     """get dcterms:alternative from 246"""
+    #     raise NotImplementedError
 
     def test_get_format(self):
-        """Be sure the object can return the DC element."""
+        """get dc:format from 255 $a $b, 300 $a $c of linked record
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        test_formats = set()
+
+        for f in SocSciMapsMarcXmlToDc(
+            self.mrc['7641168'],
+            self.mrc['3451312']
+        )._asxml().findall('dc:format', self.ns):
+            test_formats.add(f.text)
+
         self.assertEqual(
-            self.dc.format,
-             ['114 maps on 169 sheets', 'Scale approximately 1:175,300', 'sheets 29 x 22 cm']
+            test_formats,
+            set((
+                '1 map',
+                '45 x 62 cm',
+                'Scale [ca. 1:8,000]'
+            ))
         )
 
-    def test_get_has_format(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(
-            self.dc.hasFormat, 
-            ['Original paper version']
-        )
+    def test_get_place(self):
+        """get bf:place from 260$a, 264 _1$a
 
-    def test_get_identifier(self):
-        self.assertEqual(
-            self.dc.identifier, 
-            ['http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-1933-U5-a']
-        )
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
 
-    def test_get_issued(self):
-        """Be sure the object can return the DC element."""
         self.assertEqual(
-            self.dc.issued, 
-            ['1932']
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('bf:place', self.ns).text,
+            'Chicago'
         )
 
     def test_get_publisher(self):
-        """Be sure the object can return the DC element."""
+        """get dc:publisher from 260$b, 264 _1$b
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
         self.assertEqual(
-            self.dc.publisher, 
-            ['Social Science Research Committee']
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dc:publisher', self.ns).text,
+            'Dept. of Sociology'
         )
 
-    def test_get_subject(self):
-        """Be sure the object can return the DC element."""
+    def test_get_issued(self):
+        """get dcterms:issued from 260$c, 264 _1$c
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
         self.assertEqual(
-            self.dc.subject,
-            ['Administrative and political divisions'],
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dcterms:issued', self.ns).text,
+            '1920-1929'
         )
 
-    def test_get_title(self):
-        """Be sure the object can return the DC element."""
+    # def test_get_date_copyrighted(self):
+    #     """get dcterms:dateCopyrighted from 264 _4$c"""
+    #     raise NotImplementedError
+
+    def test_get_type(self):
+    #     """get dc:type from 336 $a, 650 $v, 651 $v, 655 $2 fast
+
+    #        can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+    #     raise NotImplementedError
         self.assertEqual(
-            self.dc.title, 
-            ['Map of Chicago, showing original subdivisions, 1830 to 1843 /']
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dc:type', self.ns).text,
+            'Maps'
+        )
+
+    # def test_get_medium(self):
+    #     """get dc:medium from 338"""
+    #     raise NotImplementedError
+
+    def test_get_description(self):
+        """get dc:description from 500, 538
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+        test_descriptions = set()
+
+        for d in SocSciMapsMarcXmlToDc(
+            self.mrc['7641168'],
+            self.mrc['3451312']
+        )._asxml().findall('dc:description', self.ns):
+            test_descriptions.add(d.text)
+
+        self.assertEqual(
+            test_descriptions,
+            set((
+                'Blue line print.',
+                'Shows residential area, vacant area, commercial frontage, railroad property, and transit lines.',
+                'Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm'
+            ))
+        )
+
+    def test_get_rights_access(self):
+        """get dcterms:accessRights from 506
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+        self.assertEqual(
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dcterms:accessRights', self.ns).text,
+            'Digital version available with restrictions Unrestricted online access'
+        )
+
+    # def test_get_subject(self):
+    #     """get dc:subject from 650 $a, $x"""
+    #     raise NotImplementedError
+
+    # def test_get_temporal(self):
+    #     """get dcterms:temporal from 650 $y"""
+    #     raise NotImplementedError
+
+    # def test_get_coverage(self):
+    #     """get dc:coverage from 651 _7 $a $2 fast"""
+    #     raise NotImplementedError
+
+    # def test_get_spatial(self):
+    #     """get dcterms:spatial from 651 _7 $a $z $2 fast"""
+    #     raise NotImplementedError
+
+    # def test_get_contributor(self):
+    #     """get dc:contributor from 700 $a (if subfield $t is not present) or 710$a"""
+    #     raise NotImplementedError
+
+    # def test_get_relation(self):
+    #     """get dc:relation from 730$a"""
+    #     raise NotImplementedError
+
+    def test_get_has_format(self):
+        """get dcterms:hasFormat from 776 $1
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        self.assertEqual(
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dcterms:hasFormat', self.ns).text,
+            'Print version'
+        )
+
+    # def test_get_is_part_of(self):
+    #     """get dcterms:isPartOf from 830"""
+    #     raise NotImplementedError
+
+    def test_get_identifier(self):
+        """get dc:identifier from 856 $u
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        self.assertEqual(
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('dc:identifier', self.ns).text,
+            'http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2W9-1920z-U5'
+        )
+
+    def test_get_local(self):
+        """get bf:Local from 001 of linked record
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        self.assertEqual(
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('bf:Local', self.ns).text,
+            'http://pi.lib.uchicago.edu/1001/cat/bib/3451312'
+        )
+
+    def test_get_classification_lcc(self):
+        """get bf:ClassificationLcc from 929 $a of linked record
+
+           can use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        self.assertEqual(
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('bf:ClassificationLcc', self.ns).text,
+            'G4104.C6:2W9 1920z .U5'
         )
 
 
