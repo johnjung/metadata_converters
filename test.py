@@ -76,6 +76,7 @@ class TestMarcXmlToDc(unittest.TestCase):
         self.assertEqual(self.collection.type, ['Thematic maps', 'cartographic image'])
 '''
 
+# https://docs.google.com/spreadsheets/d/1Kz1nfTSBjc2PTJ8hrZ--JCBpKV061sdXQxRxVo8VY_Y/edit#gid=0
 class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         """Create test objects. Test data should be placed in the test_data
@@ -97,18 +98,47 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
             print_records[0]
         )
 
+    def test_get_isbn(self):
+        """get bf:ISBN from the 020"""
+        raise NotImplementedError
+
+    def test_get_issn(self):
+        """get bf:ISSN from the 022"""
+        raise NotImplementedError
+
+    def test_get_coordinates(self):
+        """get bf:coordinates from the 034 $d $e $f $g
+
+           encode this in the following format: 
+           $$c(W 87°51'04"-W 87°31'25"/N 42°01'23"-N 41°38'39")"""
+        raise NotImplementedError
+
+    def test_get_language(self):
+        """get dc:language from the 008"""
+        self.assertEqual(self.dc.language, ['English'])
+
+    def test_get_creator(self):
+        """get dc:creator from the 100, 110, and 111"""
+        self.assertEqual(
+            self.dc.creator,
+            ['University of Chicago. Social Science Research Committee']
+        )
+
+    def test_get_title_uniform(self):
+        """get mods:titleUniform from the 130 and 240."""
+        raise NotImplementedError
+
+
+
+
+
+
+
     def test_get_contributor(self):
         """Be sure the object can return the DC element. Testing with Lorem Ipsum random value in record"""
         self.assertEqual(
             self.dc.contributor,
             ['Hoyt, Homer']
-        )
-
-    def test_get_creator(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(
-            self.dc.creator,
-            ['University of Chicago. Social Science Research Committee']
         )
 
     def test_get_description(self):
@@ -148,10 +178,6 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
             self.dc.issued, 
             ['1932']
         )
-
-    def test_get_language(self):
-        """Be sure the object can return the DC element."""
-        self.assertEqual(self.dc.language, ['English'])
 
     def test_get_publisher(self):
         """Be sure the object can return the DC element."""

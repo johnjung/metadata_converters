@@ -1,36 +1,30 @@
-import sys
+import rdflib, re, sys
 from pyshex.shex_evaluator import ShExEvaluator
-from rdflib import URIRef
+from rdflib.namespace import RDF
 
 
 if __name__=="__main__":
-    with open('G4104-C6-1933-U5-a.ttl') as f:
-        rdf = f.read()
+    # rdf = sys.stdin.read()
     
     with open('shex/uchicago_library_ssmaps.shex') as f:
         shex = f.read()
 
-    # rewrite this:
-    # find every subject in the graph.
-    # get the shape that corresponds to that subject's type.
-    # validate each one in turn. 
-    
-    for shape, focus in (
-                            (
-                                URIRef('https://www.lib.uchicago.edu/WebResource'),
-                                URIRef('file:///digital_collections/IIIF_Files//social_scientists_maps/G4104-C6-1933-U5-d.tif')
-                            ),
-                            (
-                                URIRef('https://www.lib.uchicago.edu/proxy'),
-                                URIRef('file:///digital_collections/IIIF_Files/social_scientists_maps/G4104-C6-1933-U5-d/G4104-C6-1933-U5-d.dc.xml')
-                            )
-                        ):
+    g = rdflib.Graph()
+    g.parse(sys.argv[1], format='turtle')
+
+    subjects = {}
+    for s, _, o in g.triples((None, RDF.type, None)):
+        # take the beginning part off and add <https://www.lib.uchicago.edu/>
+        subjects[s] = re.sub('^.*/', 'https://www.lib.uchicago.edu/', o)
+
+    for focus, shape in subjects.items():
         evaluator = ShExEvaluator(
             focus=focus,
-            rdf=rdf,
+            rdf=g,
             schema=shex,
             start=shape
         )
+        sys.exit()
         results = evaluator.evaluate()
         for result in results:
             if result.result == False:
