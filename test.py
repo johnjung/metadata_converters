@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import json, pymarc, sys, unittest
-from metadata_converters import MarcXmlConverter, SocSciMapsMarcXmlToDc, MarcXmlToSchemaDotOrg
+from metadata_converters import MarcXmlConverter, SocSciMapsMarcXmlToDc, SocSciMapsMarcXmlToEDM, MarcXmlToSchemaDotOrg
 from pathlib import Path
 from pymarc import MARCReader
+from rdflib import Literal, URIRef
+from rdflib.namespace import DC, DCTERMS
 import xml.etree.ElementTree as ElementTree
 
 '''
@@ -213,7 +215,7 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
             ))
         )
 
-    def test_format(self):
+    def test_cho_format(self):
         """get dc:format from 255 $a $b, 300 $a $c of linked record
 
            use 7641168.mrc (digital) and 3451312.mrc (print)"""
@@ -292,7 +294,7 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
                 self.mrc['7641168'],
                 self.mrc['3451312']
             )._asxml().find('dcterms:issued', self.ns).text,
-            '1920-1929'
+            '1920/1929'
         )
 
     def test_language(self):
@@ -420,179 +422,356 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         )
 
 class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
-    def test_aggregated_cho(self):
-        # edm:aggregatedCHO is a required element.
-        # edm:aggregatedCHO <[NOID]/[path/to/providedCHO]>;
-        raise NotImplementedError
+    def __init__(self, *args, **kwargs):
+        """Create test objects. Test data should be placed in the test_data
+        directory of this project. It should include sample data from different
+        digital collections projects, and the data should be varied enough to 
+        be able to catch different kinds of edge cases in testing."""
 
-    def test_classification_lcc(self):
-        # bf:ClassificationLcc “[pull from MARC to DC conversion]”
-        raise NotImplementedError
+        super().__init__(*args, **kwargs)
+        self.test_init()
 
-    def test_created(self):
-        # dcterms:created is machine-generated
-        # dcterms:created "[YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]"^^xsd:dateTime;
-        edm = SocSciMapsMarcXmlToEDM(
-            digital_record,
-            print_record,
-            [{
-                'height': height,
-                'md5': md5,
-                'mime_type': mime_type,
-                'name': '{}.tif'.format(identifier),
-                'path': tiff_path,
-                'sha256': sha256,
-                'size': size,
-                'width': width
-            }]
+    def test_init(self):
+        self.mrc = {}
+        for m in ('11435665', '3451312', '5999566', '7368094', '7368097', '7641168'):
+            with open('./test_data/{}.mrc'.format(m), 'rb') as fh:
+                reader = MARCReader(fh)
+                for record in reader:
+                    self.mrc[m] = record
+
+        self.edm = {}
+        for d, p in (('7641168', '3451312'), ('5999566', '7368094'), ('11435665','7368097')):
+            k = '{},{}'.format(d, p)
+            self.edm[k] = SocSciMapsMarcXmlToEDM(
+                self.mrc[d],
+                self.mrc[p],
+                []
+            )
+            self.edm[k].build_item_triples()
+
+    def test_aggregation_data_provider(self):
+        """edm:dataProvider is the literal string 
+           'University of Chicago Library'
+
+           use 7641168.mrc (digital) and 3451312.mrc (print),
+           look for /digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5"""
+
+        self.assertEqual(
+            self.edm['7641168,3451312'].graph.value(
+                subject=URIRef('/aggregation/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+                predicate=URIRef('http://www.europeana.eu/schemas/edm/dataProvider')
+            ),
+            Literal('The University of Chicago Library')
         )
-        edm.build_item_triples()
-        edm.triples()
 
-    def test_creator(self):
-        # dc:creator [see MARC to DC converter];
-        raise NotImplementedError
+    # def test_aggregated_cho(self):
+    #     # edm:aggregatedCHO is a required element.
+    #     # edm:aggregatedCHO <[NOID]/[path/to/providedCHO]>;
+    #     raise NotImplementedError
 
-    def test_current_location(self): 
-        # Use literal string for this collection.
-        # edm:currentLocation “Map Collection Reading Room (Room 370)”;
-        raise NotImplementedError
+    # def test_classification_lcc(self):
+    #     """get bf:ClassificationLcc from MARC to DC conversion.
 
-    def test_data_provider(self):
-        # edm:dataProvider is a constant. It is a required element. According
-        # to the EDM Definitions document (v. 5.2.8) “"Although the range of
-        # this property is given as edm:Agent, organization names should be
-        # provided as an ordinary text string until a Europeana authority file
-        # for organizations has been established. At that point providers will
-        # be able to send an identifier from the file instead of a text
-        # string.” (This applies to edm:provider as well.)
-        # edm:dataProvider "University of Chicago Library";
-        raise NotImplementedError
+    #        use 7641168.mrc (digital) and 3451312.mrc (print)"""
 
-    def test_date_copyrighted(self):
-        # dcterms:dateCopyrighted [pull from MARC to DC converter];
-        raise NotImplementedError
+    #     """
+    #             self.mrc['7641168'],
+    #             self.mrc['3451312']
+    #         )._asxml().find('bf:ClassificationLcc', self.ns).text,
+    #         'G4104.C6:2W9 1920z .U5'
+    #     """
 
-    def test_description(self):
-        # If there are multiple 500 fields, concatenate into one dc:description field
-        # dc:description [see MARC to DC converter];
-        raise NotImplementedError
+    #     raise NotImplementedError
 
-    def test_format(self):
-        # To find the print description fields, consult the record referred to in the 776 $w of the digital 
-        # record. This will contain an OCLC number and/or a Bib ID for the equivalent print record.
-        # For example,  |w (OCoLC)54383818  |w (ICU)5043398
-        # dc:format “[pull from MARC to DC conversion”;
-        raise NotImplementedError
+    # def test_created(self):
+    #     # dcterms:created is machine-generated
+    #     # dcterms:created "[YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]"^^xsd:dateTime;
+    #     edm = SocSciMapsMarcXmlToEDM(
+    #         digital_record,
+    #         print_record,
+    #         [{
+    #             'height': height,
+    #             'md5': md5,
+    #             'mime_type': mime_type,
+    #             'name': '{}.tif'.format(identifier),
+    #             'path': tiff_path,
+    #             'sha256': sha256,
+    #             'size': size,
+    #             'width': width
+    #         }]
+    #     )
+    #     edm.build_item_triples()
+    #     edm.triples()
 
-    def test_identifier(self):
-        # dc:identifier [see MARC to DC converter];
-        raise NotImplementedError
+    # def test_is_described_by(self):
+    #     # ore:isDescribedBy and ore:describes are reciprocal
+    #     # ore:isDescribedBy <[NOID]/rem/[path/to/providedCHO]>;
+    #     # a ore:Aggregation.
+    #     raise NotImplementedError
 
-    def test_is_described_by(self):
-        # ore:isDescribedBy and ore:describes are reciprocal
-        # ore:isDescribedBy <[NOID]/rem/[path/to/providedCHO]>;
-        # a ore:Aggregation.
-        raise NotImplementedError
+    # def test_is_shown_at(self):
+    #     # :: see edm:isShownAt
+    #     # <[PI or literal URL for object page]>
+    #     # dc:format "text/html";
+    #     # a edm:WebResource.
+    #     raise NotImplementedError
 
-    def test_is_part_of(self):
+    # def test_is_shown_by(self):
+    #     # :: see edm:isShownBy
+    #     # <[IIIF URL for highest quality image of map]>
+    #     # dc:format "image/tiff";
+    #     # a edm:WebResource.
+    #     raise NotImplementedError
+
+    def test_cho_creator(self):
+        """get dc:creator from the MARC to DC conversion.
+
+           use 7641168.mrc (digital) and 3451312.mrc (print),
+           look for /digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5"""
+
+        self.assertEqual(
+            self.edm['7641168,3451312'].graph.value(
+                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+                predicate=URIRef('http://purl.org/dc/elements/1.1/creator')
+            ),
+            Literal('University of Chicago. Department of Sociology')
+        )
+
+    def test_cho_current_location(self): 
+        """edm:currentLocation is the literal string 
+           'Map Collection Reading Room (Room 370)'
+
+           use 7641168.mrc (digital) and 3451312.mrc (print),
+           look for /digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5"""
+
+        self.assertEqual(
+            self.edm['7641168,3451312'].graph.value(
+                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+                predicate=URIRef('http://www.europeana.eu/schemas/edm/currentLocation')
+            ),
+            Literal('Map Collection Reading Room (Room 370)')
+        )
+
+    def test_cho_date(self):
+        """dc:date, pull from 260$c or 264$c.
+
+           use 7641168.mrc (digital) and 3451312.mrc (print),
+           look for /digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5"""
+
+        self.assertEqual(
+            self.edm['7641168,3451312'].graph.value(
+                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+                predicate=URIRef('http://purl.org/dc/elements/1.1/date')
+            ),
+            Literal('1920/1929')
+        )
+
+    def test_cho_description(self):
+        """get dc:description from MARC to DC conversion
+
+           use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        descriptions_set = set()
+        for o in self.edm['7641168,3451312'].graph.objects(
+            subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            predicate=URIRef('http://purl.org/dc/elements/1.1/description')
+        ):
+            descriptions_set.add(o)
+
+        self.assertEqual(
+            descriptions_set, 
+            set((
+                Literal('Blue line print.'),
+                Literal('Shows residential area, vacant area, commercial frontage, railroad property, and transit lines.'),
+                Literal('Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm')
+            ))
+        )
+
+    def test_cho_format(self):
+        """get dc:format from MARC to DC conversion
+
+           use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        formats_set = set()
+        for o in self.edm['7641168,3451312'].graph.objects(
+            subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            predicate=URIRef('http://purl.org/dc/elements/1.1/format')
+        ):
+            formats_set.add(o)
+
+        self.assertEqual(
+            formats_set, 
+            set((
+                Literal('1 map'),
+                Literal('45 x 62 cm'),
+                Literal('Scale [ca. 1:8,000]')
+            ))
+        )
+
+    def test_cho_has_format(self):
+        """dcterms:hasFormat, from MARC to DC conversion
+
+           use 7641168.mrc (digital) and 3451312.mrc (print),
+           look for /digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5"""
+
+        self.assertEqual(
+            self.edm['7641168,3451312'].graph.value(
+                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+                predicate=URIRef('http://purl.org/dc/terms/hasFormat')
+            ),
+            Literal('Print version')
+        )
+
+    def test_cho_identifier(self):
+        """get dc:identifier from MARC to DC conversion
+
+           use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        self.assertEqual(
+            self.edm['7641168,3451312'].graph.value(
+                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+                predicate=URIRef('http://purl.org/dc/elements/1.1/identifier')
+            ),
+            Literal('http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2W9-1920z-U5')
+        )
+
+    '''
+    def test_cho_is_part_of(self):
         # dcterms:isPartOf [pi for Collection page in Wagtail];
+        # wait until we have a page in Wagtail to test this one.
         raise NotImplementedError
+    '''
 
-    def test_is_shown_at(self):
-        # :: see edm:isShownAt
-        # <[PI or literal URL for object page]>
-        # dc:format "text/html";
-        # a edm:WebResource.
-        raise NotImplementedError
+    def test_cho_language(self):
+        """get dc:language from MARC to DC converter
 
-    def test_is_shown_by(self):
-        # :: see edm:isShownBy
-        # <[IIIF URL for highest quality image of map]>
-        # dc:format "image/tiff";
-        # a edm:WebResource.
-        raise NotImplementedError
+           use 7641168.mrc (digital) and 3451312.mrc (print)"""
 
-    def test_language(self):
-        # For Social Scientists Map Chicago, dc:language is a constant. Otherwise, it might vary.
-        # dc:language [see MARC to DC converter];
-        raise NotImplementedError
+        self.assertEqual(
+            self.edm['7641168,3451312'].graph.value(
+                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+                predicate=URIRef('http://purl.org/dc/elements/1.1/language')
+            ),
+            Literal('English')
+        )
 
-    def test_local(self):
-        # bf:Local “[pull from MARC to DC conversion]]”
-        raise NotImplementedError
+    def test_cho_local(self):
+        """get bf:Local from MARC to DC converter
 
-    def test_modified(self):
-        # dcterms:modified is machine-generated
-        # dcterms:modified "[YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]"^^xsd:dateTime;
-        raise NotImplementedError
+           use 7641168.mrc (digital) and 3451312.mrc (print)"""
 
-    def test_object(self):
-        # Ask about edm:object. It may vary.
-        # edm:object <[IIIF URL for thumbnail equivalent for  map]>;
-        raise NotImplementedError
+        self.assertEqual(
+            self.edm['7641168,3451312'].graph.value(
+                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+                predicate=URIRef('http://id.loc.gov/ontologies/bibframe/Local')
+            ),
+            Literal('http://pi.lib.uchicago.edu/1001/cat/bib/3451312')
+        )
 
-    def test_provider(self):
-        # edm:provider is a constant. It is a required element. 
-        # edm:provider "University of Chicago Library";
-        raise NotImplementedError
 
-    def test_publisher(self):
-        # dc:publisher [see MARC to DC converter];
-        raise NotImplementedError
+    # def test_modified(self):
+    #     # dcterms:modified is machine-generated
+    #     # dcterms:modified "[YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]"^^xsd:dateTime;
+    #     raise NotImplementedError
 
-    def test_rights(self):
-        # edm:rights is probably a constant. It is a required element.
-        # edm:rights <https://rightsstatements.org/page/InC/1.0/?language=en>;
-        raise NotImplementedError
+    # def test_object(self):
+    #     # Ask about edm:object. It may vary.
+    #     # edm:object <[IIIF URL for thumbnail equivalent for  map]>;
+    #     raise NotImplementedError
+
+    # def test_provider(self):
+    #     # edm:provider is a constant. It is a required element. 
+    #     # edm:provider "University of Chicago Library";
+    #     raise NotImplementedError
+
+    # def test_publisher(self):
+    #     # dc:publisher [see MARC to DC converter];
+    #     raise NotImplementedError
+
+    # def test_rights(self):
+    #     # edm:rights is probably a constant. It is a required element.
+    #     # edm:rights <https://rightsstatements.org/page/InC/1.0/?language=en>;
+    #     raise NotImplementedError
  
-    def test_spatial(self):
-        # dcterms:spatial [pull from MARC to DC converter];
-        raise NotImplementedError
+    # def test_spatial(self):
+    #     """get dcterms:spatial from MARC to DC converter
 
-    def test_subject(self):
-        # # For dc:subject use MARCXML 650 fields with second indicator of 7 and subfield $2 
-        # # with value “fast”. Eg:
-        # # 650	7 |a Ethnology.  |2 fast  |0 http://id.worldcat.org/fast/fst00916106 
-        # # Each occurence of 650 should generate a separate dc:subject element.
-        # dc:subject [see MARC to DC conversion];
-        raise NotImplementedError
+    #        use 5999566.mrc (digital) and 7368094.mrc (print)"""
 
-    def test_title(self):
-        # dc:title [see MARC to DC converter];
-        raise NotImplementedError
+    #     """
+    #             self.mrc['5999566'],
+    #             self.mrc['7368094']
+    #         )._asxml().find('dcterms:spatial', self.ns).text,
+    #         'Illinois -- Chicago'
+    #     """
+    #     raise NotImplementedError
 
-    def test_type(self):
-        # dc:type [see MARC to DC converter];
-        # edm:type is UPPER CASE
-        # edm:type "IMAGE";
-        raise NotImplementedError
+    # def test_subject(self):
+    #     """get dc:subject from MARC to DC converter
 
-    def test_what(self):
-        # dc:title -> erc:what
-        # erc:what [pull from MARC to DC converter];
-        raise NotImplementedError
+    #        use 5999566.mrc (digital) and 7368094.mrc (print)"""
 
-    def test_when(self):
-        # dc:date -> erc:when
-        # Erc:when [ copy dcterms:dateCopyrighted ]
-        raise NotImplementedError
+    #     """
+    #         self.mrc['5999566'],
+    #         self.mrc['7368094']
+    #     )._asxml().findall('dc:subject', self.ns):
+    #         test_subjects.add(f.text)
 
-    def test_where(self):
-        # JEJ switched form erc:when [260/264 $c subfield from MARCXML (whichever is populated)];
-        # the URI for the edm:ProvidedCHO (i.e., the subject of these assertions) -> erc:where
-        # erc:where <[NOID]/[path/to/providedCHO]>;
-        raise NotImplementedError
+    #     self.assertEqual(
+    #         test_subjects,
+    #         set((
+    #             'Crime',
+    #             'Criminals'
+    #         ))
+    #     """
+    #     raise NotImplementedError
 
-    def test_who(self):
-        # dc:creator -> erc:who; if no dc:creator, then ":unav";
-        # erc:who [pull from MARC to DC converter];
-        raise NotImplementedError
+    # def test_title(self):
+    #     """get dc:title from MARC to DC converter
 
-    def test_year(self):
-        # Edm: year [ copy dcterms:dateCopyrighted ]
-        # JEJ switched the triple above from edm:year [260/264 $c subfield from MARCXML (whichever is populated)];
-        raise NotImplementedError
+    #        use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+    #     """
+    #     self.assertEqual(
+    #         SocSciMapsMarcXmlToDc(
+    #             self.mrc['7641168'],
+    #             self.mrc['3451312']
+    #         )._asxml().find('dc:title', self.ns).text,
+    #         'Woodlawn Community /'
+    #     """
+    #     raise NotImplementedError
+
+    # def test_type(self):
+    #     # dc:type [see MARC to DC converter];
+    #     # edm:type is UPPER CASE
+    #     # edm:type "IMAGE";
+    #     raise NotImplementedError
+
+    # def test_what(self):
+    #     # dc:title -> erc:what
+    #     # erc:what [pull from MARC to DC converter];
+    #     raise NotImplementedError
+
+    # def test_when(self):
+    #     # dc:date -> erc:when
+    #     # Erc:when [ copy dcterms:dateCopyrighted ]
+    #     raise NotImplementedError
+
+    # def test_where(self):
+    #     # JEJ switched form erc:when [260/264 $c subfield from MARCXML (whichever is populated)];
+    #     # the URI for the edm:ProvidedCHO (i.e., the subject of these assertions) -> erc:where
+    #     # erc:where <[NOID]/[path/to/providedCHO]>;
+    #     raise NotImplementedError
+
+    # def test_who(self):
+    #     # dc:creator -> erc:who; if no dc:creator, then ":unav";
+    #     # erc:who [pull from MARC to DC converter];
+    #     raise NotImplementedError
+
+    # def test_year(self):
+    #     # Edm: year [ copy dcterms:dateCopyrighted ]
+    #     # JEJ switched the triple above from edm:year [260/264 $c subfield from MARCXML (whichever is populated)];
+    #     raise NotImplementedError
 
 
 '''
