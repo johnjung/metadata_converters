@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-    marc2edm (--socscimaps <digital_record_id>|--socscimaps-project-triples)
+    marc2edm [--no_images] (--socscimaps <digital_record_id>|--socscimaps-project-triples)
 """
 
 import io, json, hashlib, os, paramiko, sys
@@ -63,25 +63,25 @@ def main():
             '{0}.tif'.format(identifier)
         ])
 
-        try:
-            mime_type = 'image/tiff'
-            size = os.path.getsize(tiff_path)
-            img = Image.open(tiff_path)
-            width = img.size[0]
-            height = img.size[1]
-        except AttributeError:
-            sys.stdout.write('trouble with {}\n'.format(tiff_path))
-            sys.exit()
+        if options['--no_images']:
+            image_data = []
+        else:
+            try:
+                mime_type = 'image/tiff'
+                size = os.path.getsize(tiff_path)
+                img = Image.open(tiff_path)
+                width = img.size[0]
+                height = img.size[1]
+            except AttributeError:
+                sys.stdout.write('trouble with {}\n'.format(tiff_path))
+                sys.exit()
+    
+            with open(tiff_path, 'rb') as f:
+                tiff_contents = f.read()
+                md5 = hashlib.md5(tiff_contents).hexdigest()
+                sha256 = hashlib.sha256(tiff_contents).hexdigest()
 
-        with open(tiff_path, 'rb') as f:
-            tiff_contents = f.read()
-            md5 = hashlib.md5(tiff_contents).hexdigest()
-            sha256 = hashlib.sha256(tiff_contents).hexdigest()
-
-        edm = SocSciMapsMarcXmlToEDM(
-            digital_record,
-            print_record,
-            [{
+            image_data = [{
                 'height': height,
                 'md5': md5,
                 'mime_type': mime_type,
@@ -91,6 +91,11 @@ def main():
                 'size': size,
                 'width': width
             }]
+
+        edm = SocSciMapsMarcXmlToEDM(
+            digital_record,
+            print_record,
+            image_data
         )
 
         edm.build_item_triples()

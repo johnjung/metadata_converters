@@ -66,11 +66,11 @@ def process_date_string(s):
     # if there are two date chunks in the string, assume they are a date
     # range. (e.g. 'yyyy-yyyy'
     if len(dates) == 2:
-        return '-'.join(dates)
+        return '/'.join(dates)
     # if the date is three digits followed by a dash, assume it is a
     # date range for a decade. (e.g. 'yyy0-yyy9')
     elif len(dates) == 1 and dates[0][-1] == '-':
-        return '{0}0-{0}9'.format(dates[0][:3])
+        return '{0}0/{0}9'.format(dates[0][:3])
     # otherwise assume that the four digit date is correct.
     elif len(dates) == 1:
         return dates[0]
@@ -855,6 +855,7 @@ class SocSciMapsMarcXmlToEDM:
         Side Effect:
             Add triples to self.graph
         """
+
         self.graph.add((self.cho, RDF.type, self.EDM.ProvidedCHO))
         for pre, obj_str in (
             (self.BF.ClassificationLcc, '{http://id.loc.gov/ontologies/bibframe/}ClassificationLcc'),
@@ -862,6 +863,7 @@ class SocSciMapsMarcXmlToEDM:
             (DC.creator,                '{http://purl.org/dc/elements/1.1/}creator'),
             (DC.description,            '{http://purl.org/dc/elements/1.1/}description'),
             (DC.extent,                 '{http://purl.org/dc/elements/1.1/}extent'),
+            (DCTERMS.hasFormat,         '{http://purl.org/dc/terms/}hasFormat'),
             (DC.identifier,             '{http://purl.org/dc/elements/1.1/}identifier'),
             (DC.language,               '{http://purl.org/dc/elements/1.1/}language'),
             (self.BF.Local,             '{http://id.loc.gov/ontologies/bibframe/}Local'),
@@ -878,14 +880,15 @@ class SocSciMapsMarcXmlToEDM:
                 self.graph.add((self.cho, pre, Literal(dc_obj_el.text)))
 
         # dc:date
-        d = None
-        for f in self.digital_record.get_fields('260, 264'):
+        d = []
+
+        for f in self.digital_record.get_fields('260', '264'):
             for sf in f.get_subfields('c'):
-                d = sf
+                d.append(sf)
         if d:
-            self.graph.add((self.cho, DC.date, d))
-            self.graph.add((self.cho, self.EDM.year, d))
-            self.graph.add((self.cho, self.ERC.when, d))
+            self.graph.add((self.cho, DC.date, Literal(process_date_string(d[0]))))
+            self.graph.add((self.cho, self.EDM.year, Literal(process_date_string(d[0]))))
+            self.graph.add((self.cho, self.ERC.when, Literal(process_date_string(d[0]))))
 
         # dc:format
         for dc_obj_el in self.dc._asxml().findall('{http://purl.org/dc/elements/1.1/}format'):
