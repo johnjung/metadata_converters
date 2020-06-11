@@ -11,14 +11,14 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
         super().__init__(*args, **kwargs)
 
         self.mrc = {}
-        for m in ('11435665', '3451312', '5999566', '7368094', '7368097', '7641168'):
+        for m in ('3451312', '5999566', '7368094', '7641168'):
             with open('./test_data/{}.mrc'.format(m), 'rb') as fh:
                 reader = MARCReader(fh)
                 for record in reader:
                     self.mrc[m] = record
 
         self.edm = {}
-        for d, p in (('7641168', '3451312'), ('5999566', '7368094'), ('11435665','7368097')):
+        for d, p in (('7641168', '3451312'), ('5999566', '7368094')):
             k = '{},{}'.format(d, p)
             self.edm[k] = SocSciMapsMarcXmlToEDM(
                 self.mrc[d],
@@ -27,13 +27,25 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             )
             self.edm[k].build_item_triples()
 
+        self.agg_subjects = {
+            '7641168,3451312': URIRef('/aggregation/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            '5999566,7368094': URIRef('/aggregation/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5')
+        }
+
+        self.cho_subjects = {
+            '7641168,3451312': URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            '5999566,7368094': URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5')
+        }
+
     def test_aggregation_data_provider(self):
         """edm:dataProvider is the literal string 
            'University of Chicago Library'"""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/aggregation/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.agg_subjects[ids],
                 predicate=URIRef('http://www.europeana.eu/schemas/edm/dataProvider')
             ),
             Literal('The University of Chicago Library')
@@ -42,9 +54,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_classification_lcc(self):
         """get bf:ClassificationLcc from MARC to DC conversion."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://id.loc.gov/ontologies/bibframe/ClassificationLcc')
             ),
             Literal('G4104.C6:2W9 1920z .U5')
@@ -53,9 +67,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_creator(self):
         """get dc:creator from the MARC to DC conversion."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/creator')
             ),
             Literal('University of Chicago. Department of Sociology')
@@ -65,9 +81,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
         """edm:currentLocation is the literal string 
            'Map Collection Reading Room (Room 370)'"""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://www.europeana.eu/schemas/edm/currentLocation')
             ),
             Literal('Map Collection Reading Room (Room 370)')
@@ -76,9 +94,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_date(self):
         """dc:date, pull from 260$c or 264$c."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/date')
             ),
             Literal('1920/1929')
@@ -87,9 +107,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_description(self):
         """get dc:description from MARC to DC conversion."""
 
+        ids = '7641168,3451312'
+
         descriptions_set = set()
-        for o in self.edm['7641168,3451312'].graph.objects(
-            subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+        for o in self.edm[ids].graph.objects(
+            subject=self.cho_subjects[ids],
             predicate=URIRef('http://purl.org/dc/elements/1.1/description')
         ):
             descriptions_set.add(o)
@@ -106,9 +128,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_format(self):
         """get dc:format from MARC to DC conversion."""
 
+        ids = '7641168,3451312'
+
         formats_set = set()
-        for o in self.edm['7641168,3451312'].graph.objects(
-            subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+        for o in self.edm[ids].graph.objects(
+            subject=self.cho_subjects[ids],
             predicate=URIRef('http://purl.org/dc/elements/1.1/format')
         ):
             formats_set.add(o)
@@ -125,9 +149,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_has_format(self):
         """get dcterms:hasFormat from MARC to DC conversion."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/terms/hasFormat')
             ),
             Literal('Print version')
@@ -136,9 +162,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_identifier(self):
         """get dc:identifier from MARC to DC conversion."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/identifier')
             ),
             Literal('http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2W9-1920z-U5')
@@ -147,9 +175,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_language(self):
         """get dc:language from MARC to DC converter."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/language')
             ),
             Literal('English')
@@ -158,9 +188,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_local(self):
         """get bf:Local from MARC to DC converter."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://id.loc.gov/ontologies/bibframe/Local')
             ),
             Literal('http://pi.lib.uchicago.edu/1001/cat/bib/3451312')
@@ -169,9 +201,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_publisher(self):
         """get dc:publisher from MARC to DC converter."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/publisher')
             ),
             Literal('Dept. of Sociology')
@@ -180,9 +214,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_spatial(self):
         """get dcterms:spatial from MARC to DC converter."""
 
+        ids = '5999566,7368094'
+
         self.assertEqual(
-            self.edm['5999566,7368094'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/terms/spatial')
             ),
             Literal('Illinois -- Chicago')
@@ -191,9 +227,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_subject(self):
         """get dc:subject from MARC to DC converter."""
 
+        ids = '5999566,7368094'
+
         subjects_set = set()
-        for s in self.edm['5999566,7368094'].graph.objects(
-            subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5'),
+        for s in self.edm[ids].graph.objects(
+            subject=self.cho_subjects[ids],
             predicate=URIRef('http://purl.org/dc/elements/1.1/subject')
         ):
             subjects_set.add(s)
@@ -209,9 +247,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_title(self):
         """get dc:title from MARC to DC converter."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/title')
             ),
             Literal('Woodlawn Community /')
@@ -220,9 +260,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_type(self):
         """get dc:type from MARC to DC converter."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/type')
             ),
             Literal('Maps')
@@ -231,9 +273,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_what(self):
         """get erc:what from MARC to DC converter dc:title."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/kernel/elements/1.1/what')
             ),
             Literal('Woodlawn Community /')
@@ -242,9 +286,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_cho_when(self):
         """get erc:when from 260$c or 264$c, should match dc:date."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/kernel/elements/1.1/when')
             ),
             Literal('1920/1929')
@@ -253,9 +299,11 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
     def test_who(self):
         """get erc:who from MARC to DC converter dc:creator."""
 
+        ids = '7641168,3451312'
+
         self.assertEqual(
-            self.edm['7641168,3451312'].graph.value(
-                subject=URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            self.edm[ids].graph.value(
+                subject=self.cho_subjects[ids],
                 predicate=URIRef('http://purl.org/kernel/elements/1.1/who')
             ),
             Literal('University of Chicago. Department of Sociology')
