@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, unittest
+import re, sys, unittest
 from metadata_converters import SocSciMapsMarcXmlToEDM
 from pymarc import MARCReader
 from rdflib import Literal, URIRef
@@ -27,17 +27,52 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             )
             self.edm[k].build_item_triples()
 
-        self.agg_subjects = {
+        self.agg = {
             '7641168,3451312': URIRef('/aggregation/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
             '5999566,7368094': URIRef('/aggregation/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5')
         }
 
-        self.cho_subjects = {
+        self.cho = {
             '7641168,3451312': URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
             '5999566,7368094': URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5')
         }
 
-    def test_aggregation_data_provider(self):
+        self.rem = {
+            '7641168,3451312': URIRef('/rem/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
+            '5999566,7368094': URIRef('/rem/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5')
+        }
+
+    def test_agg_aggregated_cho(self):
+        """edm:aggregatedCHO should point to the CHO."""
+
+        ids = '7641168,3451312'
+
+        self.assertEqual(
+            self.edm[ids].graph.value(
+                subject=self.agg[ids],
+                predicate=URIRef('http://www.europeana.eu/schemas/edm/aggregatedCHO')
+            ),
+            self.cho[ids]
+        )
+
+    def test_agg_created(self):
+        """dcterms:created will match "[YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]"^^xsd:dateTime;"""
+
+        ids = '7641168,3451312'
+
+        self.assertTrue(
+            re.match(
+                '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*$',
+                str(
+                    self.edm[ids].graph.value(
+                        subject=self.agg[ids],
+                        predicate=URIRef('http://purl.org/dc/terms/created')
+                    )
+                )
+            ) != None
+        )
+
+    def test_agg_data_provider(self):
         """edm:dataProvider is the literal string 
            'University of Chicago Library'"""
 
@@ -45,10 +80,69 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.agg_subjects[ids],
+                subject=self.agg[ids],
                 predicate=URIRef('http://www.europeana.eu/schemas/edm/dataProvider')
             ),
             Literal('The University of Chicago Library')
+        )
+
+    def test_agg_is_described_by(self):
+        """ore:isDescribedBy links to the resource map. It's reciprocal with
+           ore:describes."""
+
+        ids = '7641168,3451312'
+
+        self.assertEqual(
+            self.edm[ids].graph.value(
+                subject=self.agg[ids],
+                predicate=URIRef('http://www.openarchives.org/ore/terms/isDescribedBy')
+            ),
+            self.rem[ids]
+        )
+
+    def test_agg_modified(self):
+        """dcterms:modified will match "[YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]"^^xsd:dateTime;"""
+
+        ids = '7641168,3451312'
+
+        self.assertTrue(
+            re.match(
+                '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*$',
+                str(
+                    self.edm[ids].graph.value(
+                        subject=self.agg[ids],
+                        predicate=URIRef('http://purl.org/dc/terms/modified')
+                    )
+                )
+            ) != None
+        )
+
+    def test_agg_provider(self):
+        """edm:provider is the literal string 
+           'University of Chicago Library'"""
+
+        ids = '7641168,3451312'
+
+        self.assertEqual(
+            self.edm[ids].graph.value(
+                subject=self.agg[ids],
+                predicate=URIRef('http://www.europeana.eu/schemas/edm/provider')
+            ),
+            Literal('The University of Chicago Library')
+        )
+
+    def test_agg_rights(self):
+        """edm:rights is the URI
+           https://rightsstatements.org/page/InC/1.0/?language=en"""
+
+        ids = '7641168,3451312'
+
+        self.assertEqual(
+            self.edm[ids].graph.value(
+                subject=self.agg[ids],
+                predicate=URIRef('http://www.europeana.eu/schemas/edm/rights')
+            ),
+            URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')
         )
 
     def test_cho_classification_lcc(self):
@@ -58,7 +152,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://id.loc.gov/ontologies/bibframe/ClassificationLcc')
             ),
             Literal('G4104.C6:2W9 1920z .U5')
@@ -71,7 +165,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/creator')
             ),
             Literal('University of Chicago. Department of Sociology')
@@ -85,7 +179,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://www.europeana.eu/schemas/edm/currentLocation')
             ),
             Literal('Map Collection Reading Room (Room 370)')
@@ -98,7 +192,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/date')
             ),
             Literal('1920/1929')
@@ -111,7 +205,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         descriptions_set = set()
         for o in self.edm[ids].graph.objects(
-            subject=self.cho_subjects[ids],
+            subject=self.cho[ids],
             predicate=URIRef('http://purl.org/dc/elements/1.1/description')
         ):
             descriptions_set.add(o)
@@ -132,7 +226,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         formats_set = set()
         for o in self.edm[ids].graph.objects(
-            subject=self.cho_subjects[ids],
+            subject=self.cho[ids],
             predicate=URIRef('http://purl.org/dc/elements/1.1/format')
         ):
             formats_set.add(o)
@@ -153,7 +247,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/terms/hasFormat')
             ),
             Literal('Print version')
@@ -166,7 +260,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/identifier')
             ),
             Literal('http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2W9-1920z-U5')
@@ -179,7 +273,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/language')
             ),
             Literal('English')
@@ -192,7 +286,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://id.loc.gov/ontologies/bibframe/Local')
             ),
             Literal('http://pi.lib.uchicago.edu/1001/cat/bib/3451312')
@@ -205,7 +299,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/publisher')
             ),
             Literal('Dept. of Sociology')
@@ -218,7 +312,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/terms/spatial')
             ),
             Literal('Illinois -- Chicago')
@@ -231,7 +325,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         subjects_set = set()
         for s in self.edm[ids].graph.objects(
-            subject=self.cho_subjects[ids],
+            subject=self.cho[ids],
             predicate=URIRef('http://purl.org/dc/elements/1.1/subject')
         ):
             subjects_set.add(s)
@@ -251,7 +345,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/title')
             ),
             Literal('Woodlawn Community /')
@@ -264,7 +358,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/type')
             ),
             Literal('Maps')
@@ -277,7 +371,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/kernel/elements/1.1/what')
             ),
             Literal('Woodlawn Community /')
@@ -290,7 +384,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/kernel/elements/1.1/when')
             ),
             Literal('1920/1929')
@@ -303,7 +397,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
 
         self.assertEqual(
             self.edm[ids].graph.value(
-                subject=self.cho_subjects[ids],
+                subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/kernel/elements/1.1/who')
             ),
             Literal('University of Chicago. Department of Sociology')
