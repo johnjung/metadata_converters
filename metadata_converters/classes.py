@@ -814,7 +814,7 @@ class SocSciMapsMarcXmlToEDM:
         self.graph.add((self.agg, RDF.type,                self.ORE.Aggregation))
         self.graph.add((self.agg, DCTERMS.created,         self.now))
         self.graph.add((self.agg, DCTERMS.modified,        self.now))
-        self.graph.add((self.agg, self.EDM.aggreatagedCHO, self.cho))
+        self.graph.add((self.agg, self.EDM.aggregatedCHO,  self.cho))
         self.graph.add((self.agg, self.EDM.dataProvider,   Literal("The University of Chicago Library")))
         self.graph.add((self.agg, self.ORE.isDescribedBy,  self.rem))
         self.graph.add((self.agg, self.EDM.isShownAt,      Literal(self.identifier)))
