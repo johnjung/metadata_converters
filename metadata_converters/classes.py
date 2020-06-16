@@ -162,6 +162,8 @@ class MarcXmlToDc:
         ElementTree.register_namespace(
             'dcterms', 'http://purl.org/dc/terms/')
         ElementTree.register_namespace(
+            'madsrdf', 'http://www.loc.gov/mads/rdf/v1#')
+        ElementTree.register_namespace(
             'mods', 'http://www.loc.gov/mods/v3/')
 
     def __getattr__(self, attr):
@@ -235,20 +237,29 @@ class MarcXmlToDc:
                     '{http://purl.org/dc/terms/}alternative'
                 ).text = ' '.join(sf)
 
-        # dc:contributor
-        for f in self.digital_record.get_fields('700'):
-            if f['t'] is None:
-                for sf in f.get_subfields('a'):
-                    ElementTree.SubElement(
-                        metadata,
-                        '{http://purl.org/dc/elements/1.1/}contributor'
-                    ).text = remove_marc_punctuation(sf)
+        # madsrdf:ConferenceName
+        for f in self.digital_record.get_fields('111'):
+            sf = f.get_subfields(*list(string.ascii_lowercase))
+            if sf:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://www.loc.gov/mads/rdf/v1#}ConferenceName'
+                ).text = ' '.join(sf)
+
+        # madsrdf:CorporateName
+        for f in self.digital_record.get_fields('110'):
+            sf = f.get_subfields(*list(string.ascii_lowercase))
+            if sf:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://www.loc.gov/mads/rdf/v1#}CorporateName'
+                ).text = ' '.join(sf)
 
         for f in self.digital_record.get_fields('710'):
             for sf in f.get_subfields('a'):
                 ElementTree.SubElement(
                     metadata,
-                    '{http://purl.org/dc/elements/1.1/}contributor'
+                    '{http://www.loc.gov/mads/rdf/v1#}CorporateName'
                 ).text = remove_marc_punctuation(sf)
 
         # dc:coverage
@@ -259,18 +270,6 @@ class MarcXmlToDc:
                         metadata,
                         '{http://purl.org/dc/elements/1.1/}coverage'
                     ).text = remove_marc_punctuation(sf)
-
-        # dc:creator
-        for n in ('100', '110', '111'):
-            for f in self.digital_record.get_fields(n):
-                sf = f.get_subfields(*list(string.ascii_lowercase))
-                if sf:
-                    ElementTree.SubElement(
-                        metadata,
-                        '{http://purl.org/dc/elements/1.1/}creator'
-                    ).text = remove_marc_punctuation(
-                        ' '.join(sf)
-                    )
 
         # dcterms:dateCopyrighted
         for f in self.digital_record.get_fields('264'):
@@ -294,7 +293,7 @@ class MarcXmlToDc:
         # dc:format
         formats = set()
         for f in self.digital_record.get_fields('255'):
-            for sf in f.get_subfields('a', 'b'):
+            for sf in f.get_subfields('b'):
                 formats.add(sf)
         for f in self.print_record.get_fields('300'):
             for sf in f.get_subfields('a', 'c'):
@@ -391,6 +390,23 @@ class MarcXmlToDc:
                     '{http://purl.org/dc/elements/1.1/}medium'
                 ).text = ' '.join(sf)
 
+        # madsrdf:PersonalName
+        for f in self.digital_record.get_fields('100'):
+            sf = f.get_subfields(*list(string.ascii_lowercase))
+            if sf:
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://www.loc.gov/mads/rdf/v1#}PersonalName'
+                ).text = ' '.join(sf)
+
+        for f in self.digital_record.get_fields('700'):
+            if f['t'] is None:
+                for sf in f.get_subfields('a'):
+                    ElementTree.SubElement(
+                        metadata,
+                        '{http://www.loc.gov/mads/rdf/v1#}PersonalName'
+                    ).text = remove_marc_punctuation(sf)
+
         # bf:place
         places = set()
         for f in self.digital_record.get_fields('260'):
@@ -430,6 +446,14 @@ class MarcXmlToDc:
                 ElementTree.SubElement(
                     metadata,
                     '{http://purl.org/dc/elements/1.1/}relation'
+                ).text = sf
+
+        # bf:scale
+        for f in self.digital_record.get_fields('255'):
+            for sf in f.get_subfields('a'):
+                ElementTree.SubElement(
+                    metadata,
+                    '{http://id.loc.gov/ontologies/bibframe/}scale'
                 ).text = sf
 
         # dcterms:spatial
@@ -869,12 +893,15 @@ class SocSciMapsMarcXmlToEDM:
             (self.BF.Local,             '{http://id.loc.gov/ontologies/bibframe/}Local'),
             (DC.publisher,              '{http://purl.org/dc/elements/1.1/}publisher'),
             (DC.rights,                 '{http://purl.org/dc/elements/1.1/}rights'),
+            (self.BF.scale,             '{http://id.loc.gov/ontologies/bibframe/}scale'),
             (DCTERMS.spatial,           '{http://purl.org/dc/terms/}spatial'),
             (DC.subject,                '{http://purl.org/dc/elements/1.1/}subject'),
             (DC.title,                  '{http://purl.org/dc/elements/1.1/}title'),
             (DC.type,                   '{http://purl.org/dc/elements/1.1/}type'),
             (self.ERC.what,             '{http://purl.org/dc/elements/1.1/}title'),
-            (self.ERC.who,              '{http://purl.org/dc/elements/1.1/}creator')
+            (self.ERC.who,              '{http://www.loc.gov/mads/rdf/v1#}ConferenceName'),
+            (self.ERC.who,              '{http://www.loc.gov/mads/rdf/v1#}CorporateName'),
+            (self.ERC.who,              '{http://www.loc.gov/mads/rdf/v1#}PersonalName')
         ):
             for dc_obj_el in self.dc._asxml().findall(obj_str):
                 self.graph.add((self.cho, pre, Literal(dc_obj_el.text)))
@@ -892,11 +919,11 @@ class SocSciMapsMarcXmlToEDM:
 
         # dc:format
         for dc_obj_el in self.dc._asxml().findall('{http://purl.org/dc/elements/1.1/}format'):
-                self.graph.add((
-                    self.cho, 
-                    URIRef('http://purl.org/dc/elements/1.1/format'),
-                    Literal(dc_obj_el.text)
-                ))
+            self.graph.add((
+                self.cho, 
+                URIRef('http://purl.org/dc/elements/1.1/format'),
+                Literal(dc_obj_el.text)
+            ))
 
         # dc:rights
         self.graph.add((

@@ -158,19 +158,6 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             Literal('G4104.C6:2W9 1920z .U5')
         )
 
-    def test_cho_creator(self):
-        """get dc:creator from the MARC to DC conversion."""
-
-        ids = '7641168,3451312'
-
-        self.assertEqual(
-            self.edm[ids].graph.value(
-                subject=self.cho[ids],
-                predicate=URIRef('http://purl.org/dc/elements/1.1/creator')
-            ),
-            Literal('University of Chicago. Department of Sociology')
-        )
-
     def test_cho_current_location(self): 
         """edm:currentLocation is the literal string 
            'Map Collection Reading Room (Room 370)'"""
@@ -219,25 +206,17 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             ))
         )
 
-    def test_cho_format(self):
-        """get dc:format from MARC to DC conversion."""
+    def test_cho_scale(self):
+        """get bf:scale from MARC to DC conversion."""
 
         ids = '7641168,3451312'
 
-        formats_set = set()
-        for o in self.edm[ids].graph.objects(
-            subject=self.cho[ids],
-            predicate=URIRef('http://purl.org/dc/elements/1.1/format')
-        ):
-            formats_set.add(o)
-
         self.assertEqual(
-            formats_set, 
-            set((
-                Literal('1 map'),
-                Literal('45 x 62 cm'),
-                Literal('Scale [ca. 1:8,000]')
-            ))
+            self.edm[ids].graph.value(
+                subject=self.cho[ids],
+                predicate=URIRef('http://id.loc.gov/ontologies/bibframe/scale')
+            ),
+            Literal('Scale [ca. 1:8,000]')
         )
 
     def test_cho_has_format(self):
@@ -390,8 +369,9 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             Literal('1920/1929')
         )
 
-    def test_who(self):
-        """get erc:who from MARC to DC converter dc:creator."""
+    def test_cho_who(self):
+        """get erc:who from MARC to DC converter madsref:ConferenceName,
+           madsrdf:CorporateName, and madsrdf:PersonalName"""
 
         ids = '7641168,3451312'
 
@@ -400,7 +380,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
                 subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/kernel/elements/1.1/who')
             ),
-            Literal('University of Chicago. Department of Sociology')
+            Literal('University of Chicago. Department of Sociology.')
         )
 
     # def test_where(self):

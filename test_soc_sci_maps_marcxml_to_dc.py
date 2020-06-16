@@ -20,7 +20,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.ns = {
             'bf': 'http://id.loc.gov/ontologies/bibframe/',
             'dc': 'http://purl.org/dc/elements/1.1/',
-            'dcterms': 'http://purl.org/dc/terms/'
+            'dcterms': 'http://purl.org/dc/terms/',
+            'madsrdf': 'http://www.loc.gov/mads/rdf/v1#'
         }
 
     def test_classification_lcc(self):
@@ -52,21 +53,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
             '''$$c(W 87°37'49"-W 87°34'20"/N 41°47'12"-N 41°45'53")'''
         )
 
-    def test_contributor(self):
-        """get dc:contributor from 700 $a (if subfield $t is not present) or 710$a
-
-           use 5999566.mrc (digital) and 7368094.mrc (print)"""
-
-        self.assertEqual(
-            SocSciMapsMarcXmlToDc(
-                self.mrc['5999566'],
-                self.mrc['7368094']
-            )._asxml().find('dc:contributor', self.ns).text,
-            'Behavior Research Fund'
-        )
-
-    def test_creator(self):
-        """get dc:creator from the 100, 110, and 111
+    def test_corporate_name(self):
+        """get madsrdf:CorporateName from 110 or 710 $a.
 
            use 7641168.mrc (digital) and 3451312.mrc (print)"""
 
@@ -74,8 +62,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
                 self.mrc['3451312']
-            )._asxml().find('dc:creator', self.ns).text,
-            'University of Chicago. Department of Sociology'
+            )._asxml().find('madsrdf:CorporateName', self.ns).text,
+            'University of Chicago. Department of Sociology.'
         )
 
     def test_description(self):
@@ -116,8 +104,7 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
             test_formats,
             set((
                 '1 map',
-                '45 x 62 cm',
-                'Scale [ca. 1:8,000]'
+                '45 x 62 cm'
             ))
         )
 
@@ -243,6 +230,19 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
                 self.mrc['3451312']
             )._asxml().find('dcterms:accessRights', self.ns).text,
             'Digital version available with restrictions Unrestricted online access'
+        )
+
+    def test_scale(self):
+        """get bf:scale from 255 $a
+
+           use 7641168.mrc (digital) and 3451312.mrc (print)"""
+
+        self.assertEqual(
+            SocSciMapsMarcXmlToDc(
+                self.mrc['7641168'],
+                self.mrc['3451312']
+            )._asxml().find('bf:scale', self.ns).text,
+            'Scale [ca. 1:8,000]'
         )
 
     def test_spatial(self):
