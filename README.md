@@ -49,6 +49,59 @@ Some notes from dublincore.org.
 
 [ORE primer](http://www.openarchives.org/ore/1.0/primer)
 
+## Sample Data
+
+To get a corresponding print record for each of these digital records, look at
+the 776$w field for an identifier like an OCLC number (OCoLC).
+
+### Digital record list:
+
+11435664
+11435665
+11435666
+11435667
+11435668
+11435669
+11435670
+11435671
+11435672
+11435673
+11435674
+11435675
+11435676
+11435677
+11435678
+11435679
+1582888
+1582891
+1582893
+1586198
+1586219
+3401134
+3404181
+3450640
+3450644
+39315
+5043062
+5043187
+5043398
+5043675
+5043919
+5059056
+5063149
+5063673
+5063697
+5063699
+5063706
+5070204
+5077687
+5570199
+5998122
+5999564
+5999565
+5999566
+7641168
+
 ## Contributors
 
 John Jung, José Reyes
