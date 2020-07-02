@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Usage:
-    marc2edm [--no_images] (--socscimaps <digital_record_id>|--socscimaps-project-triples)
+"""Usage: marc2edm (--no_images|--image_dir <image_dir>) --socscimaps <digital_record_id> --noid <noid>
+          marc2edm --socscimaps-project-triples
 """
 
 import io, json, hashlib, os, paramiko, sys
@@ -50,18 +50,31 @@ def main():
                 print_record = record
 
         identifier = digital_record['856']['u'].split('/').pop()
-        tiff_path = '/'.join([
-            '',
+        if options['<image_dir>']:
+            tiff_path = '{}/{}.tif'.format(options['<image_dir>'], identifier)
+        else:
+            tiff_path = '/'.join([
+                '',
+                'data',
+                'digital_collections',
+                'IIIF',
+                'IIIF_Files',
+                'maps',
+                'chisoc',
+                identifier,
+                'tifs',
+                '{0}.tif'.format(identifier)
+            ])
+
+        pair_tree_path = [
+            '', 
             'data',
-            'digital_collections',
-            'IIIF',
-            'IIIF_Files',
-            'maps',
-            'chisoc',
-            identifier,
-            'tifs',
-            '{0}.tif'.format(identifier)
-        ])
+            'digital_collections'
+        ]
+        for i in range(0, len(options['<noid>']), 2):
+            pair_tree_path.append(options['<noid>'][i:i+2])
+        pair_tree_path.append('file.tif')
+        pair_tree_path = '/'.join(pair_tree_path)
 
         if options['--no_images']:
             image_data = []
@@ -79,7 +92,7 @@ def main():
             with open(tiff_path, 'rb') as f:
                 tiff_contents = f.read()
                 md5 = hashlib.md5(tiff_contents).hexdigest()
-                sha256 = hashlib.sha256(tiff_contents).hexdigest()
+                sha512 = hashlib.sha512(tiff_contents).hexdigest()
 
             image_data = [{
                 'height': height,
@@ -87,7 +100,8 @@ def main():
                 'mime_type': mime_type,
                 'name': '{}.tif'.format(identifier),
                 'path': tiff_path,
-                'sha256': sha256,
+                'pair_tree_path': pair_tree_path,
+                'sha512': sha512,
                 'size': size,
                 'width': width
             }]
@@ -95,6 +109,7 @@ def main():
         edm = SocSciMapsMarcXmlToEDM(
             digital_record,
             print_record,
+            options['<noid>'],
             image_data
         )
 

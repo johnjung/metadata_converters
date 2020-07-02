@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-    marc2dc [--socscimaps] <digital_record_id>
+    marc2dc --socscimaps <digital_record_id> --noid <noid>
 """
 
 import io, json, os, paramiko, sys
@@ -50,7 +50,7 @@ def main():
 
 
     sys.stdout.write(
-        str(SocSciMapsMarcXmlToDc(digital_record, print_record))
+        str(SocSciMapsMarcXmlToDc(digital_record, print_record, options['<noid>']))
     )
 
 if __name__ == "__main__":
