@@ -32,7 +32,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('bf:ClassificationLcc', self.ns).text,
             'G4104.C6:2W9 1920z .U5'
         )
@@ -48,7 +49,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('bf:coordinates', self.ns).text,
             '''$$c(W 87°37'49"-W 87°34'20"/N 41°47'12"-N 41°45'53")'''
         )
@@ -61,7 +63,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('madsrdf:CorporateName', self.ns).text,
             'University of Chicago. Department of Sociology.'
         )
@@ -74,7 +77,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
 
         for d in SocSciMapsMarcXmlToDc(
             self.mrc['7641168'],
-            self.mrc['3451312']
+            self.mrc['3451312'],
+            'b2dq0kf6d36z'
         )._asxml().findall('dc:description', self.ns):
             test_descriptions.add(d.text)
 
@@ -96,7 +100,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
 
         for f in SocSciMapsMarcXmlToDc(
             self.mrc['7641168'],
-            self.mrc['3451312']
+            self.mrc['3451312'],
+            'b2dq0kf6d36z'
         )._asxml().findall('dc:format', self.ns):
             test_formats.add(f.text)
 
@@ -116,7 +121,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('dcterms:hasFormat', self.ns).text,
             'Print version'
         )
@@ -129,9 +135,10 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('dc:identifier', self.ns).text,
-            'http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2W9-1920z-U5'
+            'ark:/61001/b2dq0kf6d36z'
         )
 
     def test_is_part_of(self):
@@ -143,7 +150,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
 
         for i in SocSciMapsMarcXmlToDc(
             self.mrc['11435665'],
-            self.mrc['7368097']
+            self.mrc['7368097'],
+            'b2dq0kf6d36z'
         )._asxml().findall('dcterms:isPartOf', self.ns):
             test_is_part_ofs.add(i.text)
 
@@ -163,7 +171,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('dcterms:issued', self.ns).text,
             '1920/1929'
         )
@@ -176,9 +185,10 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('dc:language', self.ns).text,
-            'English'
+            'en'
         )
 
     def test_local(self):
@@ -189,7 +199,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('bf:Local', self.ns).text,
             'http://pi.lib.uchicago.edu/1001/cat/bib/3451312'
         )
@@ -202,7 +213,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('bf:place', self.ns).text,
             'Chicago'
         )
@@ -215,7 +227,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('dc:publisher', self.ns).text,
             'Dept. of Sociology'
         )
@@ -227,7 +240,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('dcterms:accessRights', self.ns).text,
             'Digital version available with restrictions Unrestricted online access'
         )
@@ -240,7 +254,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('bf:scale', self.ns).text,
             'Scale [ca. 1:8,000]'
         )
@@ -253,7 +268,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['5999566'],
-                self.mrc['7368094']
+                self.mrc['7368094'],
+                'b2dq0kf6d36z'
             )._asxml().find('dcterms:spatial', self.ns).text,
             'Illinois -- Chicago'
         )
@@ -267,7 +283,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
 
         for f in SocSciMapsMarcXmlToDc(
             self.mrc['5999566'],
-            self.mrc['7368094']
+            self.mrc['7368094'],
+            'b2dq0kf6d36z'
         )._asxml().findall('dc:subject', self.ns):
             test_subjects.add(f.text)
 
@@ -287,7 +304,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('dc:title', self.ns).text,
             'Woodlawn Community /'
         )
@@ -300,7 +318,8 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
         self.assertEqual(
             SocSciMapsMarcXmlToDc(
                 self.mrc['7641168'],
-                self.mrc['3451312']
+                self.mrc['3451312'],
+                'b2dq0kf6d36z'
             )._asxml().find('dc:type', self.ns).text,
             'Maps'
         )
