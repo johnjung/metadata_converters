@@ -739,7 +739,7 @@ class MarcXmlToSchemaDotOrg(MarcXmlConverter):
 
 
 class SocSciMapsMarcXmlToEDM:
-    """A class to convert MARCXML to  Europeana Data Model (EDM)."""
+    """A class to convert MARCXML to Europeana Data Model (EDM)."""
 
     # from Charles, via Slack (10/3/2019 9:52am)
     # For the TIFF image we also need a edm:WebResource. Ideally we would want
@@ -762,33 +762,21 @@ class SocSciMapsMarcXmlToEDM:
 
     VRA = Namespace('http://purl.org/vra/')
 
-    #REPOSITORY_AGG = URIRef('aggregation/repository.lib.uchicago.edu')
     REPOSITORY_AGG = URIRef('https://repository.lib.uchicago.edu/aggregation')
-    REPOSITORY_CHO = URIRef('https://repository.lib.uchicago.edu')
-    REPOSITORY_PRO = URIRef('https://repository.lib.uchicago.edu/index.dc.xml')
-    #REPOSITORY_REM = URIRef('rem/repository.lib.uchicago.edu')
+    REPOSITORY_CHO = URIRef('https://repository.lib.uchicago.edu/')
     REPOSITORY_REM = URIRef('https://repository.lib.uchicago.edu/rem')
 
-    #DIGCOL_AGG = URIRef('aggregation/repository.lib.uchicago.edu/digitalcollections')
-    DIGCOL_AGG = URIRef('https://repository.lib.uchicago.edu/digitalcollections/Aggregation')
-    DIGCOL_CHO = URIRef('https://repository.lib.uchicago.edu/digitalcollections')
-    DIGCOL_PRO = URIRef('https://repository.lib.uchicago.edu/digitalcollections/index.dc.xml')
-    #DIGCOL_REM = URIRef('rem/repository.lib.uchicago.edu/digitalcollections')
-    DIGCOL_REM = URIRef('https://repository.lib.uchicago.edu/digitalcollections/rem')
+    DIGCOL_AGG = URIRef('https://repository.lib.uchicago.edu/digital_collections/aggregation')
+    DIGCOL_CHO = URIRef('https://repository.lib.uchicago.edu/digital_collections/')
+    DIGCOL_REM = URIRef('https://repository.lib.uchicago.edu/digital_collections/rem')
 
-    #MAPCOL_AGG = URIRef('aggregation/repository.lib.uchicago.edu/digitalcollections/maps')
-    MAPCOL_AGG = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/aggregation')
-    MAPCOL_CHO = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps')
-    MAPCOL_PRO = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/index.dc.xml')
-    #MAPCOL_REM = URIRef('rem/repository.lib.uchicago.edu/digitalcollections/maps')
-    MAPCOL_REM = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/rem')
+    MAPCOL_AGG = URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/aggregation')
+    MAPCOL_CHO = URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/')
+    MAPCOL_REM = URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/rem')
 
-    #SSMAPS_AGG = URIRef('aggregation/repository.lib.uchicago.edu/digitalcollections/maps/chisoc')
-    SSMAPS_AGG = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc/aggregation')
-    SSMAPS_CHO = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc')
-    SSMAPS_PRO = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc/index.dc.xml')
-    #SSMAPS_REM = URIRef('rem/repository.lib.uchicago.edu/digitalcollections/maps/chisoc')
-    SSMAPS_REM = URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc/rem')
+    SSMAPS_AGG = URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/aggregation')
+    SSMAPS_CHO = URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/')
+    SSMAPS_REM = URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/rem')
 
     graph = Graph()
     for prefix, ns in (('bf', BF), ('dc', DC), ('dcterms', DCTERMS),
@@ -860,14 +848,14 @@ class SocSciMapsMarcXmlToEDM:
         # resource map for the item.
         self.graph.add((self.rem,      DCTERMS.created,    self.now))
         self.graph.add((self.rem,      DCTERMS.modified,   self.now))
-        self.graph.add((self.rem,      DCTERMS.creator,    URIRef('http://library.uchicago.edu')))
+        self.graph.add((self.rem,      DCTERMS.creator,    URIRef('https://library.uchicago.edu')))
         self.graph.add((self.rem,      RDF.type,           self.ORE.ResourceMap))
         self.graph.add((self.rem,      self.ORE.describes, self.agg))
 
         self._build_web_resources()
 
         # connect the item to its collection.
-        self.graph.add((URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc'), DCTERMS.hasPart, self.cho))
+        self.graph.add((self.SSMAPS_CHO, DCTERMS.hasPart, self.cho))
 
     def _build_cho(self):
         """The cultural herigate object is the map itself. 
@@ -934,7 +922,7 @@ class SocSciMapsMarcXmlToEDM:
             URIRef('http://creativecommons.org/licenses/by-sa/4.0/')
         ))
 
-        self.graph.add((self.cho, DCTERMS.isPartOf, URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc')))
+        self.graph.add((self.cho, DCTERMS.isPartOf, URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc')))
         self.graph.add((self.cho, self.EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))
         self.graph.add((self.cho, self.EDM.type, Literal('IMAGE')))
         self.graph.add((self.cho, self.ERC.where, self.cho))
@@ -965,50 +953,34 @@ class SocSciMapsMarcXmlToEDM:
  
         now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
 
-        # aggregation for the repository
-        self.graph.add((self.REPOSITORY_AGG, RDF.type,               self.ORE.Aggregation))
-        self.graph.add((self.REPOSITORY_AGG, DCTERMS.created,        now))
-        self.graph.add((self.REPOSITORY_AGG, DCTERMS.modified,       now))
-        self.graph.add((self.REPOSITORY_AGG, self.EDM.aggregatedCHO, self.REPOSITORY_CHO))
-        self.graph.add((self.REPOSITORY_AGG, self.EDM.dataProvider,  Literal("University of Chicago Library")))
-        self.graph.add((self.REPOSITORY_AGG, self.EDM.isShownAt,     URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.REPOSITORY_AGG, self.EDM.provider,      Literal("University of Chicago Library")))
-        self.graph.add((self.REPOSITORY_AGG, self.EDM.rights,        URIRef('https://creativecommons.org/licenses/by-nc/4.0/')))
-        self.graph.add((self.REPOSITORY_AGG, self.ORE.isDescribedBy, self.REPOSITORY_REM))
-
-        # cultural heritage object for the repository
-        self.graph.add((self.REPOSITORY_CHO, RDF.type,               self.EDM.ProvidedCHO))
-        self.graph.add((self.REPOSITORY_CHO, DC.coverage,            URIRef('https://vocab.getty.edu/page/tgn/7029392')))
-        self.graph.add((self.REPOSITORY_CHO, DC.coverage,            Literal('World')))
-        self.graph.add((self.REPOSITORY_CHO, DC.creator,             Literal('University of Chicago Library')))
-        self.graph.add((self.REPOSITORY_CHO, DC.date,                Literal('2006')))
-        self.graph.add((self.REPOSITORY_CHO, DC.description,         Literal('University of Chicago Library Digital Repository')))
-        self.graph.add((self.REPOSITORY_CHO, DC.identifier,          URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.REPOSITORY_CHO, DC.rights,              URIRef('http://creativecommons.org/licenses/by-nc/4.0/')))
-        self.graph.add((self.REPOSITORY_CHO, DC.title,               Literal('University of Chicago Library Digital Repository')))
-        self.graph.add((self.REPOSITORY_CHO, DC.type,                Literal('Collection')))
-        self.graph.add((self.REPOSITORY_CHO, DCTERMS.hasPart,        URIRef('https://repository.lib.uchicago.edu/digitalcollections')))
-        self.graph.add((self.REPOSITORY_CHO, DCTERMS.hasPart,        URIRef('https://repository.lib.uchicago.edu/specialcollections')))
-        self.graph.add((self.REPOSITORY_CHO, self.EDM.type,          Literal('COLLECTION')))
-        self.graph.add((self.REPOSITORY_CHO, self.EDM.year,          Literal('2006'))) 
-        self.graph.add((self.REPOSITORY_CHO, self.ERC.what,          Literal('University of Chicago Library Digital Repository')))
-        self.graph.add((self.REPOSITORY_CHO, self.ERC.when,          Literal('2006')))
-        self.graph.add((self.REPOSITORY_CHO, self.ERC.where,         self.REPOSITORY_CHO))
-        self.graph.add((self.REPOSITORY_CHO, self.ERC.who,           Literal('University of Chicago Library')))
-
-        # proxy for the repository
-        self.graph.add((self.REPOSITORY_PRO, RDF.type,               self.ORE.Proxy))
-        self.graph.add((self.REPOSITORY_PRO, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
-        self.graph.add((self.REPOSITORY_PRO, self.ORE.proxyFor,      self.REPOSITORY_CHO))
-        self.graph.add((self.REPOSITORY_PRO, self.ORE.proxyIn,       self.REPOSITORY_AGG))
-
         # resource map for the repository
         self.graph.add((self.REPOSITORY_REM, RDF.type,               self.ORE.ResourceMap))
         self.graph.add((self.REPOSITORY_REM, DCTERMS.created,        now))
         self.graph.add((self.REPOSITORY_REM, DCTERMS.modified,       now))
-        self.graph.add((self.REPOSITORY_REM, DCTERMS.creator,        self.REPOSITORY_CHO))
+        self.graph.add((self.REPOSITORY_REM, DCTERMS.creator,        URIRef('https://library.uchicago.edu/')))
         self.graph.add((self.REPOSITORY_REM, self.ORE.describes,     self.REPOSITORY_AGG))
- 
+
+        # aggregation for the repository
+        self.graph.add((self.REPOSITORY_AGG, RDF.type,               self.ORE.Aggregation))
+        self.graph.add((self.REPOSITORY_AGG, self.EDM.aggregatedCHO, self.REPOSITORY_CHO))
+        self.graph.add((self.REPOSITORY_AGG, self.EDM.dataProvider,  Literal("University of Chicago Library")))
+        self.graph.add((self.REPOSITORY_AGG, self.EDM.isShownAt,     self.REPOSITORY_CHO))
+        self.graph.add((self.REPOSITORY_AGG, self.EDM.object,        URIRef('https://repository.lib.uchicago.edu/icon.png')))
+        self.graph.add((self.REPOSITORY_AGG, self.EDM.provider,      Literal('University of Chicago Library')))
+        self.graph.add((self.REPOSITORY_AGG, self.ORE.isDescribedBy, self.REPOSITORY_REM))
+
+        # cultural heritage object for the repository
+        self.graph.add((self.REPOSITORY_CHO, RDF.type,               self.EDM.ProvidedCHO))
+        self.graph.add((self.REPOSITORY_CHO, DC.date,                Literal('2020')))
+        self.graph.add((self.REPOSITORY_CHO, DC.title,               Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.REPOSITORY_CHO, DCTERMS.hasPart,        URIRef('https://repository.lib.uchicago.edu/digital_archives')))
+        self.graph.add((self.REPOSITORY_CHO, DCTERMS.hasPart,        URIRef('https://repository.lib.uchicago.edu/digital_collections')))
+        self.graph.add((self.REPOSITORY_CHO, self.ERC.who,           Literal('University of Chicago Library')))
+        self.graph.add((self.REPOSITORY_CHO, self.ERC.what,          Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.REPOSITORY_CHO, self.ERC.when,          Literal('2020')))
+        self.graph.add((self.REPOSITORY_CHO, self.ERC.where,         self.REPOSITORY_CHO))
+        self.graph.add((self.REPOSITORY_CHO, self.EDM.year,          Literal('2020'))) 
+
     @classmethod
     def build_digital_collections_triples(self):
         """Add triples for digital collections itself, and to connect items with each other. 
@@ -1019,49 +991,32 @@ class SocSciMapsMarcXmlToEDM:
  
         now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
 
-        # aggregation for digital collections
-        self.graph.add((self.DIGCOL_AGG, RDF.type,                self.ORE.ResourceMap))
-        self.graph.add((self.DIGCOL_AGG, DCTERMS.created,         now))
-        self.graph.add((self.DIGCOL_AGG, DCTERMS.modified,        now))
-        self.graph.add((self.DIGCOL_AGG, self.EDM.aggregatedCHO,  URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.DIGCOL_AGG, self.EDM.dataProvider,   Literal('University of Chicago Library')))
-        self.graph.add((self.DIGCOL_AGG, self.EDM.isShownAt,      URIRef('https://repository.lib.uchicago.edu/digitalcollections')))
-        self.graph.add((self.DIGCOL_AGG, self.EDM.provider,       Literal('University of Chicago Library')))
-        self.graph.add((self.DIGCOL_AGG, self.EDM.rights,         URIRef('https://creativecommons.org/licenses/by-nc/4.0/')))
-        self.graph.add((self.DIGCOL_AGG, self.ORE.isDescribedBy,  self.DIGCOL_REM))
-
-        # cultural heritage object for digital collections
-        self.graph.add((self.DIGCOL_CHO, RDF.type,                self.EDM.ProvidedCHO))
-        self.graph.add((self.DIGCOL_CHO, DC.coverage,             URIRef('https://vocab.getty.edu/page/tgn/7029392')))
-        self.graph.add((self.DIGCOL_CHO, DC.coverage,             Literal('World')))
-        self.graph.add((self.DIGCOL_CHO, DC.creator,              Literal('University of Chicago Library')))
-        self.graph.add((self.DIGCOL_CHO, DC.date,                 Literal('2006')))
-        self.graph.add((self.DIGCOL_CHO, DC.description,          Literal('University of Chicago Library Digital Collections')))
-        self.graph.add((self.DIGCOL_CHO, DC.identifier,           URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.DIGCOL_CHO, DC.rights,               URIRef('http://creativecommons.org/licenses/by-nc/4.0/')))
-        self.graph.add((self.DIGCOL_CHO, DC.title,                Literal('University of Chicago Library Digital Collections')))
-        self.graph.add((self.DIGCOL_CHO, DC.type,                 Literal('Collection')))
-        self.graph.add((self.DIGCOL_CHO, DCTERMS.hasPart,         URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps')))
-        self.graph.add((self.DIGCOL_CHO, DCTERMS.isPartOf,        URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.DIGCOL_CHO, self.EDM.type,           Literal('COLLECTION')))
-        self.graph.add((self.DIGCOL_CHO, self.EDM.year,           Literal('2014')))
-        self.graph.add((self.DIGCOL_CHO, self.ERC.what,           Literal('University of Chicago Library Digital Collections')))
-        self.graph.add((self.DIGCOL_CHO, self.ERC.when,           Literal('2014')))
-        self.graph.add((self.DIGCOL_CHO, self.ERC.where,          URIRef('https://repository.lib.uchicago.edu/digitalcollections')))
-        self.graph.add((self.DIGCOL_CHO, self.ERC.who,            Literal('University of Chicago Library')))
-
-        # proxy for digital collections
-        self.graph.add((self.DIGCOL_PRO, RDF.type,                self.ORE.Proxy))
-        self.graph.add((self.DIGCOL_PRO, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
-        self.graph.add((self.DIGCOL_PRO, self.ORE.proxyFor,       self.DIGCOL_CHO))
-        self.graph.add((self.DIGCOL_PRO, self.ORE.proxyIn,        self.DIGCOL_AGG))
-
         # resource map for digital collections.
         self.graph.add((self.DIGCOL_REM, RDF.type,                self.ORE.ResourceMap))
         self.graph.add((self.DIGCOL_REM, DCTERMS.created,         now))
         self.graph.add((self.DIGCOL_REM, DCTERMS.modified,        now))
-        self.graph.add((self.DIGCOL_REM, DCTERMS.creator,         URIRef('https://repository.lib.uchicago.edu')))
+        self.graph.add((self.DIGCOL_REM, DCTERMS.creator,         URIRef('https://library.uchicago.edu/')))
         self.graph.add((self.DIGCOL_REM, self.ORE.describes,      self.DIGCOL_AGG))
+
+        # aggregation for digital collections
+        self.graph.add((self.DIGCOL_AGG, RDF.type,                self.ORE.Aggregation))
+        self.graph.add((self.DIGCOL_AGG, self.EDM.aggregatedCHO,  self.DIGCOL_CHO))
+        self.graph.add((self.DIGCOL_AGG, self.EDM.dataProvider,   Literal('University of Chicago Library')))
+        self.graph.add((self.DIGCOL_AGG, self.EDM.isShownAt,      URIRef('https://repository.lib.uchicago.edu/digital_collections/')))
+        self.graph.add((self.DIGCOL_AGG, self.EDM.object,         URIRef('https://repository.lib.uchicago.edu/digital_collections/icon.png')))
+        self.graph.add((self.DIGCOL_AGG, self.EDM.provider,       Literal('University of Chicago Library')))
+        self.graph.add((self.DIGCOL_AGG, self.ORE.isDescribedBy,  self.DIGCOL_REM))
+
+        # cultural heritage object for digital collections
+        self.graph.add((self.DIGCOL_CHO, RDF.type,                self.EDM.ProvidedCHO))
+        self.graph.add((self.DIGCOL_CHO, DC.date,                 Literal('2020')))
+        self.graph.add((self.DIGCOL_CHO, DC.title,                Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.DIGCOL_CHO, DCTERMS.hasPart,         URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/')))
+        self.graph.add((self.DIGCOL_CHO, self.ERC.who,            Literal('University of Chicago Library')))
+        self.graph.add((self.DIGCOL_CHO, self.ERC.what,           Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.DIGCOL_CHO, self.ERC.when,           Literal('2020')))
+        self.graph.add((self.DIGCOL_CHO, self.ERC.where,          URIRef('https://repository.lib.uchicago.edu/digital_collections/')))
+        self.graph.add((self.DIGCOL_CHO, self.EDM.year,           Literal('2020')))
 
     @classmethod
     def build_map_collection_triples(self):
@@ -1073,49 +1028,32 @@ class SocSciMapsMarcXmlToEDM:
  
         now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
 
+        # resource map for the map collection 
+        self.graph.add((self.MAPCOL_REM, RDF.type,                self.ORE.ResourceMap))
+        self.graph.add((self.MAPCOL_REM, DCTERMS.created,         now))
+        self.graph.add((self.MAPCOL_REM, DCTERMS.creator,         URIRef('https://library.uchicago.edu/')))
+        self.graph.add((self.MAPCOL_REM, DCTERMS.modified,        now))
+        self.graph.add((self.MAPCOL_REM, self.ORE.describes,      self.MAPCOL_AGG))
+
         # aggregation for the map collection
         self.graph.add((self.MAPCOL_AGG, RDF.type,                self.ORE.Aggregation))
-        self.graph.add((self.MAPCOL_AGG, DCTERMS.created,         now))
-        self.graph.add((self.MAPCOL_AGG, DCTERMS.modified,        now))
-        self.graph.add((self.MAPCOL_AGG, self.EDM.aggregatedCHO,  URIRef('https://repository.lib.uchicago.edu')))
+        self.graph.add((self.MAPCOL_AGG, self.EDM.aggregatedCHO,  self.MAPCOL_CHO))
         self.graph.add((self.MAPCOL_AGG, self.EDM.dataProvider,   Literal('University of Chicago Library')))
         self.graph.add((self.MAPCOL_AGG, self.EDM.isShownAt,      self.MAPCOL_CHO))
+        self.graph.add((self.MAPCOL_AGG, self.EDM.object,         URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/icon.png')))
         self.graph.add((self.MAPCOL_AGG, self.EDM.provider,       Literal('University of Chicago Library')))
-        self.graph.add((self.MAPCOL_AGG, self.EDM.rights,         URIRef('https://creativecommons.org/licenses/by-nc/4.0/')))
         self.graph.add((self.MAPCOL_AGG, self.ORE.isDescribedBy,  self.MAPCOL_REM))
 
         # cultural heritage object for the map collection
         self.graph.add((self.MAPCOL_CHO, RDF.type,                self.EDM.ProvidedCHO))
-        self.graph.add((self.MAPCOL_CHO, DC.coverage,             URIRef('https://vocab.getty.edu/page/tgn/7029392')))
-        self.graph.add((self.MAPCOL_CHO, DC.coverage,             Literal('World')))
-        self.graph.add((self.MAPCOL_CHO, DC.creator,              Literal('University of Chicago Library')))
-        self.graph.add((self.MAPCOL_CHO, DC.date,                 Literal('2006')))
-        self.graph.add((self.MAPCOL_CHO, DC.description,          Literal('University of Chicago Library Map Collection')))
-        self.graph.add((self.MAPCOL_CHO, DC.identifier,           URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.MAPCOL_CHO, DC.rights,               URIRef('http://creativecommons.org/licenses/by-nc/4.0/')))
-        self.graph.add((self.MAPCOL_CHO, DC.title,                Literal('University of Chicago Library Digital Repository')))
-        self.graph.add((self.MAPCOL_CHO, DC.type,                 Literal('Collection')))
-        self.graph.add((self.MAPCOL_CHO, DCTERMS.hasPart,         URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc')))
-        self.graph.add((self.MAPCOL_CHO, DCTERMS.isPartOf,        URIRef('https://repository.lib.uchicago.edu/digitalcollections')))
-        self.graph.add((self.MAPCOL_CHO, self.EDM.type,           Literal('COLLECTION')))
-        self.graph.add((self.MAPCOL_CHO, self.EDM.year,           Literal('2014')))
-        self.graph.add((self.MAPCOL_CHO, self.ERC.what,           Literal('University of Chicago Library Digital Repository')))
-        self.graph.add((self.MAPCOL_CHO, self.ERC.when,           Literal('2014')))
-        self.graph.add((self.MAPCOL_CHO, self.ERC.where,          URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps')))
+        self.graph.add((self.MAPCOL_CHO, DC.date,                 Literal('2020')))
+        self.graph.add((self.MAPCOL_CHO, DC.title,                Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.MAPCOL_CHO, DCTERMS.hasPart,         self.SSMAPS_CHO))
         self.graph.add((self.MAPCOL_CHO, self.ERC.who,            Literal('University of Chicago Library')))
-
-        # proxy for the map collection
-        self.graph.add((self.MAPCOL_PRO, RDF.type,                self.ORE.Proxy))
-        self.graph.add((self.MAPCOL_PRO, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
-        self.graph.add((self.MAPCOL_PRO, self.ORE.proxyFor,       self.MAPCOL_CHO))
-        self.graph.add((self.MAPCOL_PRO, self.ORE.proxyIn,        self.MAPCOL_AGG))
-
-        # resource map for the map collection 
-        self.graph.add((self.MAPCOL_REM, RDF.type,                self.ORE.ResourceMap))
-        self.graph.add((self.MAPCOL_REM, DCTERMS.created,         now))
-        self.graph.add((self.MAPCOL_REM, DCTERMS.creator,         URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.MAPCOL_REM, DCTERMS.modified,        now))
-        self.graph.add((self.MAPCOL_REM, self.ORE.describes,      self.MAPCOL_AGG))
+        self.graph.add((self.MAPCOL_CHO, self.ERC.what,           Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.MAPCOL_CHO, self.ERC.when,           Literal('2020')))
+        self.graph.add((self.MAPCOL_CHO, self.ERC.where,          URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/')))
+        self.graph.add((self.MAPCOL_CHO, self.EDM.year,           Literal('2020')))
 
     @classmethod
     def build_socscimap_collection_triples(self):
@@ -1127,47 +1065,30 @@ class SocSciMapsMarcXmlToEDM:
  
         now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
 
+        # resource map for the social scientists map collection
+        self.graph.add((self.SSMAPS_REM, RDF.type,                self.ORE.ResourceMap))
+        self.graph.add((self.SSMAPS_REM, DCTERMS.created,         now))
+        self.graph.add((self.SSMAPS_REM, DCTERMS.creator,         URIRef('https://library.uchicago.edu/')))
+        self.graph.add((self.SSMAPS_REM, self.ORE.describes,      self.SSMAPS_AGG))
+
         # aggregation for the social scientist maps collection
         self.graph.add((self.SSMAPS_AGG, RDF.type,                self.ORE.Aggregation))
-        self.graph.add((self.SSMAPS_AGG, DCTERMS.created,         now))
-        self.graph.add((self.SSMAPS_AGG, DCTERMS.modified,        now))
-        self.graph.add((self.SSMAPS_AGG, self.EDM.aggregatedCHO,  URIRef('https://repository.lib.uchicago.edu')))
+        self.graph.add((self.SSMAPS_AGG, self.EDM.aggregatedCHO,  self.SSMAPS_CHO))
         self.graph.add((self.SSMAPS_AGG, self.EDM.dataProvider,   Literal('University of Chicago Library')))
         self.graph.add((self.SSMAPS_AGG, self.EDM.isShownAt,      self.SSMAPS_CHO))
+        self.graph.add((self.SSMAPS_AGG, self.EDM.object,         URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/icon.png')))
         self.graph.add((self.SSMAPS_AGG, self.EDM.provider,       Literal('University of Chicago Library')))
-        self.graph.add((self.SSMAPS_AGG, self.EDM.rights,         URIRef('https://creativecommons.org/licenses/by-nc/4.0/')))
         self.graph.add((self.SSMAPS_AGG, self.ORE.isDescribedBy,  self.SSMAPS_REM))
 
         # cultural heritage object for the social scientist maps collection
         self.graph.add((self.SSMAPS_CHO, RDF.type,                self.EDM.ProvidedCHO))
-        self.graph.add((self.SSMAPS_CHO, DC.coverage,             URIRef('https://vocab.getty.edu/page/tgn/7013596')))
-        self.graph.add((self.SSMAPS_CHO, DC.coverage,             Literal('Chicago')))
-        self.graph.add((self.SSMAPS_CHO, DC.creator,              Literal('University of Chicago Library')))
-        self.graph.add((self.SSMAPS_CHO, DC.date,                 Literal('2006')))
-        self.graph.add((self.SSMAPS_CHO, DC.description,          Literal('University of Chicago Library Social Scientists Map Collection')))
-        self.graph.add((self.SSMAPS_CHO, DC.identifier,           URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.SSMAPS_CHO, DC.rights,               URIRef('http://creativecommons.org/licenses/by-nc/4.0/')))
-        self.graph.add((self.SSMAPS_CHO, DC.title,                Literal('University of Chicago Library Digital Repository')))
-        self.graph.add((self.SSMAPS_CHO, DC.type,                 Literal('Collection')))
-        self.graph.add((self.SSMAPS_CHO, DCTERMS.isPartOf,        URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps')))
-        self.graph.add((self.SSMAPS_CHO, self.EDM.type,           Literal('COLLECTION')))
-        self.graph.add((self.SSMAPS_CHO, self.EDM.year,           Literal('2014')))
-        self.graph.add((self.SSMAPS_CHO, self.ERC.what,           Literal('University of Chicago Library Digital Repository')))
-        self.graph.add((self.SSMAPS_CHO, self.ERC.when,           Literal('2014')))
-        self.graph.add((self.SSMAPS_CHO, self.ERC.where,          URIRef('https://repository.lib.uchicago.edu/digitalcollections/maps/chisoc')))
+        self.graph.add((self.SSMAPS_CHO, DC.date,                 Literal('2020')))
+        self.graph.add((self.SSMAPS_CHO, DC.title,                Literal('The University of Chicago Library Digital Repository')))
         self.graph.add((self.SSMAPS_CHO, self.ERC.who,            Literal('University of Chicago Library')))
-
-        # proxy for the social scientists maps collection
-        self.graph.add((self.SSMAPS_PRO, RDF.type,                self.ORE.Proxy))
-        self.graph.add((self.SSMAPS_PRO, URIRef('http://purl.org/dc/elements/1.1/format'), Literal('application/xml')))
-        self.graph.add((self.SSMAPS_PRO, self.ORE.proxyFor,       self.SSMAPS_CHO))
-        self.graph.add((self.SSMAPS_PRO, self.ORE.proxyIn,        self.SSMAPS_AGG))
-
-        # resource map for the social scientists map collection
-        self.graph.add((self.SSMAPS_REM, RDF.type,                self.ORE.ResourceMap))
-        self.graph.add((self.SSMAPS_REM, DCTERMS.created,         now))
-        self.graph.add((self.SSMAPS_REM, DCTERMS.creator,         URIRef('https://repository.lib.uchicago.edu')))
-        self.graph.add((self.SSMAPS_REM, self.ORE.describes,      self.SSMAPS_AGG))
+        self.graph.add((self.SSMAPS_CHO, self.ERC.what,           Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.SSMAPS_CHO, self.ERC.when,           Literal('2020')))
+        self.graph.add((self.SSMAPS_CHO, self.ERC.where,          URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/')))
+        self.graph.add((self.SSMAPS_CHO, self.EDM.year,           Literal('2020')))
 
     @classmethod
     def triples(self):
