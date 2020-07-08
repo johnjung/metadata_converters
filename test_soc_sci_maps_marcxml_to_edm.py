@@ -23,23 +23,24 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             self.edm[k] = SocSciMapsMarcXmlToEDM(
                 self.mrc[d],
                 self.mrc[p],
+                d,
                 []
             )
             self.edm[k].build_item_triples()
 
         self.agg = {
-            '7641168,3451312': URIRef('/aggregation/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
-            '5999566,7368094': URIRef('/aggregation/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5')
+            '7641168,3451312': URIRef('ark:/61001/aggregation/7641168'),
+            '5999566,7368094': URIRef('ark:/61001/aggregation/5999566')
         }
 
         self.cho = {
-            '7641168,3451312': URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
-            '5999566,7368094': URIRef('/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5')
+            '7641168,3451312': URIRef('ark:/61001/7641168'),
+            '5999566,7368094': URIRef('ark:/61001/5999566')
         }
 
         self.rem = {
-            '7641168,3451312': URIRef('/rem/digital_collections/IIIF_Files/maps/chisoc/G4104-C6-2W9-1920z-U5'),
-            '5999566,7368094': URIRef('/rem/digital_collections/IIIF_Files/maps/chisoc/G4104-C6E625-1920-S5')
+            '7641168,3451312': URIRef('ark:/61001/rem/7641168'),
+            '5999566,7368094': URIRef('ark:/61001/rem/5999566')
         }
 
     def test_agg_aggregated_cho(self):
@@ -55,23 +56,6 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             self.cho[ids]
         )
 
-    def test_agg_created(self):
-        """dcterms:created will match "[YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]"^^xsd:dateTime;"""
-
-        ids = '7641168,3451312'
-
-        self.assertTrue(
-            re.match(
-                '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*$',
-                str(
-                    self.edm[ids].graph.value(
-                        subject=self.agg[ids],
-                        predicate=URIRef('http://purl.org/dc/terms/created')
-                    )
-                )
-            ) != None
-        )
-
     def test_agg_data_provider(self):
         """edm:dataProvider is the literal string 
            'University of Chicago Library'"""
@@ -83,7 +67,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
                 subject=self.agg[ids],
                 predicate=URIRef('http://www.europeana.eu/schemas/edm/dataProvider')
             ),
-            Literal('The University of Chicago Library')
+            Literal('University of Chicago Library')
         )
 
     def test_agg_is_described_by(self):
@@ -100,23 +84,6 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             self.rem[ids]
         )
 
-    def test_agg_modified(self):
-        """dcterms:modified will match "[YYYY]-[MM]-[DD]T[HH]:[MM]:[SS]"^^xsd:dateTime;"""
-
-        ids = '7641168,3451312'
-
-        self.assertTrue(
-            re.match(
-                '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*$',
-                str(
-                    self.edm[ids].graph.value(
-                        subject=self.agg[ids],
-                        predicate=URIRef('http://purl.org/dc/terms/modified')
-                    )
-                )
-            ) != None
-        )
-
     def test_agg_provider(self):
         """edm:provider is the literal string 
            'University of Chicago Library'"""
@@ -128,21 +95,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
                 subject=self.agg[ids],
                 predicate=URIRef('http://www.europeana.eu/schemas/edm/provider')
             ),
-            Literal('The University of Chicago Library')
-        )
-
-    def test_agg_rights(self):
-        """edm:rights is the URI
-           https://rightsstatements.org/page/InC/1.0/?language=en"""
-
-        ids = '7641168,3451312'
-
-        self.assertEqual(
-            self.edm[ids].graph.value(
-                subject=self.agg[ids],
-                predicate=URIRef('http://www.europeana.eu/schemas/edm/rights')
-            ),
-            URIRef('https://rightsstatements.org/page/InC/1.0/?language=en')
+            Literal('University of Chicago Library')
         )
 
     def test_cho_classification_lcc(self):
@@ -242,7 +195,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
                 subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/identifier')
             ),
-            Literal('http://pi.lib.uchicago.edu/1001/maps/chisoc/G4104-C6-2W9-1920z-U5')
+            Literal('ark:/61001/7641168')
         )
 
     def test_cho_language(self):
@@ -255,7 +208,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
                 subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/language')
             ),
-            Literal('English')
+            Literal('en')
         )
 
     def test_cho_local(self):
@@ -382,17 +335,6 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             ),
             Literal('University of Chicago. Department of Sociology.')
         )
-
-    # def test_where(self):
-    #     # the URI for the edm:ProvidedCHO (i.e., the subject of these assertions) -> erc:where
-    #     # erc:where <[NOID]/[path/to/providedCHO]>;
-    #     raise NotImplementedError
-
-    # def test_year(self):
-    #     # Edm: year [ copy dcterms:dateCopyrighted ]
-    #     # JEJ switched the triple above from edm:year [260/264 $c subfield from MARCXML (whichever is populated)];
-    #     raise NotImplementedError
-
 
 if __name__ == '__main__':
     unittest.main()
