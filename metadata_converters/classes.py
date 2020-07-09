@@ -85,6 +85,76 @@ def pairwise(iterable):
         except StopIteration:
             break
 
+class NoidManager():
+    """A class to manage NOIDS for digital collections."""
+    def __init__(pair_tree_root):
+        self.pair_tree_root = pair_tree_root
+        self.extended_digits = '0123456789bcdfghjkmnpqrstvwxz'
+
+    def list():
+        """Get a list of the NOIDs present."""
+    
+        identifiers = []
+        for root, dirs, files in os.walk(self.pair_tree_root):
+            for file in files:
+                if file in ('0=ocfl_object_1.0',):
+                    identifiers.append(root[len(self.pair_tree_root):].replace(os.sep, ''))
+        return identifiers
+
+    def generate_check_digit(noid):
+        """Multiply each characters ordinal value by it's position, starting at
+           position 1. Sum the products. Then do modulo 29 to get the check digit
+           in extended characters."""
+        s = 0
+        p = 1
+        for c in noid:
+            if self.extended_digits.find(c) > -1:
+                s += (self.extended_digits.find(c) * p)
+            p += 1
+        return self.extended_digits[s % len(self.extended_digits)]
+
+    def test_noid_check_digit(noid):
+        """Use this for NOIDs that came from other sources."""
+        return self.generate_check_digit(self.extended_digits, noid[:-1]) == noid[-1:]
+
+    def create():
+        """create a UChicago NOID in the form 'b2.reedeedeedk', where: 
+         
+           e is an extended digit, 
+           d is a digit, 
+           and k is a check digit.
+    
+           Note that all UChicago Library NOIDs start with the prefix "b2", so
+           that's hardcoded into this function."""
+    
+        noid = [
+            'b',
+            '2',
+            random.choice(extended_digits),
+            random.choice(extended_digits),
+            random.choice(extended_digits[:10]),
+            random.choice(extended_digits),
+            random.choice(extended_digits),
+            random.choice(extended_digits[:10]),
+            random.choice(extended_digits),
+            random.choice(extended_digits),
+            random.choice(extended_digits[:10])
+        ]
+        noid.append(self.generate_noid_check_digit(''.join(noid)))
+        return ''.join(noid)
+
+    def path(noid):
+        """split the noid into two character directories."""
+        return os.sep.join([noid[i] + noid[i+1] for i in range(0, len(noid), 2)])
+
+    def noid_is_unique(noid, path):
+        """Check to see if ARKS with that noid exist in our system. 
+           Returns true if the NOID is unique in our system. 
+           (Note that with 600B possible NOIDs, it is very unlikely that this
+           function will ever return False.)"""
+        return noid not in self.list(path)
+
+
 class MarcXmlConverter:
     """
     A class to convert MARCXML to other formats. Extend this class to make
