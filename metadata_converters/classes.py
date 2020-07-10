@@ -463,7 +463,7 @@ class MarcXmlToDc:
 
         # madsrdf:PersonalName
         for f in self.digital_record.get_fields('100'):
-            sf = f.get_subfields(*list(string.ascii_lowercase))
+            sf = f.get_subfields('a')
             if sf:
                 ElementTree.SubElement(
                     metadata,
@@ -823,6 +823,7 @@ class SocSciMapsMarcXmlToEDM:
     BF = Namespace('http://id.loc.gov/ontologies/bibframe/')
     EDM = Namespace('http://www.europeana.eu/schemas/edm/')
     ERC = Namespace('http://purl.org/kernel/elements/1.1/')
+    MADSRDF = Namespace('http://www.loc.gov/mads/rdf/v1#')
     MIX = Namespace('http://www.loc.gov/mix/v20/')
     OAI = Namespace('http://www.openarchives.org/OAI/2.0/')
     ORE = Namespace('http://www.openarchives.org/ore/terms/')
@@ -850,9 +851,9 @@ class SocSciMapsMarcXmlToEDM:
 
     graph = Graph()
     for prefix, ns in (('bf', BF), ('dc', DC), ('dcterms', DCTERMS),
-                       ('edm', EDM), ('erc', ERC), ('mix', MIX), 
-                       ('ore', ORE), ('premis', PREMIS), ('premis2', PREMIS2),
-                       ('premis3', PREMIS3)):
+                       ('edm', EDM), ('erc', ERC), ('madsrdf', MADSRDF),
+                       ('mix', MIX), ('ore', ORE), ('premis', PREMIS),
+                       ('premis2', PREMIS2), ('premis3', PREMIS3)):
         graph.bind(prefix, ns)
 
     def __init__(self, digital_record, print_record, noid, master_file_metadata):
@@ -942,26 +943,30 @@ class SocSciMapsMarcXmlToEDM:
 
         self.graph.add((self.cho, RDF.type, self.EDM.ProvidedCHO))
         for pre, obj_str in (
-            (self.BF.ClassificationLcc, '{http://id.loc.gov/ontologies/bibframe/}ClassificationLcc'),
-            (DC.coverage,               '{http://purl.org/dc/elements/1.1/}coverage'),
-            (DC.creator,                '{http://purl.org/dc/elements/1.1/}creator'),
-            (DC.description,            '{http://purl.org/dc/elements/1.1/}description'),
-            (DC.extent,                 '{http://purl.org/dc/elements/1.1/}extent'),
-            (DCTERMS.hasFormat,         '{http://purl.org/dc/terms/}hasFormat'),
-            (DC.identifier,             '{http://purl.org/dc/elements/1.1/}identifier'),
-            (DC.language,               '{http://purl.org/dc/elements/1.1/}language'),
-            (self.BF.Local,             '{http://id.loc.gov/ontologies/bibframe/}Local'),
-            (DC.publisher,              '{http://purl.org/dc/elements/1.1/}publisher'),
-            (DC.rights,                 '{http://purl.org/dc/elements/1.1/}rights'),
-            (self.BF.scale,             '{http://id.loc.gov/ontologies/bibframe/}scale'),
-            (DCTERMS.spatial,           '{http://purl.org/dc/terms/}spatial'),
-            (DC.subject,                '{http://purl.org/dc/elements/1.1/}subject'),
-            (DC.title,                  '{http://purl.org/dc/elements/1.1/}title'),
-            (DC.type,                   '{http://purl.org/dc/elements/1.1/}type'),
-            (self.ERC.what,             '{http://purl.org/dc/elements/1.1/}title'),
-            (self.ERC.who,              '{http://www.loc.gov/mads/rdf/v1#}ConferenceName'),
-            (self.ERC.who,              '{http://www.loc.gov/mads/rdf/v1#}CorporateName'),
-            (self.ERC.who,              '{http://www.loc.gov/mads/rdf/v1#}PersonalName')
+            (self.BF.ClassificationLcc,   '{http://id.loc.gov/ontologies/bibframe/}ClassificationLcc'),
+            (self.MADSRDF.ConferenceName, '{http://www.loc.gov/mads/rdf/v1#}ConferenceName'),
+            (self.MADSRDF.CorporateName,  '{http://www.loc.gov/mads/rdf/v1#}CorporateName'),
+            (DC.coverage,                 '{http://purl.org/dc/elements/1.1/}coverage'),
+            (DC.creator,                  '{http://purl.org/dc/elements/1.1/}creator'),
+            (DC.description,              '{http://purl.org/dc/elements/1.1/}description'),
+            (DC.extent,                   '{http://purl.org/dc/elements/1.1/}extent'),
+            (DCTERMS.hasFormat,           '{http://purl.org/dc/terms/}hasFormat'),
+            (DC.identifier,               '{http://purl.org/dc/elements/1.1/}identifier'),
+            (DC.language,                 '{http://purl.org/dc/elements/1.1/}language'),
+            (self.BF.Local,               '{http://id.loc.gov/ontologies/bibframe/}Local'),
+            (self.MADSRDF.PersonalName,   '{http://www.loc.gov/mads/rdf/v1#}PersonalName'),
+            (self.BF.place,               '{http://id.loc.gov/ontologies/bibframe/}place'),
+            (DC.publisher,                '{http://purl.org/dc/elements/1.1/}publisher'),
+            (DC.rights,                   '{http://purl.org/dc/elements/1.1/}rights'),
+            (self.BF.scale,               '{http://id.loc.gov/ontologies/bibframe/}scale'),
+            (DCTERMS.spatial,             '{http://purl.org/dc/terms/}spatial'),
+            (DC.subject,                  '{http://purl.org/dc/elements/1.1/}subject'),
+            (DC.title,                    '{http://purl.org/dc/elements/1.1/}title'),
+            (DC.type,                     '{http://purl.org/dc/elements/1.1/}type'),
+            (self.ERC.what,               '{http://purl.org/dc/elements/1.1/}title'),
+            (self.ERC.who,                '{http://www.loc.gov/mads/rdf/v1#}ConferenceName'),
+            (self.ERC.who,                '{http://www.loc.gov/mads/rdf/v1#}CorporateName'),
+            (self.ERC.who,                '{http://www.loc.gov/mads/rdf/v1#}PersonalName')
         ):
             for dc_obj_el in self.dc._asxml().findall(obj_str):
                 self.graph.add((self.cho, pre, Literal(dc_obj_el.text)))
