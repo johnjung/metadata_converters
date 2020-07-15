@@ -34,6 +34,11 @@ for subdir in os.listdir(data_directory):
                 subdirs[element.text] = subdir
 
 for i, d in enumerate(digital_records):
+    pair_tree_directory = '/data/digital_collections/'.format(
+        os.sep.join([noids[i][c:c+2] for c in range(0, len(noids[i]), 2)])
+    )
+    print(pair_tree_directory)
+
     print('python marc2edm.py --image_dir {}/{}/tifs --socscimaps {} --noid {} > ttl/{}.ttl'.format(
         data_directory, 
         subdirs[d],
@@ -41,3 +46,7 @@ for i, d in enumerate(digital_records):
         noids[i],
         noids[i]
     ))
+
+# maps/chisoc/{subdirs[digital_record_id]}/tifs/{subdirs[digital_record_id]}.tif turns into file.tif in this directory.
+# *.xml turns into file.xml
+# *.dc.xml turns into file.dc.xml
