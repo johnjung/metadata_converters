@@ -12,9 +12,7 @@ from pymarc import MARCReader
 
 ElementTree.register_namespace('m', 'http://www.loc.gov/MARC21/slim')
 
-def main():
-    options = docopt(__doc__)
-
+def marc_to_dc_soc_sci(digital_record_id, noid):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(
@@ -24,7 +22,7 @@ def main():
     )
 
     # request the digital record
-    url = 'http://vfsolr.uchicago.edu:8080/solr/biblio/select?q=id:{}'.format(str(options['<digital_record_id>']))
+    url = 'http://vfsolr.uchicago.edu:8080/solr/biblio/select?q=id:{}'.format(str(digital_record_id))
     _, ssh_stdout, _ = ssh.exec_command('curl "{}"'.format(url))
     data = json.loads(ssh_stdout.read())
     fullrecord = data['response']['docs'][0]['fullrecord']
@@ -48,10 +46,13 @@ def main():
         for record in reader:
             print_record = record
 
-
-    sys.stdout.write(
-        str(SocSciMapsMarcXmlToDc(digital_record, print_record, options['<noid>']))
-    )
+    return str(SocSciMapsMarcXmlToDc(digital_record, print_record, noid))
 
 if __name__ == "__main__":
-    main()
+    options = docopt(__doc__)
+    sys.stdout.write(
+        marc_to_dc_soc_sci(
+            options['<digital_record_id>'],
+            options['<noid>']
+        )
+    )
