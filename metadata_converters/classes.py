@@ -7,10 +7,10 @@ from rdflib.namespace import RDF, DC, DCTERMS, XSD
 from rdflib.plugins.sparql import prepareQuery
 
 
-BASE = Namespace('http://ark.lib.uchicago.edu/')
+ARK = Namespace('ark:/61001/')
 BF = Namespace('http://id.loc.gov/ontologies/bibframe/')
 EDM = Namespace('http://www.europeana.eu/schemas/edm/')
-ERC = Namespace('http://purl.org/kernel/elements/1.1/')
+ERC = Namespace('https://www.dublincore.org/groups/kernel/spec/')
 MADSRDF = Namespace('http://www.loc.gov/mads/rdf/v1#')
 MIX = Namespace('http://www.loc.gov/mix/v20/')
 OAI = Namespace('http://www.openarchives.org/OAI/2.0/')
@@ -20,47 +20,15 @@ PREMIS2 = Namespace('http://www.loc.gov/premis/rdf/v1#')
 PREMIS3 = Namespace('http://www.loc.gov/premis/rdf/v3/')
 VRA = Namespace('http://purl.org/vra/')
 
+REPOSITORY = Namespace('https://repository.lib.uchicago.edu/')
+REPOSITORY_AGG = REPOSITORY['aggregation']
+REPOSITORY_CHO = REPOSITORY['']
+REPOSITORY_REM = REPOSITORY['rem']
 
-def agg_cho_rem(prefix):
-    """ Create aggregation, cultural heritage object, and resource map
-        URIRefs according to UChicago naming rules.
-
-        If the prefix begins with 'https://repository.lib.uchicago.edu/:
-            return '{prefix}aggregation', 
-                   '{prefix}',
-                   '{prefix}rem'
-
-        If the prefix begins with 'ark:/61001/':
-            get the noid and suffix: ark:/61001/{noid}{suffix}.
-            return 'ark:/61001/aggregation/{noid}{suffix}',
-                   '{prefix},
-                   'ark:/61001/rem/{noid}{suffix} """
-
-    if prefix.startswith('https://repository.lib.uchicago.edu/'):
-        return URIRef('{}/aggregation'.format(prefix)), \
-               URIRef(prefix), \
-               URIRef('{}/rem'.format(prefix))
-    elif prefix.startswith('base:'):
-        m = re.match('^base:([^/]*)(/.*)?$', prefix)
-        noid = m.group(1)
-        if m.group(2):
-            suffix = m.group(2)
-        else:
-            suffix = ''
-        return URIRef('base:aggregation/{}{}'.format(noid, suffix)), \
-               URIRef(prefix), \
-               URIRef('base:rem/{}{}'.format(noid, suffix))
-    else:
-        raise NotImplementedError
-
-
-REPOSITORY_AGG, \
-REPOSITORY_CHO, \
-REPOSITORY_REM = agg_cho_rem('https://repository.lib.uchicago.edu/')
-
-DIGCOL_AGG, \
-DIGCOL_CHO, \
-DIGCOL_REM = agg_cho_rem('https://repository.lib.uchicago.edu/digital_collections/')
+DIGCOL = Namespace('https://repository.lib.uchicago.edu/digital_collections/')
+DIGCOL_AGG = DIGCOL['aggregation']
+DIGCOL_CHO = DIGCOL['']
+DIGCOL_REM = DIGCOL['rem']
 
 
 def remove_marc_punctuation(s):
@@ -90,11 +58,6 @@ def convert_034_coords_to_marc_rda(s):
         s[3][4:6],
         s[3][6:8]
     )
-
-# Subfields $d, $e, $f, and $g always appear together. The coordinates may be recorded in the form hdddmmss (hemisphere-degrees-minutes-seconds), however, other forms are also allowed, such as decimal degrees. The subelements are each right justified and unused positions contain zeros.
-
-# $$c(E 5°57'00"-E 10°29'00"/N 47°48'00"-N 45°49'00")
-# W0875104 W0873125 N0420123 N0413839
 
 def list_is_a_subset_of_lists(l, lists_to_check):
     for lst in lists_to_check:

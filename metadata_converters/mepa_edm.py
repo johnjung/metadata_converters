@@ -14,7 +14,6 @@ from classes import BASE, BF, EDM, ERC, MADSRDF, MIX, OAI, ORE, PREMIS, PREMIS2,
 from classes import REPOSITORY_AGG, REPOSITORY_CHO, REPOSITORY_REM 
 from classes import DIGCOL_AGG, DIGCOL_CHO, DIGCOL_REM 
 from classes import DigitalCollectionToEDM
-from classes import agg_cho_rem
 
 
 class MepaToEDM(DigitalCollectionToEDM):
@@ -33,30 +32,34 @@ class MepaToEDM(DigitalCollectionToEDM):
         self.vra = vra
         self.noid = noid
 
-        self.MEPA_AGG, \
-        self.MEPA_CHO, \
-        self.MEPA_REM = agg_cho_rem('https://repository.lib.uchicago.edu/digital_collections/mepa/')
+        self.MEPA = Namespace('https://repository.lib.uchicago.edu/digital_collections/mepa/')
+        self.MEPA_AGG = self.MEPA['aggregation']
+        self.MEPA_CHO = self.MEPA['']
+        self.MEPA_REM = self.MEPA['rem']
 
-        self.work_agg, \
-        self.work_cho, \
-        self.work_rem = agg_cho_rem('base:{}'.format(self.noid))
+        self.ARK = Namespace('ark:/61001/')
+        self.work_agg = self.ARK['aggregation']
+        self.work_cho = self.ARK['']
+        self.work_rem = self.ARK['rem']
         self.work_wbr = URIRef('http://example.org/')
 
-        self.recto_agg, \
-        self.recto_cho, \
-        self.recto_rem = agg_cho_rem('base:{}/Recto'.format(self.noid))
+        self.RECTO = Namespace('ark:/61001/Recto/')
+        self.recto_agg = self.RECTO['aggregation']
+        self.recto_cho = self.RECTO['']
+        self.recto_rem = self.RECTO['rem']
         self.recto_wbr = URIRef(
             'https://iiif-server-dev.lib.uchicago.edu/{}'.format(
-                urllib.parse.quote('base:{}/00000001'.format(self.noid), safe='')
+                urllib.parse.quote('ark:/61001/{}/00000001'.format(self.noid), safe='')
             )
         )
 
-        self.verso_agg, \
-        self.verso_cho, \
-        self.verso_rem = agg_cho_rem('base:{}/Verso'.format(self.noid))
+        self.VERSO = Namespace('ark:/61001/Verso/')
+        self.verso_agg = self.VERSO['aggregation']
+        self.verso_cho = self.VERSO['']
+        self.verso_rem = self.VERSO['rem']
         self.verso_wbr = URIRef(
             'https://iiif-server-dev.lib.uchicago.edu/{}'.format(
-                urllib.parse.quote('base:{}/00000001'.format(self.noid), safe='')
+                urllib.parse.quote('ark:/61001/{}/00000001'.format(self.noid), safe='')
             )
         )
 
