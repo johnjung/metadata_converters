@@ -1,4 +1,4 @@
-import json, os, re, shutil, subprocess
+import json, os, re, shutil, subprocess, sys
 import xml.etree.ElementTree as ET
 from marc2edm import marc_to_edm_soc_sci
 from marc2dc import marc_to_dc_soc_sci
@@ -26,8 +26,10 @@ noids = ['b2gg00s0zd88', 'b2gg6296r847', 'b2h505p2k84p',
 'b2w27c162t47', 'b2w80rn9bb9v']
 
 orig_data_directory = '/data/digital_collections/IIIF/IIIF_Files/maps/chisoc'
-tmp_dir = '/tmp/metadata_converters'
+tmp_dir = '/tmp/metadata_converters/ssmaps'
 
+# build a dict of subdirs- digital record id (key) to call number
+# (value.)
 subdirs = {}
 for subdir in os.listdir(orig_data_directory):
     with open('{0}/{1}/{1}.xml'.format(orig_data_directory, subdir)) as f:
@@ -37,34 +39,44 @@ for subdir in os.listdir(orig_data_directory):
                 subdirs[element.text] = subdir
 
 for i, d in enumerate(digital_records):
-    pair_tree_directory = '/data/digital_collections/{}'.format(
+    pair_tree_directory = '/data/digital_collections/ark_data/{}'.format(
         os.sep.join([noids[i][c:c+2] for c in range(0, len(noids[i]), 2)])
     )
+
     pair_tree_directory_parent = os.path.abspath(os.path.join(pair_tree_directory, os.pardir))
     pair_tree_directory_leaf = os.path.basename(os.path.normpath(pair_tree_directory))
 
+    # clear out tmp_dir
+    subprocess.run([
+        'rm',
+        '-rdf',
+        tmp_dir
+    ])
+
     # make pair tree directory.
+    '''
     if not os.path.exists(pair_tree_directory_parent):
         os.makedirs(pair_tree_directory_parent)
+    '''
 
     # make temporary directory.
-    if not os.path.exists('{}/{}'.format(tmp_dir, pair_tree_directory_leaf)):
-        os.makedirs('{}/{}'.format(tmp_dir, pair_tree_directory_leaf))
+    if not os.path.exists('{}/tmp'.format(tmp_dir)):
+        os.makedirs('{}/tmp'.format(tmp_dir))
 
     # file.xml
     shutil.copyfile(
         '{0}/{1}/{1}.xml'.format(orig_data_directory, subdirs[d]),
-        '{}/{}/file.xml'.format(tmp_dir, pair_tree_directory_leaf)
+        '{}/tmp/file.xml'.format(tmp_dir)
     )
 
     # file.tif
     shutil.copyfile(
         '{0}/{1}/tifs/{1}.tif'.format(orig_data_directory, subdirs[d]),
-        '{}/{}/file.tif'.format(tmp_dir, pair_tree_directory_leaf)
+        '{}/tmp/file.tif'.format(tmp_dir)
     )
 
     # file.dc.xml
-    with open('{}/{}/file.dc.xml'.format(tmp_dir, pair_tree_directory_leaf), 'w') as f:
+    with open('{}/tmp/file.dc.xml'.format(tmp_dir), 'w') as f:
         f.write(
             marc_to_dc_soc_sci(
                 d,
@@ -73,21 +85,25 @@ for i, d in enumerate(digital_records):
         )
 
     # file.ttl
-    with open('{}/{}/file.ttl'.format(tmp_dir, pair_tree_directory_leaf), 'w') as f:
-        f.write(
-            marc_to_edm_soc_sci(
-                False,
-                '{}/{}/tifs'.format(orig_data_directory, subdirs[d]),
-                d,
-                noids[i]
-            )
-        )
+    ttl_str = subprocess.check_output([
+        'python',
+        '/data/s4/jej/metadata_converters/metadata_converters/marc2edm.py',
+        '--image_dir', 
+        '/data/digital_collections/IIIF/IIIF_Files/maps/chisoc/{}/tifs'.format(subdirs[d]),
+        '--socscimaps',
+        d,
+        '--noid',
+        noids[i]
+    ]).decode('utf-8')
+
+    with open('{}/tmp/file.ttl'.format(tmp_dir), 'w') as f:
+        f.write(ttl_str)
 
     inventory_str = subprocess.run([
         'ocfl-object.py',
         '--create',
         '--srcdir',
-        '{}/{}'.format(tmp_dir, pair_tree_directory_leaf),
+        '{}/tmp'.format(tmp_dir),
         '--id',
         'ark:/61001/{}'.format(noids[i]),
         '--message', 
@@ -95,43 +111,10 @@ for i, d in enumerate(digital_records):
         '--name',
         'John Jung',
         '--address',
-        'mailto:jej@uchicago.edu'
-    ], stderr=subprocess.PIPE).stderr.decode('utf-8')
-    # remove WARNING line.
-    inventory_str = re.sub('^WARNING.*', '', inventory_str)
-    # remove additional space and pretty print. 
-    inventory_str = json.dumps(json.loads(inventory_str), indent=4)
-    # write it.
-    with open('{}/{}/inventory.json'.format(tmp_dir, pair_tree_directory_leaf), 'w') as f:
-        f.write(inventory_str)
-
-    # create sidecar. 
-    subprocess.run([
-        'ocfl-sidecar.py',
+        'mailto:jej@uchicago.edu',
+        '--objdir',
         '{}/{}'.format(tmp_dir, pair_tree_directory_leaf)
     ])
-
-    # create version directories. 
-    if not os.path.exists('{}/{}/v1/content'.format(tmp_dir, pair_tree_directory_leaf)):
-        os.makedirs('{}/{}/v1/content'.format(tmp_dir, pair_tree_directory_leaf))
-
-    # move files into v1 directory.
-    for fname in ('file.dc.xml', 'file.tif', 'file.ttl', 'file.xml'):
-        shutil.move(
-            '{}/{}/{}'.format(tmp_dir, pair_tree_directory_leaf, fname),
-            '{}/{}/v1/content/'.format(tmp_dir, pair_tree_directory_leaf)
-        )
-
-    # copy the inventory and sidecar into v1.
-    for fname in ('inventory.json', 'inventory.json.sha512'):
-        shutil.copy(
-            '{}/{}/{}'.format(tmp_dir, pair_tree_directory_leaf, fname),
-            '{}/{}/v1/'.format(tmp_dir, pair_tree_directory_leaf)
-        )
-
-    # create a namaste file.
-    with open('{}/{}/0=ocfl_object_1.0'.format(tmp_dir, pair_tree_directory_leaf), 'w') as f:
-        f.write('ocfl_object_1.0')
 
     # move this directory into place in the pair tree.
     shutil.move(

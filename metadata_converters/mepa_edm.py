@@ -28,6 +28,7 @@ class MepaToEDM(DigitalCollectionToEDM):
         """
         super(MepaToEDM, self).__init__()
         self.graph.bind('vra', VRA)
+        self.graph.bind('base', 'ark:/61001/')
 
         self.vra = vra
         self.noid = noid
@@ -38,24 +39,24 @@ class MepaToEDM(DigitalCollectionToEDM):
 
         self.work_agg, \
         self.work_cho, \
-        self.work_rem = agg_cho_rem('ark:/61001/{}'.format(self.noid))
+        self.work_rem = agg_cho_rem('base:{}'.format(self.noid))
         self.work_wbr = URIRef('http://example.org/')
 
         self.recto_agg, \
         self.recto_cho, \
-        self.recto_rem = agg_cho_rem('ark:/61001/{}/Recto'.format(self.noid))
+        self.recto_rem = agg_cho_rem('base:{}/Recto'.format(self.noid))
         self.recto_wbr = URIRef(
             'https://iiif-server-dev.lib.uchicago.edu/{}'.format(
-                urllib.parse.quote('ark:/61001/{}/00000001'.format(self.noid), safe='')
+                urllib.parse.quote('base:{}/00000001'.format(self.noid), safe='')
             )
         )
 
         self.verso_agg, \
         self.verso_cho, \
-        self.verso_rem = agg_cho_rem('ark:/61001/{}/Verso'.format(self.noid))
+        self.verso_rem = agg_cho_rem('base:{}/Verso'.format(self.noid))
         self.verso_wbr = URIRef(
             'https://iiif-server-dev.lib.uchicago.edu/{}'.format(
-                urllib.parse.quote('ark:/61001/{}/00000001'.format(self.noid), safe='')
+                urllib.parse.quote('base:{}/00000001'.format(self.noid), safe='')
             )
         )
 
@@ -125,15 +126,6 @@ class MepaToEDM(DigitalCollectionToEDM):
             if o:
                 self.graph.add((self.work_cho, DC.creator, o))
                 self.graph.add((self.work_cho, ERC.who, o))
-
-        # dc:date
-        for e in self.vra.findall(
-            ".//vra:dateSet/vra:date/vra:earliestDate",
-            {'vra': 'http://www.vraweb.org/vracore4.htm'}
-        ):
-            o = Literal(int(e.text))
-            self.graph.add((self.work_cho, DC.date, o))
-            self.graph.add((self.work_cho, ERC.when, o))
 
         # dc:extent
         for e in self.vra.findall(
@@ -229,6 +221,15 @@ class MepaToEDM(DigitalCollectionToEDM):
             {'vra': 'http://www.vraweb.org/vracore4.htm'}
         ):
             self.graph.add((self.work_cho, DCTERMS.temporal, Literal(e.text.strip())))
+
+        # edm:date
+        for e in self.vra.findall(
+            ".//vra:dateSet/vra:date/vra:earliestDate",
+            {'vra': 'http://www.vraweb.org/vracore4.htm'}
+        ):
+            o = Literal(int(e.text))
+            self.graph.add((self.work_cho, EDM.date, o))
+            self.graph.add((self.work_cho, ERC.when, o))
 
         # edm:type
         self.graph.add((self.work_cho, EDM.type, Literal('IMAGE')))

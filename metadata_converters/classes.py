@@ -40,16 +40,16 @@ def agg_cho_rem(prefix):
         return URIRef('{}/aggregation'.format(prefix)), \
                URIRef(prefix), \
                URIRef('{}/rem'.format(prefix))
-    elif prefix.startswith('ark:/61001/'):
-        m = re.match('^ark:/61001/([^/]*)(/.*)?$', prefix)
+    elif prefix.startswith('base:'):
+        m = re.match('^base:([^/]*)(/.*)?$', prefix)
         noid = m.group(1)
         if m.group(2):
             suffix = m.group(2)
         else:
             suffix = ''
-        return URIRef('ark:/61001/aggregation/{}{}'.format(noid, suffix)), \
+        return URIRef('base:aggregation/{}{}'.format(noid, suffix)), \
                URIRef(prefix), \
-               URIRef('ark:/61001/rem/{}{}'.format(noid, suffix))
+               URIRef('base:rem/{}{}'.format(noid, suffix))
     else:
         raise NotImplementedError
 
