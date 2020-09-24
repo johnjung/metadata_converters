@@ -105,7 +105,7 @@ for i, d in enumerate(digital_records):
         '--srcdir',
         '{}/tmp'.format(tmp_dir),
         '--id',
-        'ark:/61001/{}'.format(noids[i]),
+        'ark:61001/{}'.format(noids[i]),
         '--message', 
         'Initial commit.',
         '--name',

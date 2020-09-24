@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+"""Usage: maps_edm --collection_triples
+"""
+
+import datetime, sys
+from classes import EDM, ERC, ORE
+from classes import DigitalCollectionToEDM
+from docopt import docopt
+from rdflib import Graph, Literal, Namespace, URIRef
+from rdflib.namespace import RDF, DC, DCTERMS, XSD
+
+
+class MapsMarcXmlToEDM(DigitalCollectionToEDM):
+    """A class to convert MARCXML to Europeana Data Model (EDM)."""
+
+    @classmethod
+    def build_collection_triples(self):
+        """Add triples for the map collections itself, and to connect items with each other. 
+
+        Side Effect:
+            Add triples to self.graph
+        """
+ 
+        now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+
+        # resource map for the map collection 
+        self.graph.add((self.MAPS_REM, RDF.type,           ORE.ResourceMap))
+        self.graph.add((self.MAPS_REM, DCTERMS.created,    now))
+        self.graph.add((self.MAPS_REM, DCTERMS.creator,    URIRef('https://library.uchicago.edu/')))
+        self.graph.add((self.MAPS_REM, DCTERMS.modified,   now))
+        self.graph.add((self.MAPS_REM, ORE.describes,      self.MAPS_AGG))
+
+        # aggregation for the map collection
+        self.graph.add((self.MAPS_AGG, RDF.type,           ORE.Aggregation))
+        self.graph.add((self.MAPS_AGG, EDM.aggregatedCHO,  self.MAPS_CHO))
+        self.graph.add((self.MAPS_AGG, EDM.dataProvider,   Literal('University of Chicago Library')))
+        self.graph.add((self.MAPS_AGG, EDM.isShownAt,      self.MAPS_CHO))
+        self.graph.add((self.MAPS_AGG, EDM.object,         URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/icon.png')))
+        self.graph.add((self.MAPS_AGG, EDM.provider,       Literal('University of Chicago Library')))
+        self.graph.add((self.MAPS_AGG, ORE.isDescribedBy,  self.MAPS_REM))
+
+        # cultural heritage object for the map collection
+        self.graph.add((self.MAPS_CHO, RDF.type,           EDM.ProvidedCHO))
+        self.graph.add((self.MAPS_CHO, DC.date,            Literal('2020')))
+        self.graph.add((self.MAPS_CHO, DC.title,           Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.MAPS_CHO, DCTERMS.hasPart,    self.CHISOC_CHO))
+        self.graph.add((self.MAPS_CHO, ERC.who,            Literal('University of Chicago Library')))
+        self.graph.add((self.MAPS_CHO, ERC.what,           Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.MAPS_CHO, ERC.when,           Literal('2020')))
+        self.graph.add((self.MAPS_CHO, ERC.where,          URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/')))
+        self.graph.add((self.MAPS_CHO, EDM.year,           Literal('2020')))
+
+if __name__ == "__main__":
+    options = docopt(__doc__)
+    MapsMarcXmlToEDM.build_collection_triples()
+    if options['--collection_triples']:
+        sys.stdout.write(
+            MapsMarcXmlToEDM.triples()
+        )
+    else:
+        raise NotImplementedError

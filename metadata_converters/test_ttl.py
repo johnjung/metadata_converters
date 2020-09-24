@@ -21,7 +21,7 @@ class TestTTL(unittest.TestCase):
         ):
             predicate_exists.append(
                 (
-                    URIRef('ark:/61001/b2nw3wm8552h'),
+                    URIRef('ark:61001/b2nw3wm8552h'),
                     URIRef(predicate),
                     None
                 ) in self.g_3404181
@@ -40,7 +40,7 @@ class TestTTL(unittest.TestCase):
         ):
             predicate_exists.append(
                 (
-                    URIRef('ark:/61001/b2nw3wm8552h'),
+                    URIRef('ark:61001/b2nw3wm8552h'),
                     URIRef(predicate),
                     None
                 ) in self.g_3404181
@@ -50,7 +50,7 @@ class TestTTL(unittest.TestCase):
         # dc:language must appear for TEXT objects.
         self.assertTrue(
             (
-                URIRef('ark:/61001/b2nw3wm8552h'),
+                URIRef('ark:61001/b2nw3wm8552h'),
                 URIRef('http://purl.org/dc/elements/1.1/language'),
                 None
             ) in self.g_3404181
@@ -59,7 +59,7 @@ class TestTTL(unittest.TestCase):
         # edm:type must occur.
         self.assertTrue(
             (
-                URIRef('ark:/61001/b2nw3wm8552h'),
+                URIRef('ark:61001/b2nw3wm8552h'),
                 URIRef('http://www.europeana.eu/schemas/edm/type'),
                 None
             ) in self.g_3404181
@@ -69,7 +69,7 @@ class TestTTL(unittest.TestCase):
         # VIDEO or 3D.
         self.assertTrue(
             self.g_3404181.value(
-                subject=URIRef('ark:/61001/b2nw3wm8552h'),
+                subject=URIRef('ark:61001/b2nw3wm8552h'),
                 predicate=URIRef('http://www.europeana.eu/schemas/edm/type')
             ) in (
                 Literal('3D'),
@@ -83,7 +83,7 @@ class TestTTL(unittest.TestCase):
         # edm:year should occur.
         self.assertTrue(
             (
-                URIRef('ark:/61001/b2nw3wm8552h'),
+                URIRef('ark:61001/b2nw3wm8552h'),
                 URIRef('http://www.europeana.eu/schemas/edm/year'),
                 None
             ) in self.g_3404181
@@ -98,7 +98,7 @@ class TestTTL(unittest.TestCase):
         ):
             predicate_exists.append(
                 (
-                    URIRef('ark:/61001/b2nw3wm8552h/aggregation'),
+                    URIRef('ark:61001/b2nw3wm8552h/aggregation'),
                     URIRef(predicate),
                     None
                 ) in self.g_3404181
@@ -107,13 +107,13 @@ class TestTTL(unittest.TestCase):
 
         # if edm:isShownBy is is used, then edm:object must be supplied. 
         if (
-            URIRef('ark:/61001/b2nw3wm8552h/aggregation'),
+            URIRef('ark:61001/b2nw3wm8552h/aggregation'),
             URIRef('http://www.europeana.eu/schemas/edm/isShownBy'),
             None
         ) in self.g_3404181:
             self.assertTrue(
                 (
-                    URIRef('ark:/61001/b2nw3wm8552h/aggregation'),
+                    URIRef('ark:61001/b2nw3wm8552h/aggregation'),
                     URIRef('http://www.europeana.eu/schemas/edm/object'),
                     None
                 ) in self.g_3404181
@@ -122,7 +122,7 @@ class TestTTL(unittest.TestCase):
         # edm:rights is mandatory.
         self.assertTrue(
             (
-                URIRef('ark:/61001/b2nw3wm8552h/aggregation'),
+                URIRef('ark:61001/b2nw3wm8552h/aggregation'),
                 URIRef('http://www.europeana.eu/schemas/edm/rights'),
                 None
             ) in self.g_3404181
@@ -137,7 +137,7 @@ class TestTTL(unittest.TestCase):
         ):
             predicate_exists.append(
                 (
-                    URIRef('ark:/61001/b2nw3wm8552h/rem'),
+                    URIRef('ark:61001/b2nw3wm8552h/rem'),
                     URIRef(predicate),
                     None
                 ) in self.g_3404181

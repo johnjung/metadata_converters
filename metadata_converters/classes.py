@@ -7,7 +7,7 @@ from rdflib.namespace import RDF, DC, DCTERMS, XSD
 from rdflib.plugins.sparql import prepareQuery
 
 
-ARK = Namespace('ark:/61001/')
+ARK = Namespace('ark:61001/')
 BF = Namespace('http://id.loc.gov/ontologies/bibframe/')
 EDM = Namespace('http://www.europeana.eu/schemas/edm/')
 ERC = Namespace('https://www.dublincore.org/groups/kernel/spec/')
@@ -19,16 +19,6 @@ PREMIS = Namespace('info:lc/xmlns/premis-v2/')
 PREMIS2 = Namespace('http://www.loc.gov/premis/rdf/v1#')
 PREMIS3 = Namespace('http://www.loc.gov/premis/rdf/v3/')
 VRA = Namespace('http://purl.org/vra/')
-
-REPOSITORY = Namespace('https://repository.lib.uchicago.edu/')
-REPOSITORY_AGG = REPOSITORY['aggregation']
-REPOSITORY_CHO = REPOSITORY['']
-REPOSITORY_REM = REPOSITORY['rem']
-
-DIGCOL = Namespace('https://repository.lib.uchicago.edu/digital_collections/')
-DIGCOL_AGG = DIGCOL['aggregation']
-DIGCOL_CHO = DIGCOL['']
-DIGCOL_REM = DIGCOL['rem']
 
 
 def remove_marc_punctuation(s):
@@ -176,6 +166,33 @@ class NoidManager():
 
 
 class DigitalCollectionToEDM:
+    REPOSITORY = Namespace('https://repository.lib.uchicago.edu/')
+    REPOSITORY_AGG = REPOSITORY['aggregation']
+    REPOSITORY_CHO = REPOSITORY['']
+    REPOSITORY_REM = REPOSITORY['rem']
+    
+    DIGCOL = Namespace('https://repository.lib.uchicago.edu/digital_collections/')
+    DIGCOL_AGG = DIGCOL['aggregation']
+    DIGCOL_CHO = DIGCOL['']
+    DIGCOL_REM = DIGCOL['rem']
+
+    MAPS = Namespace('https://repository.lib.uchicago.edu/digital_collections/maps/')
+    MAPS_AGG = MAPS['aggregation']
+    MAPS_CHO = MAPS['']
+    MAPS_REM = MAPS['rem']
+
+    CHISOC = Namespace('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/')
+    CHISOC_AGG = CHISOC['aggregation']
+    CHISOC_CHO = CHISOC['']
+    CHISOC_REM = CHISOC['rem']
+
+    graph = Graph()
+    for prefix, ns in (('bf', BF), ('dc', DC), ('dcterms', DCTERMS),
+                       ('edm', EDM), ('erc', ERC), ('madsrdf', MADSRDF),
+                       ('mix', MIX), ('ore', ORE), ('premis', PREMIS),
+                       ('premis2', PREMIS2), ('premis3', PREMIS3)):
+        graph.bind(prefix, ns)
+
     def __init__(self):
         self.graph = Graph()
         for prefix, ns in (('bf', BF), ('dc', DC), ('dcterms', DCTERMS),
@@ -204,6 +221,90 @@ class DigitalCollectionToEDM:
                      (DCTERMS.creator,  URIRef('https://library.uchicago.edu/')),
                      (ORE.describes,    agg)):
             self.graph.add((rem, p, o))
+
+    @classmethod
+    def build_repository_triples(self):
+        """Add triples for the repository itself, and to connect items with each other. 
+
+        Side Effect:
+            Add triples to self.graph
+        """
+ 
+        now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+
+        # resource map for the repository
+        self.graph.add((self.REPOSITORY_REM, RDF.type,          ORE.ResourceMap))
+        self.graph.add((self.REPOSITORY_REM, DCTERMS.created,   now))
+        self.graph.add((self.REPOSITORY_REM, DCTERMS.modified,  now))
+        self.graph.add((self.REPOSITORY_REM, DCTERMS.creator,   URIRef('https://library.uchicago.edu/')))
+        self.graph.add((self.REPOSITORY_REM, ORE.describes,     self.REPOSITORY_AGG))
+
+        # aggregation for the repository
+        self.graph.add((self.REPOSITORY_AGG, RDF.type,          ORE.Aggregation))
+        self.graph.add((self.REPOSITORY_AGG, EDM.aggregatedCHO, self.REPOSITORY_CHO))
+        self.graph.add((self.REPOSITORY_AGG, EDM.dataProvider,  Literal("University of Chicago Library")))
+        self.graph.add((self.REPOSITORY_AGG, EDM.isShownAt,     self.REPOSITORY_CHO))
+        self.graph.add((self.REPOSITORY_AGG, EDM.object,        URIRef('https://repository.lib.uchicago.edu/icon.png')))
+        self.graph.add((self.REPOSITORY_AGG, EDM.provider,      Literal('University of Chicago Library')))
+        self.graph.add((self.REPOSITORY_AGG, ORE.isDescribedBy, self.REPOSITORY_REM))
+
+        # cultural heritage object for the repository
+        self.graph.add((self.REPOSITORY_CHO, RDF.type,          EDM.ProvidedCHO))
+        self.graph.add((self.REPOSITORY_CHO, DC.date,           Literal('2020')))
+        self.graph.add((self.REPOSITORY_CHO, DC.title,          Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.REPOSITORY_CHO, DCTERMS.hasPart,   URIRef('https://repository.lib.uchicago.edu/digital_archives')))
+        self.graph.add((self.REPOSITORY_CHO, DCTERMS.hasPart,   URIRef('https://repository.lib.uchicago.edu/digital_collections')))
+        self.graph.add((self.REPOSITORY_CHO, ERC.who,           Literal('University of Chicago Library')))
+        self.graph.add((self.REPOSITORY_CHO, ERC.what,          Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.REPOSITORY_CHO, ERC.when,          Literal('2020')))
+        self.graph.add((self.REPOSITORY_CHO, ERC.where,         self.REPOSITORY_CHO))
+        self.graph.add((self.REPOSITORY_CHO, EDM.year,          Literal('2020'))) 
+
+    @classmethod
+    def build_digital_collections_triples(self):
+        """Add triples for digital collections itself, and to connect items with each other. 
+
+        Side Effect:
+            Add triples to self.graph
+        """
+ 
+        now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+
+        # resource map for digital collections.
+        self.graph.add((self.DIGCOL_REM, RDF.type,           ORE.ResourceMap))
+        self.graph.add((self.DIGCOL_REM, DCTERMS.created,    now))
+        self.graph.add((self.DIGCOL_REM, DCTERMS.modified,   now))
+        self.graph.add((self.DIGCOL_REM, DCTERMS.creator,    URIRef('https://library.uchicago.edu/')))
+        self.graph.add((self.DIGCOL_REM, ORE.describes,      self.DIGCOL_AGG))
+
+        # aggregation for digital collections
+        self.graph.add((self.DIGCOL_AGG, RDF.type,           ORE.Aggregation))
+        self.graph.add((self.DIGCOL_AGG, EDM.aggregatedCHO,  self.DIGCOL_CHO))
+        self.graph.add((self.DIGCOL_AGG, EDM.dataProvider,   Literal('University of Chicago Library')))
+        self.graph.add((self.DIGCOL_AGG, EDM.isShownAt,      URIRef('https://repository.lib.uchicago.edu/digital_collections/')))
+        self.graph.add((self.DIGCOL_AGG, EDM.object,         URIRef('https://repository.lib.uchicago.edu/digital_collections/icon.png')))
+        self.graph.add((self.DIGCOL_AGG, EDM.provider,       Literal('University of Chicago Library')))
+        self.graph.add((self.DIGCOL_AGG, ORE.isDescribedBy,  self.DIGCOL_REM))
+
+        # cultural heritage object for digital collections
+        self.graph.add((self.DIGCOL_CHO, RDF.type,           EDM.ProvidedCHO))
+        self.graph.add((self.DIGCOL_CHO, DC.date,            Literal('2020')))
+        self.graph.add((self.DIGCOL_CHO, DC.title,           Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.DIGCOL_CHO, DCTERMS.hasPart,    URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/')))
+        self.graph.add((self.DIGCOL_CHO, ERC.who,            Literal('University of Chicago Library')))
+        self.graph.add((self.DIGCOL_CHO, ERC.what,           Literal('The University of Chicago Library Digital Repository')))
+        self.graph.add((self.DIGCOL_CHO, ERC.when,           Literal('2020')))
+        self.graph.add((self.DIGCOL_CHO, ERC.where,          URIRef('https://repository.lib.uchicago.edu/digital_collections/')))
+        self.graph.add((self.DIGCOL_CHO, EDM.year,           Literal('2020')))
+
+    @classmethod
+    def triples(self):
+        """Return EDM data as a string.
+
+        Returns:
+            str
+        """
+        return self.graph.serialize(format='turtle', base='ark:61001/').decode("utf-8")
 
 
 class MarcXmlConverter:
@@ -438,7 +539,7 @@ class MarcXmlToDc:
         ElementTree.SubElement(
             metadata,
             '{http://purl.org/dc/elements/1.1/}identifier'
-        ).text = 'ark:/61001/{}'.format(self.noid)
+        ).text = 'ark:61001/{}'.format(self.noid)
 
         # bf:ISBN
         for n in ('020'):

@@ -28,7 +28,7 @@ for d in os.listdir(orig_data_directory):
     original_identifier = d
 
     noid = nm.create()
-    ark = 'ark:/61001/{}'.format(noid)
+    ark = 'ark:61001/{}'.format(noid)
     print(ark)
 
     pair_tree_directory = '{}/{}'.format(
@@ -79,7 +79,7 @@ for d in os.listdir(orig_data_directory):
         '--srcdir',
         '{}/tmp'.format(tmp_dir),
         '--id',
-        'ark:/61001/{}'.format(noid),
+        'ark:61001/{}'.format(noid),
         '--message', 
         'Initial commit.',
         '--name',

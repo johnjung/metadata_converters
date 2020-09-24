@@ -138,7 +138,7 @@ class TestSocSciMapsMarcXmlToDc(unittest.TestCase):
                 self.mrc['3451312'],
                 'b2dq0kf6d36z'
             )._asxml().find('dc:identifier', self.ns).text,
-            'ark:/61001/b2dq0kf6d36z'
+            'ark:61001/b2dq0kf6d36z'
         )
 
     def test_is_part_of(self):

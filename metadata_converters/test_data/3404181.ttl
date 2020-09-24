@@ -14,29 +14,29 @@
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<ark:/61001/b2nw3wm8552h/file.xml> a ore:Proxy ;
+<ark:61001/b2nw3wm8552h/file.xml> a ore:Proxy ;
     dc:format "application/xml" ;
-    ore:proxyFor <ark:/61001/b2nw3wm8552h> ;
-    ore:proxyIn <ark:/61001/b2nw3wm8552h/aggregation> .
+    ore:proxyFor <ark:61001/b2nw3wm8552h> ;
+    ore:proxyIn <ark:61001/b2nw3wm8552h/aggregation> .
 
-<https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/> dcterms:hasPart <ark:/61001/b2nw3wm8552h> .
+<https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/> dcterms:hasPart <ark:61001/b2nw3wm8552h> .
 
-<ark:/61001/b2nw3wm8552h/rem> a ore:ResourceMap ;
+<ark:61001/b2nw3wm8552h/rem> a ore:ResourceMap ;
     dcterms:created "2020-09-08T21:31:10.521508"^^xsd:dateTime ;
     dcterms:creator <https://library.uchicago.edu> ;
     dcterms:modified "2020-09-08T21:31:10.521508"^^xsd:dateTime ;
-    ore:describes <ark:/61001/b2nw3wm8552h/aggregation> .
+    ore:describes <ark:61001/b2nw3wm8552h/aggregation> .
 
-<ark:/61001/b2nw3wm8552h/aggregation> a ore:Aggregation ;
-    edm:aggregatedCHO <ark:/61001/b2nw3wm8552h> ;
+<ark:61001/b2nw3wm8552h/aggregation> a ore:Aggregation ;
+    edm:aggregatedCHO <ark:61001/b2nw3wm8552h> ;
     edm:dataProvider "University of Chicago Library" ;
-    edm:isShownBy <ark:/61001/b2nw3wm8552h/file.tif> ;
-    edm:object <ark:/61001/b2nw3wm8552h/file.tif> ;
+    edm:isShownBy <ark:61001/b2nw3wm8552h/file.tif> ;
+    edm:object <ark:61001/b2nw3wm8552h/file.tif> ;
     edm:provider "University of Chicago Library" ;
     edm:rights <http://creativecommons.org/licenses/by−sa/4.0/> ;
-    ore:isDescribedBy <ark:/61001/b2nw3wm8552h/rem> .
+    ore:isDescribedBy <ark:61001/b2nw3wm8552h/rem> .
 
-<ark:/61001/b2nw3wm8552h> a edm:ProvidedCHO ;
+<ark:61001/b2nw3wm8552h> a edm:ProvidedCHO ;
     bf:ClassificationLcc "G4104.C6E625 1933 .N2" ;
     bf:Local "http://pi.lib.uchicago.edu/1001/cat/bib/7368451" ;
     bf:place "Chicago" ;
@@ -46,7 +46,7 @@
         "Master and use copy. Digital master created according to Benchmark for Faithful Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://www.diglib.org/standards/bmarkfin.htm" ;
     dc:format "1 map",
         "28 x 22 cm" ;
-    dc:identifier "ark:/61001/b2nw3wm8552h" ;
+    dc:identifier "ark:61001/b2nw3wm8552h" ;
     dc:language "en" ;
     dc:publisher "Social Science Research Committee" ;
     dc:rights <http://creativecommons.org/licenses/by-sa/4.0/> ;
@@ -59,7 +59,7 @@
     dcterms:spatial "Illinois -- Chicago" ;
     erc:what "Community areas of Chicago as adopted by Census Bureau, 1930, showing juvenile delinquency rates /" ;
     erc:when "1933/1939" ;
-    erc:where <ark:/61001/b2nw3wm8552h> ;
+    erc:where <ark:61001/b2nw3wm8552h> ;
     erc:who "Bodin, Nathan",
         "McKay, Henry Donald",
         "Narowski, Louis B.",

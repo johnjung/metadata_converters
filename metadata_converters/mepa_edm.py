@@ -27,7 +27,7 @@ class MepaToEDM(DigitalCollectionToEDM):
         """
         super(MepaToEDM, self).__init__()
         self.graph.bind('vra', VRA)
-        self.graph.bind('base', 'ark:/61001/')
+        self.graph.bind('base', 'ark:61001/')
 
         self.vra = vra
         self.noid = noid
@@ -37,29 +37,29 @@ class MepaToEDM(DigitalCollectionToEDM):
         self.MEPA_CHO = self.MEPA['']
         self.MEPA_REM = self.MEPA['rem']
 
-        self.ARK = Namespace('ark:/61001/')
+        self.ARK = Namespace('ark:61001/')
         self.work_agg = self.ARK['aggregation']
         self.work_cho = self.ARK['']
         self.work_rem = self.ARK['rem']
         self.work_wbr = URIRef('http://example.org/')
 
-        self.RECTO = Namespace('ark:/61001/Recto/')
+        self.RECTO = Namespace('ark:61001/Recto/')
         self.recto_agg = self.RECTO['aggregation']
         self.recto_cho = self.RECTO['']
         self.recto_rem = self.RECTO['rem']
         self.recto_wbr = URIRef(
             'https://iiif-server-dev.lib.uchicago.edu/{}'.format(
-                urllib.parse.quote('ark:/61001/{}/00000001'.format(self.noid), safe='')
+                urllib.parse.quote('ark:61001/{}/00000001'.format(self.noid), safe='')
             )
         )
 
-        self.VERSO = Namespace('ark:/61001/Verso/')
+        self.VERSO = Namespace('ark:61001/Verso/')
         self.verso_agg = self.VERSO['aggregation']
         self.verso_cho = self.VERSO['']
         self.verso_rem = self.VERSO['rem']
         self.verso_wbr = URIRef(
             'https://iiif-server-dev.lib.uchicago.edu/{}'.format(
-                urllib.parse.quote('ark:/61001/{}/00000001'.format(self.noid), safe='')
+                urllib.parse.quote('ark:61001/{}/00000001'.format(self.noid), safe='')
             )
         )
 

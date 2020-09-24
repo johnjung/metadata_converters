@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+"""Usage: digital_collections_edm --collection_triples
+"""
+
+import sys
+from classes import DigitalCollectionToEDM
+from docopt import docopt
+
+if __name__ == "__main__":
+    options = docopt(__doc__)
+    DigitalCollectionToEDM.build_repository_triples()
+    DigitalCollectionToEDM.build_digital_collections_triples()
+    if options['--collection_triples']:
+        sys.stdout.write(
+            DigitalCollectionToEDM.triples()
+        )
+    else:
+        raise NotImplementedError

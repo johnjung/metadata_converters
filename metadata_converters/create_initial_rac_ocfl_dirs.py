@@ -23,7 +23,7 @@ for d in ('0392', '1380'):
     original_identifier = 'rac-{}'.format(d)
 
     noid = nm.create()
-    print('ark:/61001/{}'.format(noid))
+    print('ark:61001/{}'.format(noid))
 
     pair_tree_directory = '{}/{}'.format(
         ark_data,
@@ -67,7 +67,7 @@ for d in ('0392', '1380'):
         '--srcdir',
         '{}/tmp'.format(tmp_dir),
         '--id',
-        'ark:/61001/{}'.format(noid),
+        'ark:61001/{}'.format(noid),
         '--message', 
         'Initial commit.',
         '--name',

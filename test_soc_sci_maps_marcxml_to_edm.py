@@ -29,18 +29,18 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
             self.edm[k].build_item_triples()
 
         self.agg = {
-            '7641168,3451312': URIRef('ark:/61001/aggregation/7641168'),
-            '5999566,7368094': URIRef('ark:/61001/aggregation/5999566')
+            '7641168,3451312': URIRef('ark:61001/aggregation/7641168'),
+            '5999566,7368094': URIRef('ark:61001/aggregation/5999566')
         }
 
         self.cho = {
-            '7641168,3451312': URIRef('ark:/61001/7641168'),
-            '5999566,7368094': URIRef('ark:/61001/5999566')
+            '7641168,3451312': URIRef('ark:61001/7641168'),
+            '5999566,7368094': URIRef('ark:61001/5999566')
         }
 
         self.rem = {
-            '7641168,3451312': URIRef('ark:/61001/rem/7641168'),
-            '5999566,7368094': URIRef('ark:/61001/rem/5999566')
+            '7641168,3451312': URIRef('ark:61001/rem/7641168'),
+            '5999566,7368094': URIRef('ark:61001/rem/5999566')
         }
 
     def test_agg_aggregated_cho(self):
@@ -195,7 +195,7 @@ class TestSocSciMapsMarcXmlToEDM(unittest.TestCase):
                 subject=self.cho[ids],
                 predicate=URIRef('http://purl.org/dc/elements/1.1/identifier')
             ),
-            Literal('ark:/61001/7641168')
+            Literal('ark:61001/7641168')
         )
 
     def test_cho_language(self):
