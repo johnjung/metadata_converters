@@ -1,5 +1,5 @@
 import datetime, getpass, hashlib, jinja2, json, magic, os, \
-       pymarc, re, string, sys
+       pymarc, random, re, string, sys
 import xml.etree.ElementTree as ElementTree
 
 from rdflib import Graph, Literal, Namespace, URIRef
@@ -7,7 +7,7 @@ from rdflib.namespace import RDF, DC, DCTERMS, XSD
 from rdflib.plugins.sparql import prepareQuery
 
 
-ARK = Namespace('ark:61001/')
+ARK = Namespace('ark:/61001/')
 BF = Namespace('http://id.loc.gov/ontologies/bibframe/')
 EDM = Namespace('http://www.europeana.eu/schemas/edm/')
 ERC = Namespace('https://www.dublincore.org/groups/kernel/spec/')
@@ -97,11 +97,11 @@ def pairwise(iterable):
 
 class NoidManager():
     """A class to manage NOIDS for digital collections."""
-    def __init__(pair_tree_root):
+    def __init__(self, pair_tree_root):
         self.pair_tree_root = pair_tree_root
         self.extended_digits = '0123456789bcdfghjkmnpqrstvwxz'
 
-    def list():
+    def list(self):
         """Get a list of the NOIDs present."""
     
         identifiers = []
@@ -111,7 +111,7 @@ class NoidManager():
                     identifiers.append(root[len(self.pair_tree_root):].replace(os.sep, ''))
         return identifiers
 
-    def generate_check_digit(noid):
+    def generate_check_digit(self, noid):
         """Multiply each characters ordinal value by it's position, starting at
            position 1. Sum the products. Then do modulo 29 to get the check digit
            in extended characters."""
@@ -123,11 +123,11 @@ class NoidManager():
             p += 1
         return self.extended_digits[s % len(self.extended_digits)]
 
-    def test_noid_check_digit(noid):
+    def test_noid_check_digit(self, noid):
         """Use this for NOIDs that came from other sources."""
         return self.generate_check_digit(self.extended_digits, noid[:-1]) == noid[-1:]
 
-    def create():
+    def create(self):
         """create a UChicago NOID in the form 'b2.reedeedeedk', where: 
          
            e is an extended digit, 
@@ -140,24 +140,24 @@ class NoidManager():
         noid = [
             'b',
             '2',
-            random.choice(extended_digits),
-            random.choice(extended_digits),
-            random.choice(extended_digits[:10]),
-            random.choice(extended_digits),
-            random.choice(extended_digits),
-            random.choice(extended_digits[:10]),
-            random.choice(extended_digits),
-            random.choice(extended_digits),
-            random.choice(extended_digits[:10])
+            random.choice(self.extended_digits),
+            random.choice(self.extended_digits),
+            random.choice(self.extended_digits[:10]),
+            random.choice(self.extended_digits),
+            random.choice(self.extended_digits),
+            random.choice(self.extended_digits[:10]),
+            random.choice(self.extended_digits),
+            random.choice(self.extended_digits),
+            random.choice(self.extended_digits[:10])
         ]
-        noid.append(self.generate_noid_check_digit(''.join(noid)))
+        noid.append(self.generate_check_digit(''.join(noid)))
         return ''.join(noid)
 
-    def path(noid):
+    def path(self, noid):
         """split the noid into two character directories."""
         return os.sep.join([noid[i] + noid[i+1] for i in range(0, len(noid), 2)])
 
-    def noid_is_unique(noid, path):
+    def noid_is_unique(self, noid, path):
         """Check to see if ARKS with that noid exist in our system. 
            Returns true if the NOID is unique in our system. 
            (Note that with 600B possible NOIDs, it is very unlikely that this
@@ -304,7 +304,7 @@ class DigitalCollectionToEDM:
         Returns:
             str
         """
-        return self.graph.serialize(format='turtle', base='ark:61001/').decode("utf-8")
+        return self.graph.serialize(format='turtle', base='ark:/61001/').decode("utf-8")
 
 
 class MarcXmlConverter:
@@ -539,7 +539,7 @@ class MarcXmlToDc:
         ElementTree.SubElement(
             metadata,
             '{http://purl.org/dc/elements/1.1/}identifier'
-        ).text = 'ark:61001/{}'.format(self.noid)
+        ).text = 'ark:/61001/{}'.format(self.noid)
 
         # bf:ISBN
         for n in ('020'):

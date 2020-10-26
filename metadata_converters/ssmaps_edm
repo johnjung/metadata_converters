@@ -83,7 +83,7 @@ class SocSciMapsMarcXmlToEDM(DigitalCollectionToEDM):
         # resource map for the item.
         self.graph.add((self.rem, DCTERMS.created,   self.now))
         self.graph.add((self.rem, DCTERMS.modified,  self.now))
-        self.graph.add((self.rem, DCTERMS.creator,   URIRef('https://library.uchicago.edu')))
+        self.graph.add((self.rem, DCTERMS.creator,   URIRef('https://library.uchicago.edu/')))
         self.graph.add((self.rem, RDF.type,          ORE.ResourceMap))
         self.graph.add((self.rem, ORE.describes,     self.agg))
 
@@ -170,7 +170,7 @@ class SocSciMapsMarcXmlToEDM(DigitalCollectionToEDM):
         for metadata in self.master_file_metadata:
             self.graph.add((self.wbr, RDF.type, EDM.WebResource))
             for p, o in (
-                ('http://www.loc.gov/premis/rdf/v1#hasIdentifierType',         'ark:61001'),
+                ('http://www.loc.gov/premis/rdf/v1#hasIdentifierType',         'ark:/61001'),
                 ('http://www.loc.gov/premis/rdf/v1#hasIdentifierValue',        ARK['{}/file.tif'.format(self.noid)]),
                 ('http://www.loc.gov/premis/rdf/v3/compositionLevel',          0),
                 ('http://www.loc.gov/premis/rdf/v1#hasMessageDigestAlgorithm', 'SHA-512'),

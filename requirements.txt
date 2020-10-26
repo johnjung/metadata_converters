@@ -3,6 +3,7 @@ jinja2
 jsonschema
 paramiko
 Pillow
+pymarc
 PyShEx
 python-magic
 rdflib

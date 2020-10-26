@@ -1,0 +1,375 @@
+#!/usr/bin/env python
+"""Usage: mvol_edm <noid> --list_objects
+          mvol_edm <noid> [--object <object_number>]
+          mvol_edm --collection_triples
+"""
+
+import csv, datetime, hashlib, os, re, sqlite3, sys
+from classes import EDM, ERC, ORE, PREMIS2, PREMIS3
+from classes import DigitalCollectionToEDM
+from docopt import docopt
+from rdflib import Graph, Literal, Namespace, URIRef
+from rdflib.namespace import DC, DCTERMS, RDF, RDFS, XSD
+
+import xml.etree.ElementTree as ElementTree
+
+class ToEDM:
+    def edm_resource_map(self, agg=None, rem=None):
+        # definitive, as per slack conversation with Charles on
+        # 10/23/2020.
+        self.graph.add((rem, DCTERMS.creator,  URIRef('https://library.uchicago.edu/')))
+        self.graph.add((rem, DCTERMS.created,  self.now))
+        self.graph.add((rem, DCTERMS.modified, self.now))
+        self.graph.add((rem, ORE.describes,    agg))
+        self.graph.add((rem, RDF.type,         ORE.ResourceMap))
+
+    def edm_aggregation(self, agg=None, cho=None, rem=None):
+        self.graph.add((agg, EDM.aggregatedCHO, cho))
+        self.graph.add((agg, EDM.dataProvider,  Literal('University of Chicago Library')))
+        self.graph.add((agg, EDM.provider,      Literal('University of Chicago Library')))
+        self.graph.add((agg, EDM.rights,        URIRef('http://creativecommons.org/licenses/by-sa/4.0/')))
+        self.graph.add((agg, ORE.isDescribedBy, rem))
+        self.graph.add((agg, RDF.type,          ORE.Aggregation))
+
+class MvolToEDM(ToEDM):
+    """A class to convert Campus Publications data to Europeana Data Model (EDM)."""
+    def __init__(self, noid, original_identifier, object_count, title, description, date, object_number=None):
+        self.noid = noid
+        self.ark = 'ark:/61001/{}'.format(self.noid)
+        self.original_identifier = original_identifier
+        self.object_count = object_count
+        self.title = title
+        self.description = description
+        self.date = date
+        self.object_number = object_number
+        self.now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+        self.graph = Graph()
+        '''
+        for prefix, ns in (('bf', BF), ('dc', DC), ('dcterms', DCTERMS),
+                           ('edm', EDM), ('erc', ERC), ('madsrdf', MADSRDF),
+                           ('mix', MIX), ('ore', ORE), ('premis', PREMIS),
+                           ('premis2', PREMIS2), ('premis3', PREMIS3)):
+            graph.bind(prefix, ns)
+        '''
+        for prefix, ns in (('dc', DC), ('dcterms', DCTERMS),
+                           ('edm', EDM), ('erc', ERC),
+                           ('ore', ORE),
+                           ('premis2', PREMIS2), ('premis3', PREMIS3)):
+            self.graph.bind(prefix, ns)
+
+        self.ITEM = Namespace(self.ark)
+        self.ITEM_AGG = self.ITEM['/aggregation']
+        self.ITEM_CHO = self.ITEM['']
+        self.ITEM_REM = self.ITEM['/rem']
+        self.ITEM_DC  = self.ITEM['/file.dc.xml']
+        self.ITEM_PDF = self.ITEM['/file.pdf']
+
+        if self.object_number:
+            self.OBJECT = Namespace('{}/{:08d}'.format(self.ark, self.object_number))
+            self.OBJECT_AGG = self.OBJECT['/aggregation']
+            self.OBJECT_CHO = self.OBJECT['']
+            self.OBJECT_REM = self.OBJECT['/rem']
+            self.OBJECT_TIF = self.OBJECT['/file.tif']
+            self.OBJECT_POS = self.OBJECT['/file.pos']
+            self.OBJECT_XML = self.OBJECT['/file.xml']
+
+        if self.object_number:
+            self.object_aggregation()
+            self.object_provided_cho()
+            self.object_resource_map()
+            self.object_tif()
+            if self.file_exists('pos'):
+                self.object_pos()
+            if self.file_exists('xml'):
+                self.object_xml()
+        else:
+            self.item_aggregation()
+            self.item_provided_cho()
+            self.item_resource_map()
+            self.item_dc()
+            self.item_pdf()
+
+    def item_aggregation(self):
+        self.edm_aggregation(
+            agg=self.ITEM_AGG,
+            cho=self.ITEM_CHO,
+            rem=self.ITEM_REM
+        )
+        self.graph.add((self.ITEM_AGG, EDM.isShownAt, URIRef('http://pi.lib.uchicago.edu/1001/dig/campub/{}'.format(self.original_identifier))))
+        self.graph.add((self.ITEM_AGG, EDM.isShownBy, URIRef('{}/file.pdf'.format(self.ark))))
+        self.graph.add((self.ITEM_AGG, EDM.object,    URIRef('{}/00000001/file.tif'.format(self.ark))))
+
+    def item_provided_cho(self):
+        self.graph.add((self.ITEM_CHO, DC.description, Literal(self.description)))
+        self.graph.add((self.ITEM_CHO, DC.title,       Literal(self.title)))
+        self.graph.add((self.ITEM_CHO, DC.coverage,    Literal('Chicago')))
+        self.graph.add((self.ITEM_CHO, DC.type,        Literal('Text')))
+        self.graph.add((self.ITEM_CHO, DC.language,    Literal('en')))
+        self.graph.add((self.ITEM_CHO, DC.date,        Literal(self.date)))
+        self.graph.add((self.ITEM_CHO, DC.identifier,  Literal(self.original_identifier))) 
+        self.graph.add((self.ITEM_CHO, DC.rights,      URIRef('http://creativecommons.org/licenses/by-sa/4.0/')))
+
+        n = 1
+        while n <= self.object_count:
+            self.graph.add((self.ITEM_CHO, DCTERMS.hasPart, URIRef('{}/{:08d}'.format(self.ark, n))))
+            n += 1
+
+        self.graph.add((self.ITEM_CHO, DCTERMS.isPartOf, URIRef('https://repository.lib.uchicago.edu/digital_collections/mvol/{}'.format(self.original_identifier.split('-')[1]))))
+        self.graph.add((self.ITEM_CHO, ERC.who,          Literal(':unav')))
+        self.graph.add((self.ITEM_CHO, ERC.what,         Literal(self.title)))
+        self.graph.add((self.ITEM_CHO, ERC.when,         Literal(self.date)))
+        self.graph.add((self.ITEM_CHO, ERC.where,        URIRef(self.ark)))
+
+        try:
+            self.graph.add((self.ITEM_CHO, EDM.year, Literal(re.match('\d{4}', self.date).group(0))))
+        except AttributeError:
+            pass
+
+        self.graph.add((self.ITEM_CHO, EDM.type, Literal('TEXT')))
+        self.graph.add((self.ITEM_CHO, RDF.type, EDM.ProvidedCHO))
+
+    def item_resource_map(self):
+        self.edm_resource_map(
+            agg=self.ITEM_AGG,
+            rem=self.ITEM_REM 
+        )
+
+    def item_dc(self):
+        self.graph.add((
+            self.ITEM_DC,
+            URIRef('http://purl.org/dc/elements/1.1/format'), 
+            Literal('application/xml')
+        ))
+        # I changed this
+        self.graph.add((self.ITEM_DC, ORE.proxyFor, self.ITEM_CHO))
+        self.graph.add((self.ITEM_DC, ORE.proxyIn,  self.ITEM_AGG))
+        self.graph.add((self.ITEM_DC, RDF.type,     ORE.Proxy))
+
+    def item_pdf(self):
+        fname = '/data/digital_collections/IIIF/IIIF_Files/{}/{}.pdf'.format(
+            self.original_identifier.replace('-', '/'),
+            self.original_identifier
+        )
+
+        self.graph.add((
+            self.ITEM_PDF, 
+            URIRef('http://purl.org/dc/elements/1.1/format'), 
+            Literal('application/pdf')
+        ))
+        self.graph.add((self.ITEM_PDF, DCTERMS.isFormatOf,                self.ITEM_CHO))
+        self.graph.add((self.ITEM_PDF, PREMIS2.hasFormatName,             Literal('application/pdf')))
+        # I changed this
+        self.graph.add((self.ITEM_PDF, PREMIS2.hasIdentifierType,         Literal('ark:/61001')))
+        self.graph.add((self.ITEM_PDF, PREMIS2.hasIdentifierValue,        Literal('{}/file.pdf'.format(self.noid))))
+        self.graph.add((self.ITEM_PDF, PREMIS2.hasMessageDigest,          Literal(self.get_file_sha_512(fname))))
+        self.graph.add((self.ITEM_PDF, PREMIS2.hasMessageDigestAlgorithm, Literal('SHA-512')))
+        self.graph.add((self.ITEM_PDF, PREMIS3.compositionLevel,          Literal(0)))
+        self.graph.add((self.ITEM_PDF, PREMIS3.originalName,              Literal('{}.pdf'.format(self.original_identifier))))
+        self.graph.add((self.ITEM_PDF, PREMIS3.restriction,               Literal('None')))
+        self.graph.add((self.ITEM_PDF, PREMIS3.size,                      Literal(self.get_file_size(fname))))
+        self.graph.add((self.ITEM_PDF, RDF.type,                          EDM.WebResource))
+
+    def object_aggregation(self):
+        self.edm_aggregation(
+            agg=self.OBJECT_AGG,
+            cho=self.OBJECT_CHO,
+            rem=self.OBJECT_REM
+        )
+        self.graph.add((self.OBJECT_AGG, EDM.isShownBy, URIRef('{}/00000001/file.tif'.format(self.ark))))
+        self.graph.add((self.OBJECT_AGG, EDM.object,    URIRef('{}/00000001/file.tif'.format(self.ark))))
+
+    def object_provided_cho(self):
+        description = None
+        if self.file_exists('pos'):
+            with open('/data/digital_collections/IIIF/IIIF_Files/{}/POS/{}_{:04d}.pos'.format(
+                self.original_identifier.replace('-', '/'),
+                self.original_identifier,
+                self.object_number
+            )) as f:
+                description = Literal(f.read())
+        elif self.file_exists('xml'):
+            description = URIRef('{}/{:08d}/file.xml'.format(
+                self.ark,
+                self.object_number
+            ))
+
+        if description:
+            self.graph.add((self.OBJECT_CHO, DC.description, description))
+        self.graph.add((self.OBJECT_CHO, DC.title, Literal(self.get_page_label())))
+        self.graph.add((self.OBJECT_CHO, DC.type, Literal('Text')))
+        self.graph.add((self.OBJECT_CHO, DC.language, Literal('en')))
+        self.graph.add((self.OBJECT_CHO, EDM.rights,        URIRef('http://creativecommons.org/licenses/by-sa/4.0/')))
+        self.graph.add((self.OBJECT_CHO, DCTERMS.isPartOf, self.ITEM_CHO))
+
+        if self.object_number > 1:
+            self.graph.add((self.OBJECT_CHO, EDM.isNextInSequence, URIRef('{}/{:08d}'.format(self.ark, self.object_number - 1))))
+
+        self.graph.add((self.OBJECT_CHO, EDM.type, Literal('TEXT')))
+        self.graph.add((self.OBJECT_CHO, RDF.type, EDM.ProvidedCHO))
+
+    def object_resource_map(self):
+        self.edm_resource_map(
+            agg=self.OBJECT_AGG,
+            rem=self.OBJECT_REM 
+        )
+
+    def object_tif(self):
+        fname = '/data/digital_collections/IIIF/IIIF_Files/{}/TIFF/{}_{:04d}.tif'.format(
+            self.original_identifier.replace('-', '/'),
+            self.original_identifier,
+            self.object_number
+        )
+
+        self.graph.add((
+            self.OBJECT_TIF, 
+            URIRef('http://purl.org/dc/elements/1.1/format'),
+            Literal('image/tiff')
+        ))
+
+        self.graph.add((self.OBJECT_TIF, PREMIS2.hasFormatName,             Literal('image/tiff')))
+        self.graph.add((self.OBJECT_TIF, PREMIS2.hasIdentifierType,         Literal('ark:/61001')))
+        self.graph.add((self.OBJECT_TIF, PREMIS2.hasIdentifierValue,        Literal('{}/{:08d}/file.tif'.format(self.noid, self.object_number))))
+        self.graph.add((self.OBJECT_TIF, PREMIS2.hasMessageDigest,          Literal(self.get_file_sha_512(fname))))
+        self.graph.add((self.OBJECT_TIF, PREMIS2.hasMessageDigestAlgorithm, Literal('SHA-512')))
+        self.graph.add((self.OBJECT_TIF, PREMIS3.compositionLevel,          Literal(0)))
+        self.graph.add((self.OBJECT_TIF, PREMIS3.originalName,              Literal('{}_{:04d}.tif'.format(self.original_identifier, self.object_number))))
+        self.graph.add((self.OBJECT_TIF, PREMIS3.restriction,               Literal('None')))
+        self.graph.add((self.OBJECT_TIF, PREMIS3.size,                      Literal(self.get_file_size(fname))))
+        self.graph.add((self.OBJECT_TIF, RDF.type,                          EDM.WebResource))
+
+    def object_pos(self):
+        self.graph.add((
+            self.OBJECT_POS, 
+            URIRef('http://purl.org/dc/elements/1.1/format'),
+            Literal('text/plain')
+        ))
+        self.graph.add((self.OBJECT_POS, RDF.type,  RDFS.Resource))
+
+    def object_xml(self):
+        self.graph.add((
+            self.OBJECT_XML, 
+            URIRef('http://purl.org/dc/elements/1.1/format'),
+            Literal('application/xml')
+        ))
+        self.graph.add((self.OBJECT_XML, RDF.type,  RDFS.Resource))
+
+    def file_exists(self, ftype):
+        if ftype == 'pos':
+            return os.path.isfile(
+                '/data/digital_collections/IIIF/IIIF_Files/{}/POS/{}_0001.pos'.format(
+                    self.original_identifier.replace('-', '/'),
+                    self.original_identifier
+                )
+            )
+        elif ftype == 'xml':
+            return os.path.isfile(
+                '/data/digital_collections/IIIF/IIIF_Files/{}/ALTO/{}_0001.xml'.format(
+                    self.original_identifier.replace('-', '/'),
+                    self.original_identifier
+                )
+            )
+        else:
+            raise NotImplementedError
+
+    def get_file_size(self, fname):
+        return os.stat(fname).st_size
+
+    def get_file_sha_512(self, fname):
+        m = hashlib.sha512()
+        with open(fname ,'rb') as f:
+            m.update(f.read())
+            return m.hexdigest()
+
+    def get_page_label(self):
+        with open('/data/digital_collections/IIIF/IIIF_Files/{}/{}.struct.txt'.format(
+            self.original_identifier.replace('-', '/'),
+            self.original_identifier
+        )) as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if row[0] == '{:08d}'.format(self.object_number):
+                    if len(row) > 1:
+                        return 'Page {}'.format(row[1])
+        return '(:unas)'
+                
+    def triples(self):
+        """Return EDM data as a string.
+
+        Returns:
+            str
+        """
+        return self.graph.serialize(format='turtle', base='ark:/61001/').decode("utf-8")
+
+
+if __name__ == "__main__":
+    options = docopt(__doc__)
+
+    if options['<noid>']:
+        ark = 'ark:/61001/{}'.format(options['<noid>'])
+   
+        '''
+        conn = sqlite3.connect('/data/s4/jej/ark_data.db')
+        c = conn.cursor()
+        c.execute(
+            'SELECT original_identifier FROM arks WHERE ark=?',
+            (ark,)
+        )
+        original_identifier = c.fetchone()[0]
+        '''
+        original_identifier = 'mvol-0005-0001-0001'
+
+        object_count = 1
+        for f in os.listdir('{}/TIFF'.format(
+            '/data/digital_collections/IIIF/IIIF_Files/{}'.format(
+                original_identifier.replace('-', '/')
+            )
+        )):
+            if f.endswith('.tif'):
+                object_count += 1
+
+        with open(
+            '/data/digital_collections/IIIF/IIIF_Files/{}/{}.dc.xml'.format(
+                original_identifier.replace('-', '/'),
+                original_identifier
+            )
+        ) as f:
+            xml = ElementTree.parse(f)
+            title = xml.find('title').text
+            description = xml.find('description').text
+            date = xml.find('date').text
+
+    if options['--list_objects']:
+        n = 1
+        while n <= object_count:
+            print('{:08d}'.format(n))
+            n += 1
+        sys.exit()
+    elif options['--object']:
+        m = MvolToEDM(
+            options['<noid>'],
+            original_identifier,
+            object_count,
+            title,
+            description,
+            date,
+            int(options['<object_number>'])
+        )
+        sys.stdout.write(m.triples())
+        sys.exit()
+    elif options['--collection_triples']:
+        MvolToEDM.build_collection_triples()
+        sys.stdout.write(
+            MvolToEDM.triples()
+        )
+        sys.exit()
+    else:
+        m = MvolToEDM(
+            options['<noid>'],
+            original_identifier,
+            object_count,
+            title,
+            description,
+            date
+        )
+        sys.stdout.write(m.triples())
+        sys.exit()
