@@ -1,35 +1,45 @@
 #!/usr/bin/env python
-"""Usage: mvol_edm <noid> --list_objects
-          mvol_edm <noid> [--object <object_number>]
-          mvol_edm --project_triples <identifier_chunk>
+"""Usage: 
+          mvol_edm <identifier>
+          mvol_edm <identifier> --object_count
+          mvol_edm <identifier> --object <object_number>
+          mvol_edm <identifier_chunk> --project_triples
 """
 
+# TODO-
+#   date ranges for mvol should be just the mvols that are on the
+#     website.
+#   need validation and ls to be stored in a database.
+
 import csv, datetime, hashlib, os, re, sqlite3, sys
+
 from classes import EDM, ERC, ORE, PREMIS2, PREMIS3
 from classes import DigitalCollectionToEDM
+from digital_collection_validators import MvolValidator
 from docopt import docopt
 from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import DC, DCTERMS, RDF, RDFS, XSD
 
 import xml.etree.ElementTree as ElementTree
 
-def is_identifier(self, identifier_chunk):
-    return bool(re.match('^mvol-\d{4}-\d{4}-[0-9A-Z]{4}(-\d{2})?$', identifier_chunk))
+def get_metadata(identifier):
+    with open('/data/digital_collections/IIIF/IIIF_Files/{}/{}.dc.xml'.format(
+        identifier.replace('-', os.sep),
+        identifier
+    )) as f:
+        xml = ElementTree.parse(f)
+        date = xml.find('date').text
+        description = xml.find('description').text
+        title = xml.find('title').text
+    return (date, description, title)
 
-def recursive_ls(self, identifier_chunk):
-    identifiers = []
-    for root, dirs, files in os.walk('/data/digital_collections/IIIF/IIIF_Files/{}'.format(identifier_chunk.replace('-', '/'))):
-        if bool(set(dirs).intersection(
-            set(('jpg', 'pos', 'tif', 'ALTO', 'JPEG', 'POS', 'TIFF'))
-        )):
-            identifier = '-'.join(root.split(os.sep)[5:])
-            if is_identifier(identifier):
-                identifiers.append(identifier)
-    return identifiers
 
 class ToEDM:
+    def __init__(self):
+        self.ark_db_conn = sqlite3.connect(os.getenv('ARK_DB'))
+
     def edm_resource_map(self, agg=None, rem=None):
-        self.graph.add((rem, DCTERMS.creator,  URIRef('https://library.uchicago.edu/')))
+        self.graph.add((rem, DCTERMS.creator,  URIRef('https://repository.lib.uchicago.edu/')))
         self.graph.add((rem, DCTERMS.created,  self.now))
         self.graph.add((rem, DCTERMS.modified, self.now))
         self.graph.add((rem, ORE.describes,    agg))
@@ -43,9 +53,18 @@ class ToEDM:
         self.graph.add((agg, ORE.isDescribedBy, rem))
         self.graph.add((agg, RDF.type,          ORE.Aggregation))
 
+    def get_ark_from_identifier(self, identifier):
+        c = self.ark_db_conn.cursor()
+        c.execute(
+            'SELECT ark from arks where original_identifier = ?',
+            (identifier,)
+        )
+        return c.fetchone()[0]
+
 class MvolToEDM(ToEDM):
     """A class to convert Campus Publications data to Europeana Data Model (EDM)."""
     def __init__(self, noid, original_identifier, object_count, title, description, date, object_number=None):
+        super().__init__()
         self.noid = noid
         self.ark = 'ark:/61001/{}'.format(self.noid)
         self.original_identifier = original_identifier
@@ -54,6 +73,8 @@ class MvolToEDM(ToEDM):
         self.description = description
         self.date = date
         self.object_number = object_number
+        self.validator = MvolValidator()
+        self.validator.connect_to_db(os.getenv('VALIDATION_DB'))
         self.now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
         self.graph = Graph()
         for prefix, ns in (('dc', DC), ('dcterms', DCTERMS),
@@ -120,11 +141,20 @@ class MvolToEDM(ToEDM):
             self.graph.add((self.ITEM_CHO, DCTERMS.hasPart, URIRef('{}/{:08d}'.format(self.ark, n))))
             n += 1
 
-        self.graph.add((self.ITEM_CHO, DCTERMS.isPartOf, URIRef('https://repository.lib.uchicago.edu/digital_collections/mvol/{}'.format(self.original_identifier.split('-')[1]))))
+        self.graph.add((
+            self.ITEM_CHO, 
+            DCTERMS.isPartOf, 
+            URIRef(
+                'https://repository.lib.uchicago.edu/digital_collections/{}/'.format(
+                    '/'.join(self.original_identifier.split('-')[:-1])
+                )
+            )
+        ))
+
         self.graph.add((self.ITEM_CHO, ERC.who,          Literal('(:unas)')))
         self.graph.add((self.ITEM_CHO, ERC.what,         Literal(self.title)))
         self.graph.add((self.ITEM_CHO, ERC.when,         Literal(self.date)))
-        self.graph.add((self.ITEM_CHO, ERC.where,        URIRef(self.ark)))
+        self.graph.add((self.ITEM_CHO, ERC.where,        self.ITEM_CHO))
 
         try:
             self.graph.add((self.ITEM_CHO, EDM.year, Literal(re.match('\d{4}', self.date).group(0))))
@@ -199,10 +229,10 @@ class MvolToEDM(ToEDM):
 
         if description:
             self.graph.add((self.OBJECT_CHO, DC.description, description))
-        self.graph.add((self.OBJECT_CHO, DC.title, Literal(self.get_page_label())))
-        self.graph.add((self.OBJECT_CHO, DC.type, Literal('Text')))
-        self.graph.add((self.OBJECT_CHO, DC.language, Literal('en')))
-        self.graph.add((self.OBJECT_CHO, EDM.rights,        URIRef('http://creativecommons.org/licenses/by-sa/4.0/')))
+        self.graph.add((self.OBJECT_CHO, DC.title,         Literal(self.get_page_label())))
+        self.graph.add((self.OBJECT_CHO, DC.type,          Literal('Text')))
+        self.graph.add((self.OBJECT_CHO, DC.language,      Literal('en')))
+        self.graph.add((self.OBJECT_CHO, EDM.rights,       URIRef('http://creativecommons.org/licenses/by-sa/4.0/')))
         self.graph.add((self.OBJECT_CHO, DCTERMS.isPartOf, self.ITEM_CHO))
 
         if self.object_number > 1:
@@ -304,135 +334,129 @@ class MvolToEDM(ToEDM):
         """
         return self.graph.serialize(format='turtle', base='ark:/61001/').decode("utf-8")
 
-    def project_triples(self, project):
+    def project_triples(self, identifier_chunk):
         now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+
         REPOSITORY = Namespace('https://repository.lib.uchicago.edu/digital_collections/')
+        agg = REPOSITORY['{}/aggregation'.format(identifier_chunk.replace('-', '/'))]
+        cho = REPOSITORY['{}'.format(identifier_chunk.replace('-', '/'))]
+        rem = REPOSITORY['{}/rem'.format(identifier_chunk.replace('-', '/'))]
 
-        projects = {}
-        for m in (
-            'mvol', 
-            'mvol-0001',
-            'mvol-0002',
-            'mvol-0004',
-            'mvol-0005',
-            'mvol-0007',
-            'mvol-0445',
-            'mvol-0446',
-            'mvol-0447',
-            'mvol-0503'
-        ):
-            projects[m] = {
-                'agg': REPOSITORY['{}/aggregation'.format(m.replace('-', '/'))],
-                'cho': REPOSITORY['{}/'.format(m.replace('-', '/'))],
-                'rem': REPOSITORY['{}/rem'.format(m.replace('-', '/'))]
-            }
+        self.graph.add((agg, RDF.type,           ORE.Aggregation))
+        self.graph.add((agg, EDM.aggreagatedCHO, cho))
+        self.graph.add((agg, EDM.dataProvider,   Literal('University of Chicago Library')))
+        self.graph.add((agg, EDM.isShownAt,      cho))
+        self.graph.add((agg, EDM.object,         URIRef('{}icon.png'.format(str(cho)))))
+        self.graph.add((agg, EDM.provider,       Literal('University of Chicago Library')))
+        self.graph.add((agg, ORE.isDescribedBy,  rem))
 
-        p = projects[project]
+        self.graph.add((rem, RDF.type,           ORE.ResourceMap))
+        self.graph.add((rem, DCTERMS.creator,    URIRef('https://repository.lib.uchicago.edu/')))
+        self.graph.add((rem, DCTERMS.created,    now))
+        self.graph.add((rem, DCTERMS.modified,   now))
+        self.graph.add((rem, ORE.describes,      agg))
 
-        self.graph.add((p['agg'], RDF.type,           ORE.Aggregation))
-        self.graph.add((p['agg'], EDM.aggreagatedCHO, p['cho']))
-        self.graph.add((p['agg'], EDM.dataProvider,   Literal('University of Chicago Library')))
-        self.graph.add((p['agg'], EDM.isShownAt,      p['cho']))
-        self.graph.add((p['agg'], EDM.object,         URIRef('{}icon.png'.format(str(p['cho'])))))
-        self.graph.add((p['agg'], EDM.provider,       Literal('University of Chicago Library')))
-        self.graph.add((p['agg'], ORE.isDescribedBy,  p['rem']))
-
-        self.graph.add((p['rem'], RDF.type,           ORE.ResourceMap))
-        self.graph.add((p['rem'], DCTERMS.creator,    URIRef('https://library.uchicago.edu/')))
-        self.graph.add((p['rem'], DCTERMS.created,    now))
-        self.graph.add((p['rem'], DCTERMS.modified,   now))
-        self.graph.add((p['rem'], ORE.describes,      p['agg']))
-
-        self.graph.add((p['cho'], RDF.type,           EDM.ProvidedCHO))
-        self.graph.add((p['cho'], DC.date,            Literal(self.date)))
-        self.graph.add((p['cho'], DC.title,           Literal(self.title)))
+        self.graph.add((cho, RDF.type,           EDM.ProvidedCHO))
+        self.graph.add((cho, DC.date,            Literal(self.date)))
+        self.graph.add((cho, DC.title,           Literal(self.title)))
 
         try:
-            self.graph.add((p['cho'], EDM.year, Literal(re.match('\d{4}', self.date).group(0))))
+            self.graph.add((cho, EDM.year, Literal(re.match('\d{4}', self.date).group(0))))
         except AttributeError:
             pass
 
-        self.graph.add((p['cho'], ERC.what,           Literal(self.title)))
-        self.graph.add((p['cho'], ERC.when,           Literal(self.date)))
-        self.graph.add((p['cho'], ERC.where,          p['cho']))
-        self.graph.add((p['cho'], ERC.who,            Literal('University of Chicago Library')))
+        uri_str = 'https://repository.lib.uchicago.edu/digital_collections/{}'.format(
+            '/'.join(identifier_chunk.split('-')[:-1])
+        )
+        if uri_str.endswith('/'):
+            uri_str = uri_str[:-1]
 
-        if project == 'mvol':
-            for k, v in projects.items():
-                if k == 'mvol':
-                    continue
-                self.graph.add((p['cho'], DCTERMS.hasPart, v['cho']))
+        self.graph.add((
+            cho, 
+            DCTERMS.isPartOf, 
+            URIRef(uri_str)
+        ))
+
+        # use ark-style identifiers for item-level CHOs. Otherwise
+        # generate "repository.lib.uchicago.edu" style identifiers for
+        # higher level pieces. 
+        for i in self.validator.get_identifier_chunk_children_from_db(identifier_chunk):
+            if self.validator.get_identifiers_from_db(i, False) == [i]:
+                self.graph.add((
+                    cho, 
+                    DCTERMS.hasPart, 
+                    URIRef(self.get_ark_from_identifier(i))
+                ))
+            else:
+                self.graph.add((
+                    cho, 
+                    DCTERMS.hasPart, 
+                    URIRef(
+                        'https://repository.lib.uchicago.edu/digital_collections/{}'.format(
+                            '/'.join(i.split('-'))
+                        )
+                    )
+                ))
+
+        self.graph.add((cho, ERC.what,           Literal(self.title)))
+        self.graph.add((cho, ERC.when,           Literal(self.date)))
+        self.graph.add((cho, ERC.where,          cho))
+        self.graph.add((cho, ERC.who,            Literal('University of Chicago Library')))
 
 
 if __name__ == "__main__":
     options = docopt(__doc__)
 
-    original_identifier = None
-    if options['<noid>']:
-        ark = 'ark:/61001/{}'.format(options['<noid>'])
-   
-        '''
+    identifiers = []
+
+    if options['<identifier>']:
         conn = sqlite3.connect('/data/s4/jej/ark_data.db')
         c = conn.cursor()
-        c.execute(
-            'SELECT original_identifier FROM arks WHERE ark=?',
-            (ark,)
-        )
-        original_identifier = c.fetchone()[0]
-        '''
-        original_identifier = 'mvol-0005-0001-0001'
 
-        object_count = 1
-        for f in os.listdir('{}/TIFF'.format(
-            '/data/digital_collections/IIIF/IIIF_Files/{}'.format(
-                original_identifier.replace('-', '/')
-            )
+        c.execute(
+            'SELECT ark FROM arks WHERE original_identifier = ?',
+            (options['<identifier>'],)
+        )
+        ark = c.fetchone()[0]
+        noid = ark.replace('ark:/61001/', '')
+
+        object_count = 0
+        for f in os.listdir('/data/digital_collections/IIIF/IIIF_Files/{}/TIFF'.format(
+            options['<identifier>'].replace('-', os.sep)
         )):
             if f.endswith('.tif'):
                 object_count += 1
- 
-    elif options['--project_triples']:
-        try:
-            file_path = '/data/digital_collections/IIIF/IIIF_Files/{}/{}.dc.xml'.format(
-                mvols[options['<project>']].replace('-', '/'),
-                mvols[options['<project>']]
-            )
-        except KeyError:
-            pass
 
-    if file_path:
-        with open(file_path) as f:
-            xml = ElementTree.parse(f)
-            title = xml.find('title').text
-            description = xml.find('description').text
-            dates = {
-                'mvol':      '1892/2919',
-                'mvol-0001': '1895/1994',
-                'mvol-0002': '1908-10/1995-08',
-                'mvol-0004': '1902-01-10/1987-11-03',
-                'mvol-0005': '1892-06/1896-02',
-                'mvol-0007': '1896-04/1908-07',
-                'mvol-0445': '1915-01/1933-10',
-                'mvol-0446': '1967-11-03/1981-06-01',
-                'mvol-0447': '1893-01-02/2019-06-15',
-                'mvol-0503': '1944-12/1981-04'
-            }
-            date = dates[options['<project>']]
+    if options['<identifier_chunk>']:
+        conn = sqlite3.connect('/data/s4/jej/validation.db')
+        c = conn.cursor()
+
+        c.execute(
+            'SELECT identifier from validation where validation = 1 AND identifier LIKE ?',
+            ('{}%'.format(options['<identifier_chunk>']),)
+        )
+        for r in c.fetchall():
+            identifiers.append(r[0])
+
+    if options['<identifier>']:
+        i = options['<identifier>']
+    elif identifiers:
+        i = identifiers[0]
     else:
-        title = 'University of Chicago Campus Publications'
-        description = ''
-        date = '2020'
+        raise NotImplementedError
+    date, description, title = get_metadata(i)
 
-    if options['--list_objects']:
-        n = 1
-        while n <= object_count:
-            print('{:08d}'.format(n))
-            n += 1
-        sys.exit()
-    elif options['--object']:
+    if options['<identifier_chunk>'] == 'mvol':
+        date = '2020'
+    elif identifiers: 
+        d1, _, _ = get_metadata(identifiers[0])
+        d2, _, _ = get_metadata(identifiers[-1])
+        date = '{}/{}'.format(d1, d2)
+
+    if options['--object']:
         m = MvolToEDM(
-            options['<noid>'],
-            original_identifier,
+            noid,
+            options['<identifier>'],
             object_count,
             title,
             description,
@@ -440,6 +464,10 @@ if __name__ == "__main__":
             int(options['<object_number>'])
         )
         sys.stdout.write(m.triples())
+        sys.exit()
+    elif options['--object_count']:
+        for i in range(object_count):
+            print('{:08d}'.format(i+1))
         sys.exit()
     elif options['--project_triples']:
         m = MvolToEDM(
@@ -451,15 +479,15 @@ if __name__ == "__main__":
             date,
             None
         )
-        m.project_triples(options['<project>'])
+        m.project_triples(options['<identifier_chunk>'])
         sys.stdout.write(
             m.triples()
         )
         sys.exit()
     else:
         m = MvolToEDM(
-            options['<noid>'],
-            original_identifier,
+            noid,
+            options['<identifier>'],
             object_count,
             title,
             description,

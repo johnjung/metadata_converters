@@ -368,7 +368,7 @@ class MepaToEDM(DigitalCollectionToEDM):
                      (ERC.who,   Literal('University of Chicago Library')),
                      (ERC.what,  Literal('The University of Chicago Library Digital Repository')),
                      (ERC.when,  Literal('2020')),
-                     (ERC.where, URIRef('https://repository.lib.uchicago.edu/digital_collections/mepa/')),
+                     (ERC.where, self.MEPA_CHO),
                      (EDM.year,  Literal('2020'))):
             self.graph.add((self.MEPA_CHO, p, o))
 

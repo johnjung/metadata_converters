@@ -26,7 +26,7 @@ class MapsMarcXmlToEDM(DigitalCollectionToEDM):
         # resource map for the map collection 
         self.graph.add((self.MAPS_REM, RDF.type,           ORE.ResourceMap))
         self.graph.add((self.MAPS_REM, DCTERMS.created,    now))
-        self.graph.add((self.MAPS_REM, DCTERMS.creator,    URIRef('https://library.uchicago.edu/')))
+        self.graph.add((self.MAPS_REM, DCTERMS.creator,    URIRef('https://repository.lib.uchicago.edu/')))
         self.graph.add((self.MAPS_REM, DCTERMS.modified,   now))
         self.graph.add((self.MAPS_REM, ORE.describes,      self.MAPS_AGG))
 
@@ -47,7 +47,7 @@ class MapsMarcXmlToEDM(DigitalCollectionToEDM):
         self.graph.add((self.MAPS_CHO, ERC.who,            Literal('University of Chicago Library')))
         self.graph.add((self.MAPS_CHO, ERC.what,           Literal('The University of Chicago Library Digital Repository')))
         self.graph.add((self.MAPS_CHO, ERC.when,           Literal('2020')))
-        self.graph.add((self.MAPS_CHO, ERC.where,          URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/')))
+        self.graph.add((self.MAPS_CHO, ERC.where,          self.MAPS_CHO))
         self.graph.add((self.MAPS_CHO, EDM.year,           Literal('2020')))
 
 if __name__ == "__main__":

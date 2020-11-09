@@ -2,17 +2,98 @@
 """Usage: digital_collections_edm --collection_triples
 """
 
-import sys
-from classes import DigitalCollectionToEDM
+import datetime, sys
+from classes import DigitalCollectionToEDM, EDM, ERC, ORE
 from docopt import docopt
+from rdflib import Graph, Literal, Namespace, URIRef
+from rdflib.namespace import RDF, DC, DCTERMS, XSD
+
+
+def get_digital_collections_triples():
+    """Add triples for digital collections itself, and to connect items with each other. 
+
+    Side Effect:
+        Add triples to self.graph
+    """
+    now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
+
+    graph = Graph()
+    for prefix, ns in (('dc', DC), ('dcterms', DCTERMS), ('edm', EDM),
+                       ('erc', ERC), ('ore', ORE)):
+        graph.bind(prefix, ns)
+
+    REPOSITORY = Namespace('https://repository.lib.uchicago.edu')
+    REPOSITORY_AGG = REPOSITORY['/aggregation']
+    REPOSITORY_CHO = REPOSITORY['']
+    REPOSITORY_REM = REPOSITORY['/rem']
+
+    DIGCOL = Namespace('https://repository.lib.uchicago.edu/digital_collections')
+    DIGCOL_AGG = DIGCOL['/aggregation']
+    DIGCOL_CHO = DIGCOL['']
+    DIGCOL_REM = DIGCOL['/rem']
+
+    # resource map for the repository
+    graph.add((REPOSITORY_REM, RDF.type,          ORE.ResourceMap))
+    graph.add((REPOSITORY_REM, DCTERMS.created,   now))
+    graph.add((REPOSITORY_REM, DCTERMS.modified,  now))
+    graph.add((REPOSITORY_REM, DCTERMS.creator,   URIRef('https://repository.lib.uchicago.edu/')))
+    graph.add((REPOSITORY_REM, ORE.describes,     REPOSITORY_AGG))
+
+    # aggregation for the repository
+    graph.add((REPOSITORY_AGG, RDF.type,          ORE.Aggregation))
+    graph.add((REPOSITORY_AGG, EDM.aggregatedCHO, REPOSITORY_CHO))
+    graph.add((REPOSITORY_AGG, EDM.dataProvider,  Literal("University of Chicago Library")))
+    graph.add((REPOSITORY_AGG, EDM.isShownAt,     REPOSITORY_CHO))
+    graph.add((REPOSITORY_AGG, EDM.object,        URIRef('https://repository.lib.uchicago.edu/icon.png')))
+    graph.add((REPOSITORY_AGG, EDM.provider,      Literal('University of Chicago Library')))
+    graph.add((REPOSITORY_AGG, ORE.isDescribedBy, REPOSITORY_REM))
+
+    # cultural heritage object for the repository
+    graph.add((REPOSITORY_CHO, RDF.type,          EDM.ProvidedCHO))
+    graph.add((REPOSITORY_CHO, DC.date,           Literal('2020')))
+    graph.add((REPOSITORY_CHO, DC.title,          Literal('The University of Chicago Library Digital Repository')))
+    graph.add((REPOSITORY_CHO, DCTERMS.hasPart,   URIRef('https://repository.lib.uchicago.edu/digital_archives')))
+    graph.add((REPOSITORY_CHO, DCTERMS.hasPart,   URIRef('https://repository.lib.uchicago.edu/digital_collections')))
+    graph.add((REPOSITORY_CHO, ERC.who,           Literal('University of Chicago Library')))
+    graph.add((REPOSITORY_CHO, ERC.what,          Literal('The University of Chicago Library Digital Repository')))
+    graph.add((REPOSITORY_CHO, ERC.when,          Literal('2020')))
+    graph.add((REPOSITORY_CHO, ERC.where,         REPOSITORY_CHO))
+    graph.add((REPOSITORY_CHO, EDM.year,          Literal('2020'))) 
+
+    # resource map for digital collections.
+    graph.add((DIGCOL_REM, RDF.type,           ORE.ResourceMap))
+    graph.add((DIGCOL_REM, DCTERMS.created,    now))
+    graph.add((DIGCOL_REM, DCTERMS.modified,   now))
+    graph.add((DIGCOL_REM, DCTERMS.creator,    URIRef('https://repository.lib.uchicago.edu/')))
+    graph.add((DIGCOL_REM, ORE.describes,      DIGCOL_AGG))
+
+    # aggregation for digital collections
+    graph.add((DIGCOL_AGG, RDF.type,           ORE.Aggregation))
+    graph.add((DIGCOL_AGG, EDM.aggregatedCHO,  DIGCOL_CHO))
+    graph.add((DIGCOL_AGG, EDM.dataProvider,   Literal('University of Chicago Library')))
+    graph.add((DIGCOL_AGG, EDM.isShownAt,      URIRef('https://repository.lib.uchicago.edu/digital_collections')))
+    graph.add((DIGCOL_AGG, EDM.object,         URIRef('https://repository.lib.uchicago.edu/digital_collections/icon.png')))
+    graph.add((DIGCOL_AGG, EDM.provider,       Literal('University of Chicago Library')))
+    graph.add((DIGCOL_AGG, ORE.isDescribedBy,  DIGCOL_REM))
+
+    # cultural heritage object for digital collections
+    graph.add((DIGCOL_CHO, RDF.type,           EDM.ProvidedCHO))
+    graph.add((DIGCOL_CHO, DC.date,            Literal('2020')))
+    graph.add((DIGCOL_CHO, DC.title,           Literal('The University of Chicago Library Digital Repository')))
+    graph.add((DIGCOL_CHO, DCTERMS.hasPart,    URIRef('https://repository.lib.uchicago.edu/digital_collections/maps')))
+    graph.add((DIGCOL_CHO, DCTERMS.hasPart,    URIRef('https://repository.lib.uchicago.edu/digital_collections/mvol')))
+    graph.add((DIGCOL_CHO, ERC.who,            Literal('University of Chicago Library')))
+    graph.add((DIGCOL_CHO, ERC.what,           Literal('The University of Chicago Library Digital Repository')))
+    graph.add((DIGCOL_CHO, ERC.when,           Literal('2020')))
+    graph.add((DIGCOL_CHO, ERC.where,          DIGCOL_CHO))
+    graph.add((DIGCOL_CHO, EDM.year,           Literal('2020')))
+
+    return graph.serialize(format='turtle', base='ark:/61001/').decode("utf-8")
+
 
 if __name__ == "__main__":
     options = docopt(__doc__)
-    DigitalCollectionToEDM.build_repository_triples()
-    DigitalCollectionToEDM.build_digital_collections_triples()
     if options['--collection_triples']:
-        sys.stdout.write(
-            DigitalCollectionToEDM.triples()
-        )
+        sys.stdout.write(get_digital_collections_triples())
     else:
         raise NotImplementedError

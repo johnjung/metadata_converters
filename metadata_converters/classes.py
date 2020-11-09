@@ -166,25 +166,15 @@ class NoidManager():
 
 
 class DigitalCollectionToEDM:
-    REPOSITORY = Namespace('https://repository.lib.uchicago.edu/')
-    REPOSITORY_AGG = REPOSITORY['aggregation']
-    REPOSITORY_CHO = REPOSITORY['']
-    REPOSITORY_REM = REPOSITORY['rem']
-    
-    DIGCOL = Namespace('https://repository.lib.uchicago.edu/digital_collections/')
-    DIGCOL_AGG = DIGCOL['aggregation']
-    DIGCOL_CHO = DIGCOL['']
-    DIGCOL_REM = DIGCOL['rem']
-
-    MAPS = Namespace('https://repository.lib.uchicago.edu/digital_collections/maps/')
-    MAPS_AGG = MAPS['aggregation']
+    MAPS = Namespace('https://repository.lib.uchicago.edu/digital_collections/maps')
+    MAPS_AGG = MAPS['/aggregation']
     MAPS_CHO = MAPS['']
-    MAPS_REM = MAPS['rem']
+    MAPS_REM = MAPS['/rem']
 
-    CHISOC = Namespace('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc/')
-    CHISOC_AGG = CHISOC['aggregation']
+    CHISOC = Namespace('https://repository.lib.uchicago.edu/digital_collections/maps/chisoc')
+    CHISOC_AGG = CHISOC['/aggregation']
     CHISOC_CHO = CHISOC['']
-    CHISOC_REM = CHISOC['rem']
+    CHISOC_REM = CHISOC['/rem']
 
     graph = Graph()
     for prefix, ns in (('bf', BF), ('dc', DC), ('dcterms', DCTERMS),
@@ -214,88 +204,16 @@ class DigitalCollectionToEDM:
                      (EDM.provider,      Literal('University of Chicago Library')),
                      (EDM.rights,        URIRef('http://creativecommons.org/licenses/by-nc/4.0/'))):
             self.graph.add((agg, p, o))
-    
+   
     def rem_graph(self, agg, rem, now):
+        # as per CB on 11/6/2020, DCTERMS:creator should be
+        # https://repository.lib.uchicago.edu/ - note https and trailing
+        # slash, while ProvidedCHOs should not include a trailing slash.
         for p, o in ((RDF.type,         ORE.ResourceMap),
                      (DCTERMS.modified, now),
-                     (DCTERMS.creator,  URIRef('https://library.uchicago.edu/')),
+                     (DCTERMS.creator,  URIRef('https://repository.lib.uchicago.edu/')),
                      (ORE.describes,    agg)):
             self.graph.add((rem, p, o))
-
-    @classmethod
-    def build_repository_triples(self):
-        """Add triples for the repository itself, and to connect items with each other. 
-
-        Side Effect:
-            Add triples to self.graph
-        """
- 
-        now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
-
-        # resource map for the repository
-        self.graph.add((self.REPOSITORY_REM, RDF.type,          ORE.ResourceMap))
-        self.graph.add((self.REPOSITORY_REM, DCTERMS.created,   now))
-        self.graph.add((self.REPOSITORY_REM, DCTERMS.modified,  now))
-        self.graph.add((self.REPOSITORY_REM, DCTERMS.creator,   URIRef('https://library.uchicago.edu/')))
-        self.graph.add((self.REPOSITORY_REM, ORE.describes,     self.REPOSITORY_AGG))
-
-        # aggregation for the repository
-        self.graph.add((self.REPOSITORY_AGG, RDF.type,          ORE.Aggregation))
-        self.graph.add((self.REPOSITORY_AGG, EDM.aggregatedCHO, self.REPOSITORY_CHO))
-        self.graph.add((self.REPOSITORY_AGG, EDM.dataProvider,  Literal("University of Chicago Library")))
-        self.graph.add((self.REPOSITORY_AGG, EDM.isShownAt,     self.REPOSITORY_CHO))
-        self.graph.add((self.REPOSITORY_AGG, EDM.object,        URIRef('https://repository.lib.uchicago.edu/icon.png')))
-        self.graph.add((self.REPOSITORY_AGG, EDM.provider,      Literal('University of Chicago Library')))
-        self.graph.add((self.REPOSITORY_AGG, ORE.isDescribedBy, self.REPOSITORY_REM))
-
-        # cultural heritage object for the repository
-        self.graph.add((self.REPOSITORY_CHO, RDF.type,          EDM.ProvidedCHO))
-        self.graph.add((self.REPOSITORY_CHO, DC.date,           Literal('2020')))
-        self.graph.add((self.REPOSITORY_CHO, DC.title,          Literal('The University of Chicago Library Digital Repository')))
-        self.graph.add((self.REPOSITORY_CHO, DCTERMS.hasPart,   URIRef('https://repository.lib.uchicago.edu/digital_archives')))
-        self.graph.add((self.REPOSITORY_CHO, DCTERMS.hasPart,   URIRef('https://repository.lib.uchicago.edu/digital_collections')))
-        self.graph.add((self.REPOSITORY_CHO, ERC.who,           Literal('University of Chicago Library')))
-        self.graph.add((self.REPOSITORY_CHO, ERC.what,          Literal('The University of Chicago Library Digital Repository')))
-        self.graph.add((self.REPOSITORY_CHO, ERC.when,          Literal('2020')))
-        self.graph.add((self.REPOSITORY_CHO, ERC.where,         self.REPOSITORY_CHO))
-        self.graph.add((self.REPOSITORY_CHO, EDM.year,          Literal('2020'))) 
-
-    @classmethod
-    def build_digital_collections_triples(self):
-        """Add triples for digital collections itself, and to connect items with each other. 
-
-        Side Effect:
-            Add triples to self.graph
-        """
- 
-        now = Literal(datetime.datetime.utcnow(), datatype=XSD.dateTime)
-
-        # resource map for digital collections.
-        self.graph.add((self.DIGCOL_REM, RDF.type,           ORE.ResourceMap))
-        self.graph.add((self.DIGCOL_REM, DCTERMS.created,    now))
-        self.graph.add((self.DIGCOL_REM, DCTERMS.modified,   now))
-        self.graph.add((self.DIGCOL_REM, DCTERMS.creator,    URIRef('https://library.uchicago.edu/')))
-        self.graph.add((self.DIGCOL_REM, ORE.describes,      self.DIGCOL_AGG))
-
-        # aggregation for digital collections
-        self.graph.add((self.DIGCOL_AGG, RDF.type,           ORE.Aggregation))
-        self.graph.add((self.DIGCOL_AGG, EDM.aggregatedCHO,  self.DIGCOL_CHO))
-        self.graph.add((self.DIGCOL_AGG, EDM.dataProvider,   Literal('University of Chicago Library')))
-        self.graph.add((self.DIGCOL_AGG, EDM.isShownAt,      URIRef('https://repository.lib.uchicago.edu/digital_collections/')))
-        self.graph.add((self.DIGCOL_AGG, EDM.object,         URIRef('https://repository.lib.uchicago.edu/digital_collections/icon.png')))
-        self.graph.add((self.DIGCOL_AGG, EDM.provider,       Literal('University of Chicago Library')))
-        self.graph.add((self.DIGCOL_AGG, ORE.isDescribedBy,  self.DIGCOL_REM))
-
-        # cultural heritage object for digital collections
-        self.graph.add((self.DIGCOL_CHO, RDF.type,           EDM.ProvidedCHO))
-        self.graph.add((self.DIGCOL_CHO, DC.date,            Literal('2020')))
-        self.graph.add((self.DIGCOL_CHO, DC.title,           Literal('The University of Chicago Library Digital Repository')))
-        self.graph.add((self.DIGCOL_CHO, DCTERMS.hasPart,    URIRef('https://repository.lib.uchicago.edu/digital_collections/maps/')))
-        self.graph.add((self.DIGCOL_CHO, ERC.who,            Literal('University of Chicago Library')))
-        self.graph.add((self.DIGCOL_CHO, ERC.what,           Literal('The University of Chicago Library Digital Repository')))
-        self.graph.add((self.DIGCOL_CHO, ERC.when,           Literal('2020')))
-        self.graph.add((self.DIGCOL_CHO, ERC.where,          URIRef('https://repository.lib.uchicago.edu/digital_collections/')))
-        self.graph.add((self.DIGCOL_CHO, EDM.year,           Literal('2020')))
 
     @classmethod
     def triples(self):

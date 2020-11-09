@@ -12,7 +12,7 @@ class TestTTL(unittest.TestCase):
 
         super(TestTTL, self).__init__(*args, **kwargs)
 
-    def test_cho(self):
+    def test_maps_chisoc_cho(self):
         # dc:description, dc:title, or both are manditory.
         predicate_exists = []
         for predicate in (
@@ -89,7 +89,7 @@ class TestTTL(unittest.TestCase):
             ) in self.g_3404181
         )
 
-    def test_aggregation(self):
+    def test_maps_chisoc_aggregation(self):
         # edm:isShownAt or edm:isShownBy are mandatory.
         predicate_exists = []
         for predicate in (
@@ -128,7 +128,7 @@ class TestTTL(unittest.TestCase):
             ) in self.g_3404181
         )
     
-    def test_resource_map(self):
+    def test_maps_chisoc_resource_map(self):
         # dcterms:created and dcterms:modified are manditory.
         predicate_exists = []
         for predicate in (
@@ -143,6 +143,15 @@ class TestTTL(unittest.TestCase):
                 ) in self.g_3404181
             )
         self.assertTrue(all(predicate_exists))
+
+    def test_mvol_cho(self):
+        raise NotImplementedError
+
+    def test_mvol_aggregation(self):
+        raise NotImplementedError
+
+    def test_mvol_resource_map(self):
+        raise NotImplementedError
 
 
 if __name__=="__main__":
