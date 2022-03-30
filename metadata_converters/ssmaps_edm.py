@@ -132,8 +132,6 @@ class SocSciMapsMarcXmlToEDM():
         self.graph.add((self.rem, RDF.type,          ORE.ResourceMap))
         self.graph.add((self.rem, ORE.describes,     self.agg))
 
-        self._build_web_resources()
-
     def _build_cho(self):
         """The cultural herigate object is the map itself. 
 
@@ -175,7 +173,18 @@ class SocSciMapsMarcXmlToEDM():
             for dc_obj_el in self.dc._asxml().findall(obj_str):
                 self.graph.add((self.cho, pre, Literal(dc_obj_el.text)))
 
-        self.graph.add((self.cho, DCTERMS.identifier, URIRef('https://n2t.net/{}'.format(self.ark))))
+        # regarding the use of Literal() on the next line, instead of
+        # URIRef()- as per a Slack message with Charles on March 29,
+        # 2022: ...the value of dcterms:identifier in SSMAPS needs to be
+        # a string: "Recommended practice is to identify the resource by
+        # means of a string conforming to an identification system.
+        # Examples include International Standard Book Number (ISBN),
+        # Digital Object Identifier (DOI), and Uniform Resource Name
+        # (URN). Persistent identifiers should be provided as HTTP
+        # URIs." As I read the preceding, dcterms:identifier
+        # <https://n2t.net/ark:61001/b2kg6jc39417> should be
+        # dcterms:identifier "https://n2t.net/ark:61001/b2kg6jc39417".
+        self.graph.add((self.cho, DCTERMS.identifier, Literal('https://n2t.net/{}'.format(self.ark))))
         self.graph.add((self.cho, DCTERMS.rights,     URIRef('https://rightsstatements.org/vocab/NoC-US/1.0/')))
         self.graph.add((self.cho, ERC.where,          URIRef('https://ark.lib.uchicago.edu/{}'.format(self.ark))))
 
@@ -202,21 +211,6 @@ class SocSciMapsMarcXmlToEDM():
         self.graph.add((self.cho, EDM.currentLocation, Literal('Map Collection Reading Room (Room 370)')))
 
         self.graph.add((self.cho, EDM.type, Literal('IMAGE')))
-
-    def _build_web_resources(self):
-        assert(len(self.master_file_metadata) == 1)
-
-        metadata = self.master_file_metadata[0]
-        self.graph.add((self.wbr, RDF.type,                  EDM.WebResource))
-        self.graph.add((self.wbr, EBUCORE.hasMimeType,       Literal('image/tiff')))
-
-        fixity = BNode()
-        self.graph.add((self.wbr, PREMIS3.fixity,            fixity))
-        self.graph.add((fixity,   RDF.type,                  URIRef('https://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions/sha512')))
-        self.graph.add((fixity,   RDF.value,                 Literal('TODO')))
-        self.graph.add((self.wbr,  PREMIS3.compositionLevel, Literal(0)))
-        self.graph.add((self.wbr, PREMIS3.originalName,      Literal(metadata['name'])))
-        self.graph.add((self.wbr, PREMIS3.size,              Literal(metadata['size'])))
 
     @classmethod
     def triples(self):
